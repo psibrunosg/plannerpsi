@@ -68,7 +68,7 @@ export const useTaskStore = create<TaskState>()(
       result = result.filter((t) => filter.priority!.includes(t.priority))
     }
     if (filter.tags?.length) {
-      result = result.filter((t) => t.tags.some((tag) => filter.tags!.includes(tag)))
+      result = result.filter((t) => t.tags?.some((tag) => filter.tags!.includes(tag)))
     }
     if (filter.search) {
       const q = filter.search.toLowerCase()

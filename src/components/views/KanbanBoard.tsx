@@ -110,30 +110,30 @@ function KanbanCard({ task, onDragStart }: KanbanCardProps) {
       )}
 
       {/* Tags */}
-      {task.tags.length > 0 && (
+      {task.tags?.length > 0 && (
         <div className="mt-2.5 flex flex-wrap gap-1">
-          {task.tags.slice(0, 3).map((tag) => (
+          {task.tags?.slice(0, 3).map((tag) => (
             <span key={tag} className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
               {tag}
             </span>
           ))}
-          {task.tags.length > 3 && (
+          {task.tags?.length > 3 && (
             <span className="text-[10px] text-text-muted">+{task.tags.length - 3}</span>
           )}
         </div>
       )}
 
       {/* Completion % */}
-      {task.completion_percentage > 0 && (
+      {(task.completion_percentage ?? 0) > 0 && (
         <div className="mt-2.5 flex items-center gap-2">
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-hover">
             <div
-              className={cn('h-full rounded-full transition-all', task.completion_percentage === 100 ? 'bg-success' : task.completion_percentage >= 50 ? 'bg-accent' : 'bg-warning')}
-              style={{ width: `${task.completion_percentage}%` }}
+              className={cn('h-full rounded-full transition-all', task.completion_percentage === 100 ? 'bg-success' : (task.completion_percentage ?? 0) >= 50 ? 'bg-accent' : 'bg-warning')}
+              style={{ width: `${task.completion_percentage ?? 0}%` }}
             />
           </div>
           <span className={cn('text-[9px] font-bold', task.completion_percentage === 100 ? 'text-success' : 'text-text-muted')}>
-            {task.completion_percentage}%
+            {task.completion_percentage ?? 0}%
           </span>
         </div>
       )}

@@ -129,8 +129,8 @@ function ListView() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <CompletionBar percentage={task.completion_percentage} />
-            {task.tags.map((tag) => (
+            <CompletionBar percentage={task.completion_percentage ?? 0} />
+            {task.tags?.map((tag) => (
               <span key={tag} className="rounded-full bg-accent/10 px-2 py-0.5 text-xs text-accent">{tag}</span>
             ))}
             <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', PRIORITY_CONFIG[task.priority].bg, PRIORITY_CONFIG[task.priority].color)}>
