@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   Sunrise, ListChecks, CalendarDays, Smile, Meh, Frown, Heart,
@@ -21,18 +21,35 @@ const MOOD_OPTIONS: { value: Mood; icon: React.ElementType; label: string; color
 
 function MorningRitual() {
   const tasks = useTaskStore((s) => s.tasks)
-  const note = usePlanningStore((s) => s.getOrCreateToday())
+  const notes = usePlanningStore((s) => s.notes)
+  const ensureTodayNote = usePlanningStore((s) => s.ensureTodayNote)
   const updateNote = usePlanningStore((s) => s.updateNote)
   const addToast = useToastStore((s) => s.addToast)
 
   const todayStr = new Date().toISOString().split('T')[0]
+  const note = notes.find((n) => n.note_date === todayStr)
 
-  const [yesterdayReview, setYesterdayReview] = useState(note.yesterday_review ?? '')
+  useEffect(() => {
+    ensureTodayNote()
+  }, [ensureTodayNote])
+
+  const [yesterdayReview, setYesterdayReview] = useState('')
   const [priorityInput, setPriorityInput] = useState('')
-  const [priorities, setPriorities] = useState<string[]>(note.today_priorities)
-  const [mood, setMood] = useState<Mood | null>(note.mood)
+  const [priorities, setPriorities] = useState<string[]>([])
+  const [mood, setMood] = useState<Mood | null>(null)
+
+  // Sync state when note is loaded
+  useEffect(() => {
+    if (note) {
+      setYesterdayReview(note.yesterday_review ?? '')
+      setPriorities(note.today_priorities ?? [])
+      setMood(note.mood ?? null)
+    }
+  }, [note])
 
   const todayTasks = tasks.filter((t) => t.due_date?.startsWith(todayStr) && t.status !== 'done' && t.status !== 'archived')
+
+  if (!note) return <div className="glass-card p-6 min-h-[300px] animate-pulse" />
 
   const handleAddPriority = () => {
     const p = priorityInput.trim()
@@ -216,13 +233,30 @@ function WeeklyReview() {
 }
 
 function DailyNotes() {
-  const note = usePlanningStore((s) => s.getOrCreateToday())
+  const notes = usePlanningStore((s) => s.notes)
+  const ensureTodayNote = usePlanningStore((s) => s.ensureTodayNote)
   const updateNote = usePlanningStore((s) => s.updateNote)
   const addToast = useToastStore((s) => s.addToast)
-  const [notes, setNotes] = useState(note.notes ?? '')
+  
+  const todayStr = new Date().toISOString().split('T')[0]
+  const note = notes.find((n) => n.note_date === todayStr)
+
+  useEffect(() => {
+    ensureTodayNote()
+  }, [ensureTodayNote])
+
+  const [noteText, setNoteText] = useState('')
+
+  useEffect(() => {
+    if (note) {
+      setNoteText(note.notes ?? '')
+    }
+  }, [note])
+
+  if (!note) return <div className="glass-card col-span-full p-6 min-h-[200px] animate-pulse" />
 
   const handleSave = () => {
-    updateNote(note.id, { notes: notes.trim() || null })
+    updateNote(note.id, { notes: noteText.trim() || null })
     addToast('Nota salva!', 'success')
   }
 
@@ -249,8 +283,8 @@ function DailyNotes() {
       </div>
 
       <textarea
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
+        value={noteText}
+        onChange={(e) => setNoteText(e.target.value)}
         placeholder="Anotações livres do dia — ideias, aprendizados, reflexões..."
         rows={5}
         className="w-full resize-none rounded-[var(--radius-sm)] bg-surface-hover px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent leading-relaxed"

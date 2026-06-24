@@ -8,7 +8,7 @@ interface PlanningState {
   updateNote: (id: string, updates: Partial<DailyNote>) => void
   deleteNote: (id: string) => void
   getNoteForDate: (date: string) => DailyNote | undefined
-  getOrCreateToday: () => DailyNote
+  ensureTodayNote: () => void
 }
 
 export const usePlanningStore = create<PlanningState>()(
@@ -32,10 +32,10 @@ export const usePlanningStore = create<PlanningState>()(
         return get().notes.find((n) => n.note_date === date)
       },
 
-      getOrCreateToday: () => {
+      ensureTodayNote: () => {
         const today = new Date().toISOString().split('T')[0]
         const existing = get().notes.find((n) => n.note_date === today)
-        if (existing) return existing
+        if (existing) return
 
         const newNote: DailyNote = {
           id: crypto.randomUUID(),
@@ -47,7 +47,6 @@ export const usePlanningStore = create<PlanningState>()(
           created_at: new Date().toISOString(),
         }
         set((s) => ({ notes: [newNote, ...s.notes] }))
-        return newNote
       },
     }),
     {
