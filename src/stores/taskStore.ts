@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { Task, TaskFilter, TaskStatus, TaskPriority } from '@/types'
 
 interface TaskState {
@@ -17,7 +18,9 @@ interface TaskState {
   filteredTasks: () => Task[]
 }
 
-export const useTaskStore = create<TaskState>((set, get) => ({
+export const useTaskStore = create<TaskState>()(
+  persist(
+    (set, get) => ({
   tasks: [],
   filter: {},
   loading: false,
@@ -83,4 +86,9 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       return a.position - b.position
     })
   },
-}))
+}),
+    {
+      name: 'planner-tasks-storage',
+    }
+  )
+)

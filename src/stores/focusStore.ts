@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { FocusSession, SessionType } from '@/types'
 
 interface FocusState {
@@ -24,75 +25,87 @@ interface FocusState {
   resumeSession: () => void
   endSession: () => void
   tick: () => void
+  updateRemaining: (remaining: number) => void
   updateSettings: (settings: Partial<FocusState['pomodoroSettings']>) => void
 }
 
-export const useFocusStore = create<FocusState>((set, get) => ({
-  sessions: [],
-  activeSession: null,
-  pomodoroSettings: {
-    workMinutes: 25,
-    shortBreakMinutes: 5,
-    longBreakMinutes: 15,
-    sessionsBeforeLong: 4,
-  },
-  completedPomodoros: 0,
-
-  setSessions: (sessions) => set({ sessions }),
-
-  startSession: (taskId, type, durationMinutes) => set({
-    activeSession: {
-      taskId,
-      type,
-      startedAt: Date.now(),
-      duration: durationMinutes * 60,
-      remaining: durationMinutes * 60,
-      isPaused: false,
-    },
-  }),
-
-  pauseSession: () => set((s) => ({
-    activeSession: s.activeSession ? { ...s.activeSession, isPaused: true } : null,
-  })),
-
-  resumeSession: () => set((s) => ({
-    activeSession: s.activeSession ? { ...s.activeSession, isPaused: false } : null,
-  })),
-
-  endSession: () => {
-    const { activeSession } = get()
-    if (!activeSession) return
-
-    const session: FocusSession = {
-      id: crypto.randomUUID(),
-      task_id: activeSession.taskId,
-      started_at: new Date(activeSession.startedAt).toISOString(),
-      ended_at: new Date().toISOString(),
-      duration_minutes: Math.round((activeSession.duration - activeSession.remaining) / 60),
-      session_type: activeSession.type,
-      created_at: new Date().toISOString(),
-    }
-
-    set((s) => ({
+export const useFocusStore = create<FocusState>()(
+  persist(
+    (set, get) => ({
+      sessions: [],
       activeSession: null,
-      sessions: [session, ...s.sessions],
-      completedPomodoros: activeSession.type === 'pomodoro'
-        ? s.completedPomodoros + 1
-        : s.completedPomodoros,
-    }))
-  },
+      pomodoroSettings: {
+        workMinutes: 25,
+        shortBreakMinutes: 5,
+        longBreakMinutes: 15,
+        sessionsBeforeLong: 4,
+      },
+      completedPomodoros: 0,
 
-  tick: () => set((s) => {
-    if (!s.activeSession || s.activeSession.isPaused) return s
-    const remaining = s.activeSession.remaining - 1
-    if (remaining <= 0) {
-      get().endSession()
-      return s
+      setSessions: (sessions) => set({ sessions }),
+
+      startSession: (taskId, type, durationMinutes) => set({
+        activeSession: {
+          taskId,
+          type,
+          startedAt: Date.now(),
+          duration: durationMinutes * 60,
+          remaining: durationMinutes * 60,
+          isPaused: false,
+        },
+      }),
+
+      pauseSession: () => set((s) => ({
+        activeSession: s.activeSession ? { ...s.activeSession, isPaused: true } : null,
+      })),
+
+      resumeSession: () => set((s) => ({
+        activeSession: s.activeSession ? { ...s.activeSession, isPaused: false } : null,
+      })),
+
+      endSession: () => {
+        const { activeSession } = get()
+        if (!activeSession) return
+
+        const session: FocusSession = {
+          id: crypto.randomUUID(),
+          task_id: activeSession.taskId,
+          started_at: new Date(activeSession.startedAt).toISOString(),
+          ended_at: new Date().toISOString(),
+          duration_minutes: Math.round((activeSession.duration - activeSession.remaining) / 60),
+          session_type: activeSession.type,
+          created_at: new Date().toISOString(),
+        }
+
+        set((s) => ({
+          activeSession: null,
+          sessions: [session, ...s.sessions],
+          completedPomodoros: activeSession.type === 'pomodoro'
+            ? s.completedPomodoros + 1
+            : s.completedPomodoros,
+        }))
+      },
+
+      tick: () => set((s) => {
+        if (!s.activeSession || s.activeSession.isPaused) return s
+        const remaining = s.activeSession.remaining - 1
+        if (remaining <= 0) {
+          setTimeout(() => get().endSession(), 0)
+          return s
+        }
+        return { activeSession: { ...s.activeSession, remaining } }
+      }),
+
+      updateRemaining: (remaining) => set((s) => ({
+        activeSession: s.activeSession ? { ...s.activeSession, remaining } : null
+      })),
+
+      updateSettings: (settings) => set({
+        pomodoroSettings: { ...get().pomodoroSettings, ...settings },
+      }),
+    }),
+    {
+      name: 'planner-focus-storage',
     }
-    return { activeSession: { ...s.activeSession, remaining } }
-  }),
-
-  updateSettings: (settings) => set((s) => ({
-    pomodoroSettings: { ...s.pomodoroSettings, ...settings },
-  })),
-}))
+  )
+)
