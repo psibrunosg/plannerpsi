@@ -108,20 +108,18 @@ function ListView() {
   return (
     <div className="space-y-2">
       {filteredTasks.map((task) => (
-        <motion.div key={task.id} layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-          whileHover={{ scale: 1.005, x: 2 }} onClick={() => useUIStore.getState().setTaskDetailId(task.id)}
-          className="glass-card flex cursor-pointer items-center gap-4 p-4">
-          <motion.button whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.8 }}
+        <div key={task.id} onClick={() => useUIStore.getState().setTaskDetailId(task.id)}
+          className="glass-card flex cursor-pointer items-center gap-4 p-4 hover:translate-x-0.5 hover:shadow-md transition-all">
+          <button
             onClick={(e) => { e.stopPropagation(); task.status === 'done' ? useTaskStore.getState().updateTask(task.id, { status: 'todo', completed_at: null, completion_percentage: 0 }) : useTaskStore.getState().completeTask(task.id) }}
             className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
               task.status === 'done' ? 'border-success bg-success/20 text-success' : 'border-text-muted hover:border-accent')}>
             {task.status === 'done' && (
-              <motion.svg initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.3 }}
-                className="h-3 w-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-                <motion.path d="M2 6L5 9L10 3" />
-              </motion.svg>
+              <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M2 6L5 9L10 3" />
+              </svg>
             )}
-          </motion.button>
+          </button>
 
           <div className="flex-1 min-w-0">
             <p className={cn('text-sm font-medium truncate', task.status === 'done' ? 'text-text-muted line-through' : 'text-text-primary')}>{task.title}</p>
@@ -138,7 +136,7 @@ function ListView() {
             </span>
             <span className={cn('text-xs', STATUS_CONFIG[task.status].color)}>{STATUS_CONFIG[task.status].label}</span>
           </div>
-        </motion.div>
+        </div>
       ))}
     </div>
   )

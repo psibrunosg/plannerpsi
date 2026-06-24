@@ -46,17 +46,11 @@ function KanbanCard({ task, onDragStart }: KanbanCardProps) {
   const overdue = isOverdue(task)
 
   return (
-    <motion.div
-      layout
-      layoutId={`kanban-card-${task.id}`}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      whileHover={{ y: -2, boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}
+    <div
       draggable
       onDragStart={(e) => onDragStart(e as unknown as React.DragEvent, task.id)}
       onClick={() => setTaskDetailId(task.id)}
-      className="glass-card group cursor-grab active:cursor-grabbing p-3.5 select-none"
+      className="glass-card group cursor-grab active:cursor-grabbing p-3.5 select-none hover:-translate-y-0.5 hover:shadow-lg transition-all"
     >
       {/* Grip + Priority */}
       <div className="mb-2 flex items-center justify-between">
@@ -72,9 +66,7 @@ function KanbanCard({ task, onDragStart }: KanbanCardProps) {
         </div>
 
         {/* Complete button */}
-        <motion.button
-          whileHover={{ scale: 1.2 }}
-          whileTap={{ scale: 0.8 }}
+        <button
           onClick={(e) => {
             e.stopPropagation()
             task.status === 'done'
@@ -82,7 +74,7 @@ function KanbanCard({ task, onDragStart }: KanbanCardProps) {
               : completeTask(task.id)
           }}
           className={cn(
-            'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+            'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors hover:scale-110 active:scale-95',
             task.status === 'done'
               ? 'border-success bg-success/20 text-success'
               : 'border-text-muted/40 hover:border-accent opacity-0 group-hover:opacity-100',
@@ -93,7 +85,7 @@ function KanbanCard({ task, onDragStart }: KanbanCardProps) {
               <path d="M2 6L5 9L10 3" />
             </svg>
           )}
-        </motion.button>
+        </button>
       </div>
 
       {/* Title */}
@@ -158,7 +150,7 @@ function KanbanCard({ task, onDragStart }: KanbanCardProps) {
           )}
         </div>
       )}
-    </motion.div>
+    </div>
   )
 }
 
