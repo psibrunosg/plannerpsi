@@ -1,0 +1,98 @@
+import { create } from 'zustand'
+import type { FocusSession, SessionType } from '@/types'
+
+interface FocusState {
+  sessions: FocusSession[]
+  activeSession: {
+    taskId: string | null
+    type: SessionType
+    startedAt: number
+    duration: number
+    remaining: number
+    isPaused: boolean
+  } | null
+  pomodoroSettings: {
+    workMinutes: number
+    shortBreakMinutes: number
+    longBreakMinutes: number
+    sessionsBeforeLong: number
+  }
+  completedPomodoros: number
+  setSessions: (sessions: FocusSession[]) => void
+  startSession: (taskId: string | null, type: SessionType, durationMinutes: number) => void
+  pauseSession: () => void
+  resumeSession: () => void
+  endSession: () => void
+  tick: () => void
+  updateSettings: (settings: Partial<FocusState['pomodoroSettings']>) => void
+}
+
+export const useFocusStore = create<FocusState>((set, get) => ({
+  sessions: [],
+  activeSession: null,
+  pomodoroSettings: {
+    workMinutes: 25,
+    shortBreakMinutes: 5,
+    longBreakMinutes: 15,
+    sessionsBeforeLong: 4,
+  },
+  completedPomodoros: 0,
+
+  setSessions: (sessions) => set({ sessions }),
+
+  startSession: (taskId, type, durationMinutes) => set({
+    activeSession: {
+      taskId,
+      type,
+      startedAt: Date.now(),
+      duration: durationMinutes * 60,
+      remaining: durationMinutes * 60,
+      isPaused: false,
+    },
+  }),
+
+  pauseSession: () => set((s) => ({
+    activeSession: s.activeSession ? { ...s.activeSession, isPaused: true } : null,
+  })),
+
+  resumeSession: () => set((s) => ({
+    activeSession: s.activeSession ? { ...s.activeSession, isPaused: false } : null,
+  })),
+
+  endSession: () => {
+    const { activeSession } = get()
+    if (!activeSession) return
+
+    const session: FocusSession = {
+      id: crypto.randomUUID(),
+      task_id: activeSession.taskId,
+      started_at: new Date(activeSession.startedAt).toISOString(),
+      ended_at: new Date().toISOString(),
+      duration_minutes: Math.round((activeSession.duration - activeSession.remaining) / 60),
+      session_type: activeSession.type,
+      created_at: new Date().toISOString(),
+    }
+
+    set((s) => ({
+      activeSession: null,
+      sessions: [session, ...s.sessions],
+      completedPomodoros: activeSession.type === 'pomodoro'
+        ? s.completedPomodoros + 1
+        : s.completedPomodoros,
+    }))
+  },
+
+  tick: () => set((s) => {
+    if (!s.activeSession || s.activeSession.isPaused) return s
+    const remaining = s.activeSession.remaining - 1
+    if (remaining <= 0) {
+      get().endSession()
+      return s
+    }
+    return { activeSession: { ...s.activeSession, remaining } }
+  }),
+
+  updateSettings: (settings) => set((s) => ({
+    pomodoroSettings: { ...s.pomodoroSettings, ...settings },
+  })),
+}))
