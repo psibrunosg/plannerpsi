@@ -5,6 +5,7 @@ import {
   CheckSquare,
   Timer,
   CalendarDays,
+  ClipboardList,
   Settings,
   PanelLeftClose,
   PanelLeft,
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { path: '/tasks', icon: CheckSquare, label: 'Tarefas' },
   { path: '/focus', icon: Timer, label: 'Foco' },
   { path: '/planning', icon: CalendarDays, label: 'Planejamento' },
+  { path: '/procedures', icon: ClipboardList, label: 'Procedimentos' },
   { path: '/settings', icon: Settings, label: 'Configurações' },
 ]
 

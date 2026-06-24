@@ -8,6 +8,7 @@ import Dashboard from '@/pages/Dashboard'
 import Tasks from '@/pages/Tasks'
 import Focus from '@/pages/Focus'
 import Planning from '@/pages/Planning'
+import Procedures from '@/pages/Procedures'
 import Settings from '@/pages/Settings'
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/focus" element={<Focus />} />
             <Route path="/planning" element={<Planning />} />
+            <Route path="/procedures" element={<Procedures />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </AnimatePresence>

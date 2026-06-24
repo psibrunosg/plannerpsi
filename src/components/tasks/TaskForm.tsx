@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Calendar, Tag, Flag, Clock, AlignLeft } from 'lucide-react'
+import { X, Calendar, Tag, Flag, Clock, AlignLeft, Percent } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { modalOverlay, modalContent } from '@/lib/motion'
 import { useUIStore } from '@/stores/uiStore'
 import { useTaskStore } from '@/stores/taskStore'
 import { useToastStore } from '@/stores/toastStore'
 import type { TaskPriority, TaskStatus } from '@/types'
-import { PRIORITY_CONFIG } from '@/types'
+import { PRIORITY_CONFIG, SMART_DATE_TAGS } from '@/types'
 
 export function TaskForm() {
   const taskFormOpen = useUIStore((s) => s.taskFormOpen)
@@ -23,6 +23,8 @@ export function TaskForm() {
   const [estimatedMinutes, setEstimatedMinutes] = useState('')
   const [tagInput, setTagInput] = useState('')
   const [tags, setTags] = useState<string[]>([])
+  const [completionPercentage, setCompletionPercentage] = useState(0)
+  const [selectedDateTag, setSelectedDateTag] = useState<string | null>(null)
 
   const reset = () => {
     setTitle('')
@@ -32,6 +34,22 @@ export function TaskForm() {
     setEstimatedMinutes('')
     setTagInput('')
     setTags([])
+    setCompletionPercentage(0)
+    setSelectedDateTag(null)
+  }
+
+  const handleSelectDateTag = (tagId: string) => {
+    const tag = SMART_DATE_TAGS.find((t) => t.id === tagId)
+    if (!tag) return
+
+    if (selectedDateTag === tagId) {
+      setSelectedDateTag(null)
+      setDueDate('')
+      return
+    }
+
+    setSelectedDateTag(tagId)
+    setDueDate(tag.getDate())
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -44,7 +62,7 @@ export function TaskForm() {
       description: description.trim() || null,
       status: _status,
       priority,
-      due_date: dueDate ? new Date(dueDate).toISOString() : null,
+      due_date: dueDate ? new Date(dueDate + 'T12:00:00').toISOString() : null,
       estimated_minutes: estimatedMinutes ? parseInt(estimatedMinutes) : null,
       actual_minutes: null,
       parent_id: null,
@@ -54,6 +72,7 @@ export function TaskForm() {
       completed_at: null,
       position: 0,
       kanban_column: _status,
+      completion_percentage: completionPercentage,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       user_id: null,
@@ -105,8 +124,35 @@ export function TaskForm() {
 
               <div className="flex items-start gap-2">
                 <AlignLeft className="mt-1 h-4 w-4 shrink-0 text-text-muted" />
-                <textarea placeholder="Descrição (opcional)..." value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
+                <textarea placeholder="Descrição (opcional)..." value={description} onChange={(e) => setDescription(e.target.value)} rows={2}
                   className="w-full resize-none rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent" />
+              </div>
+
+              {/* Smart Date Tags */}
+              <div>
+                <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-text-muted">
+                  <Calendar className="h-3.5 w-3.5" />
+                  Data rápida
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {SMART_DATE_TAGS.map((tag) => (
+                    <motion.button
+                      key={tag.id}
+                      type="button"
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => handleSelectDateTag(tag.id)}
+                      className={cn(
+                        'rounded-full px-3 py-1 text-xs font-medium transition-all',
+                        selectedDateTag === tag.id
+                          ? cn(tag.bg, tag.color, 'ring-1 ring-current')
+                          : 'bg-surface-hover text-text-muted hover:text-text-secondary',
+                      )}
+                    >
+                      {tag.label}
+                    </motion.button>
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -122,7 +168,7 @@ export function TaskForm() {
 
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 shrink-0 text-text-muted" />
-                  <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
+                  <input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); setSelectedDateTag(null) }}
                     className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent" />
                 </div>
 
@@ -137,6 +183,27 @@ export function TaskForm() {
                   <input type="text" placeholder="Tag + Enter" value={tagInput} onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTag() } }}
                     className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent" />
+                </div>
+              </div>
+
+              {/* Completion % slider */}
+              <div>
+                <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-text-muted">
+                  <Percent className="h-3.5 w-3.5" />
+                  Conclusão: {completionPercentage}%
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={completionPercentage}
+                    onChange={(e) => setCompletionPercentage(Number(e.target.value))}
+                    className="w-full h-1.5 rounded-full appearance-none bg-surface-hover accent-accent cursor-pointer
+                      [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:shadow-md"
+                  />
+                  <span className="min-w-[3ch] text-right text-sm font-bold text-accent">{completionPercentage}%</span>
                 </div>
               </div>
 
