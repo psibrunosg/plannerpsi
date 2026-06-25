@@ -115,11 +115,10 @@ export const useTaskStore = create<TaskState>()(
     {
       name: 'planner-tasks-storage',
       partialize: (state) => ({ tasks: state.tasks }),
-      onRehydrateStorage: () => (state) => {
-        if (state?.tasks) {
-          state.tasks = state.tasks.map(sanitizeTask)
-        }
-      },
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        tasks: ((persistedState as any)?.tasks || []).map(sanitizeTask),
+      }),
     }
   )
 )

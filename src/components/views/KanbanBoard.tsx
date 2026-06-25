@@ -155,7 +155,9 @@ function KanbanCard({ task, onDragStart }: KanbanCardProps) {
 }
 
 export function KanbanBoard() {
-  const tasks = useTaskStore((s) => s.filteredTasks())
+  const allTasks = useTaskStore((s) => s.tasks)
+  const filter = useTaskStore((s) => s.filter)
+  const tasks = useMemo(() => useTaskStore.getState().filteredTasks(), [allTasks, filter])
   const moveTask = useTaskStore((s) => s.moveTask)
   const setTaskFormOpen = useUIStore((s) => s.setTaskFormOpen)
   const [dragOverColumn, setDragOverColumn] = useState<TaskStatus | null>(null)

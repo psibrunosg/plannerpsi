@@ -152,7 +152,9 @@ function StatusGroup({ status, tasks, startDate, dayWidth, defaultOpen = true }:
 }
 
 export function TimelineView() {
-  const tasks = useTaskStore((s) => s.filteredTasks())
+  const allTasks = useTaskStore((s) => s.tasks)
+  const filter = useTaskStore((s) => s.filter)
+  const tasks = useMemo(() => useTaskStore.getState().filteredTasks(), [allTasks, filter])
   const [startDate, setStartDate] = useState(() => startOfDay(new Date()))
   const dayWidth = 72
 
