@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Calendar, Tag, Flag, Clock, AlignLeft, Percent } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -12,8 +12,16 @@ import { PRIORITY_CONFIG, SMART_DATE_TAGS } from '@/types'
 export function TaskForm() {
   const taskFormOpen = useUIStore((s) => s.taskFormOpen)
   const setTaskFormOpen = useUIStore((s) => s.setTaskFormOpen)
+  const taskDetailId = useUIStore((s) => s.taskDetailId)
+  const setTaskDetailId = useUIStore((s) => s.setTaskDetailId)
+  const tasks = useTaskStore((s) => s.tasks)
   const addTask = useTaskStore((s) => s.addTask)
+  const updateTask = useTaskStore((s) => s.updateTask)
+  const deleteTask = useTaskStore((s) => s.deleteTask)
   const addToast = useToastStore((s) => s.addToast)
+
+  const isOpen = taskFormOpen || !!taskDetailId
+  const isEditing = !!taskDetailId
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -38,6 +46,30 @@ export function TaskForm() {
     setSelectedDateTag(null)
   }
 
+  const closeForm = () => {
+    setTaskFormOpen(false)
+    setTaskDetailId(null)
+    setTimeout(reset, 200) // Reset after animation
+  }
+
+  useEffect(() => {
+    if (taskDetailId) {
+      const task = tasks.find(t => t.id === taskDetailId)
+      if (task) {
+        setTitle(task.title)
+        setDescription(task.description || '')
+        setPriority(task.priority)
+        setDueDate(task.due_date ? task.due_date.split('T')[0] : '')
+        setEstimatedMinutes(task.estimated_minutes?.toString() || '')
+        setTags(task.tags || [])
+        setCompletionPercentage(task.completion_percentage || 0)
+        setSelectedDateTag(null)
+      }
+    } else if (taskFormOpen) {
+      reset()
+    }
+  }, [taskDetailId, taskFormOpen, tasks])
+
   const handleSelectDateTag = (tagId: string) => {
     const tag = SMART_DATE_TAGS.find((t) => t.id === tagId)
     if (!tag) return
@@ -56,31 +88,52 @@ export function TaskForm() {
     e.preventDefault()
     if (!title.trim()) return
 
-    addTask({
-      id: crypto.randomUUID(),
+    const taskData = {
       title: title.trim(),
       description: description.trim() || null,
-      status: _status,
       priority,
       due_date: dueDate ? new Date(dueDate + 'T12:00:00').toISOString() : null,
       estimated_minutes: estimatedMinutes ? parseInt(estimatedMinutes) : null,
-      actual_minutes: null,
-      parent_id: null,
       tags,
-      is_recurring: false,
-      recurrence_rule: null,
-      completed_at: null,
-      position: 0,
-      kanban_column: _status,
       completion_percentage: completionPercentage,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      user_id: null,
-    })
+    }
 
-    addToast('Tarefa criada!', 'success')
-    reset()
-    setTaskFormOpen(false)
+    if (isEditing && taskDetailId) {
+      updateTask(taskDetailId, {
+        ...taskData,
+        updated_at: new Date().toISOString(),
+      })
+      addToast('Tarefa atualizada!', 'success')
+    } else {
+      addTask({
+        id: crypto.randomUUID(),
+        ...taskData,
+        status: _status,
+        actual_minutes: null,
+        parent_id: null,
+        is_recurring: false,
+        recurrence_rule: null,
+        completed_at: null,
+        position: 0,
+        kanban_column: _status,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        user_id: null,
+      })
+      addToast('Tarefa criada!', 'success')
+    }
+
+    closeForm()
+  }
+
+  const handleDelete = () => {
+    if (isEditing && taskDetailId) {
+      if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
+        deleteTask(taskDetailId)
+        addToast('Tarefa excluída!', 'success')
+        closeForm()
+      }
+    }
   }
 
   const handleAddTag = () => {
@@ -93,7 +146,7 @@ export function TaskForm() {
 
   return (
     <AnimatePresence>
-      {taskFormOpen && (
+      {isOpen && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           variants={modalOverlay}
@@ -101,7 +154,7 @@ export function TaskForm() {
           animate="visible"
           exit="exit"
         >
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setTaskFormOpen(false)} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeForm} />
 
           <motion.div
             className="glass relative w-full max-w-lg rounded-[var(--radius-lg)] shadow-2xl"
@@ -111,8 +164,8 @@ export function TaskForm() {
             exit="exit"
           >
             <div className="flex items-center justify-between border-b border-border-subtle px-6 py-4">
-              <h2 className="text-lg font-semibold text-text-primary">Nova Tarefa</h2>
-              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setTaskFormOpen(false)}
+              <h2 className="text-lg font-semibold text-text-primary">{isEditing ? 'Editar Tarefa' : 'Nova Tarefa'}</h2>
+              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={closeForm}
                 className="text-text-muted hover:text-text-secondary">
                 <X className="h-5 w-5" />
               </motion.button>
@@ -218,14 +271,22 @@ export function TaskForm() {
                 </div>
               )}
 
-              <div className="flex justify-end gap-2 border-t border-border-subtle pt-4">
-                <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setTaskFormOpen(false)}
-                  className="rounded-[var(--radius-sm)] px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Cancelar</motion.button>
-                <motion.button type="submit" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} disabled={!title.trim()}
-                  className={cn('rounded-[var(--radius-sm)] px-4 py-2 text-sm font-medium text-white',
-                    title.trim() ? 'bg-accent hover:bg-accent-hover' : 'bg-accent/40 cursor-not-allowed')}>
-                  Criar Tarefa
-                </motion.button>
+              <div className="flex justify-between gap-2 border-t border-border-subtle pt-4">
+                <div>
+                  {isEditing && (
+                    <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleDelete}
+                      className="rounded-[var(--radius-sm)] px-4 py-2 text-sm text-red-500 hover:bg-red-500/10">Excluir</motion.button>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={closeForm}
+                    className="rounded-[var(--radius-sm)] px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Cancelar</motion.button>
+                  <motion.button type="submit" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} disabled={!title.trim()}
+                    className={cn('rounded-[var(--radius-sm)] px-4 py-2 text-sm font-medium text-white',
+                      title.trim() ? 'bg-accent hover:bg-accent-hover' : 'bg-accent/40 cursor-not-allowed')}>
+                    {isEditing ? 'Salvar' : 'Criar Tarefa'}
+                  </motion.button>
+                </div>
               </div>
             </form>
           </motion.div>
