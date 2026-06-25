@@ -76,6 +76,7 @@ export const useProcedureStore = create<ProcedureState>()(
     }),
     {
       name: 'planner-procedures-storage',
+      partialize: (state) => ({ procedures: state.procedures }),
     }
   )
 )

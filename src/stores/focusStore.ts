@@ -97,7 +97,7 @@ export const useFocusStore = create<FocusState>()(
       }),
 
       updateRemaining: (remaining) => set((s) => ({
-        activeSession: s.activeSession ? { ...s.activeSession, remaining } : null
+        activeSession: s.activeSession ? { ...s.activeSession, remaining } : null,
       })),
 
       updateSettings: (settings) => set({
@@ -106,6 +106,11 @@ export const useFocusStore = create<FocusState>()(
     }),
     {
       name: 'planner-focus-storage',
+      partialize: (state) => ({
+        sessions: state.sessions,
+        pomodoroSettings: state.pomodoroSettings,
+        completedPomodoros: state.completedPomodoros,
+      }),
     }
   )
 )

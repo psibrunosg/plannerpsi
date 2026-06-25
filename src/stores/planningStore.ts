@@ -51,6 +51,7 @@ export const usePlanningStore = create<PlanningState>()(
     }),
     {
       name: 'planner-planning-storage',
+      partialize: (state) => ({ notes: state.notes }),
     }
   )
 )
