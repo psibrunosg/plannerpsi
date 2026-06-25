@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GripVertical, Calendar, Clock, Plus } from 'lucide-react'
 import { cn } from '@/lib/cn'

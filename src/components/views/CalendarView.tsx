@@ -136,7 +136,9 @@ function DayPopover({ date, tasks, onClose }: DayPopoverProps) {
 }
 
 export function CalendarView() {
-  const tasks = useTaskStore((s) => s.filteredTasks())
+  const allTasks = useTaskStore((s) => s.tasks)
+  const filter = useTaskStore((s) => s.filter)
+  const tasks = useMemo(() => useTaskStore.getState().filteredTasks(), [allTasks, filter])
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState<Date | null>(null)
 
