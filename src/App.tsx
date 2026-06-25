@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { AppShell } from '@/components/layout/AppShell'
@@ -12,6 +12,7 @@ import Planning from '@/pages/Planning'
 import Procedures from '@/pages/Procedures'
 import Settings from '@/pages/Settings'
 import Login from '@/pages/Login'
+import { migrateLocalDataToSupabase } from '@/lib/migration'
 import { useAuthStore } from '@/stores/authStore'
 import { useTaskStore } from '@/stores/taskStore'
 import { usePlanningStore } from '@/stores/planningStore'
@@ -24,21 +25,35 @@ export default function App() {
   const initialized = useAuthStore(s => s.initialized)
   const session = useAuthStore(s => s.session)
 
+  const [isMigrating, setIsMigrating] = useState(false)
+
   useEffect(() => {
     initialize()
   }, [initialize])
 
   useEffect(() => {
     if (session) {
-      useTaskStore.getState().fetchTasks()
-      usePlanningStore.getState().fetchNotes()
-      useFocusStore.getState().fetchSessions()
-      useProcedureStore.getState().fetchProcedures()
+      const initData = async () => {
+        setIsMigrating(true)
+        try {
+          await migrateLocalDataToSupabase(session.user.id)
+        } catch (err) {
+          console.error('Migration error:', err)
+        }
+        await Promise.all([
+          useTaskStore.getState().fetchTasks(),
+          usePlanningStore.getState().fetchNotes(),
+          useFocusStore.getState().fetchSessions(),
+          useProcedureStore.getState().fetchProcedures()
+        ])
+        setIsMigrating(false)
+      }
+      initData()
     }
   }, [session])
 
-  if (!initialized) {
-    return <div className="flex min-h-screen items-center justify-center bg-surface"><div className="text-accent animate-pulse">Carregando...</div></div>
+  if (!initialized || isMigrating) {
+    return <div className="flex min-h-screen items-center justify-center bg-surface"><div className="text-accent animate-pulse">Carregando e sincronizando dados...</div></div>
   }
 
   if (!session) {
