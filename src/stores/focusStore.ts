@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/authStore'
 import type { FocusSession, SessionType } from '@/types'
 
 interface FocusState {
@@ -19,11 +21,13 @@ interface FocusState {
     sessionsBeforeLong: number
   }
   completedPomodoros: number
+  loading: boolean
   setSessions: (sessions: FocusSession[]) => void
+  fetchSessions: () => Promise<void>
   startSession: (taskId: string | null, type: SessionType, durationMinutes: number) => void
   pauseSession: () => void
   resumeSession: () => void
-  endSession: () => void
+  endSession: () => Promise<void>
   tick: () => void
   updateRemaining: (remaining: number) => void
   updateSettings: (settings: Partial<FocusState['pomodoroSettings']>) => void
@@ -41,8 +45,34 @@ export const useFocusStore = create<FocusState>()(
         sessionsBeforeLong: 4,
       },
       completedPomodoros: 0,
+      loading: false,
 
       setSessions: (sessions) => set({ sessions }),
+
+      fetchSessions: async () => {
+        const user = useAuthStore.getState().user
+        if (!user) return
+        set({ loading: true })
+        
+        // Only fetch today's sessions to calculate completedPomodoros correctly, or fetch recent ones
+        const { data, error } = await supabase
+          .from('focus_sessions')
+          .select('*')
+          .order('started_at', { ascending: false })
+          .limit(50)
+          
+        if (!error && data) {
+          const today = new Date().toISOString().split('T')[0]
+          const completedToday = data.filter(s => 
+            s.session_type === 'pomodoro' && 
+            s.started_at.startsWith(today)
+          ).length
+
+          set({ sessions: data, completedPomodoros: completedToday, loading: false })
+        } else {
+          set({ loading: false })
+        }
+      },
 
       startSession: (taskId, type, durationMinutes) => set({
         activeSession: {
@@ -63,7 +93,7 @@ export const useFocusStore = create<FocusState>()(
         activeSession: s.activeSession ? { ...s.activeSession, isPaused: false } : null,
       })),
 
-      endSession: () => {
+      endSession: async () => {
         const { activeSession } = get()
         if (!activeSession) return
 
@@ -84,6 +114,15 @@ export const useFocusStore = create<FocusState>()(
             ? s.completedPomodoros + 1
             : s.completedPomodoros,
         }))
+
+        const user = useAuthStore.getState().user
+        if (user) {
+          const { error } = await supabase.from('focus_sessions').insert({
+            ...session,
+            user_id: user.id
+          })
+          if (error) console.error('Error saving focus session:', error)
+        }
       },
 
       tick: () => set((s) => {

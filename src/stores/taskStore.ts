@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/authStore'
 import type { Task, TaskFilter, TaskStatus, TaskPriority } from '@/types'
 
 // Helper: ensure a task loaded from localStorage has all required fields
@@ -32,11 +34,12 @@ interface TaskState {
   filter: TaskFilter
   loading: boolean
   setTasks: (tasks: Task[]) => void
-  addTask: (task: Task) => void
-  updateTask: (id: string, updates: Partial<Task>) => void
-  deleteTask: (id: string) => void
-  completeTask: (id: string) => void
-  moveTask: (id: string, status: TaskStatus, position?: number) => void
+  fetchTasks: () => Promise<void>
+  addTask: (task: Task) => Promise<void>
+  updateTask: (id: string, updates: Partial<Task>) => Promise<void>
+  deleteTask: (id: string) => Promise<void>
+  completeTask: (id: string) => Promise<void>
+  moveTask: (id: string, status: TaskStatus, position?: number) => Promise<void>
   setFilter: (filter: Partial<TaskFilter>) => void
   clearFilter: () => void
   setLoading: (loading: boolean) => void
@@ -52,31 +55,93 @@ export const useTaskStore = create<TaskState>()(
 
       setTasks: (tasks) => set({ tasks }),
 
-      addTask: (task) => set((s) => ({ tasks: [task, ...s.tasks] })),
+      fetchTasks: async () => {
+        const user = useAuthStore.getState().user
+        if (!user) return
+        set({ loading: true })
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .order('created_at', { ascending: false })
+        
+        if (!error && data) {
+          set({ tasks: data.map(sanitizeTask), loading: false })
+        } else {
+          set({ loading: false })
+        }
+      },
 
-      updateTask: (id, updates) => set((s) => ({
-        tasks: s.tasks.map((t) => t.id === id ? { ...t, ...updates, updated_at: new Date().toISOString() } : t),
-      })),
+      addTask: async (task) => {
+        const user = useAuthStore.getState().user
+        const taskWithUser = { ...task, user_id: user?.id || null }
+        set((s) => ({ tasks: [taskWithUser, ...s.tasks] }))
+        
+        if (user) {
+          const { error } = await supabase.from('tasks').insert(taskWithUser)
+          if (error) console.error('Error adding task to Supabase:', error)
+        }
+      },
 
-      deleteTask: (id) => set((s) => ({
-        tasks: s.tasks.filter((t) => t.id !== id),
-      })),
+      updateTask: async (id, updates) => {
+        const updated_at = new Date().toISOString()
+        set((s) => ({
+          tasks: s.tasks.map((t) => t.id === id ? { ...t, ...updates, updated_at } : t),
+        }))
+        
+        const user = useAuthStore.getState().user
+        if (user) {
+          const { error } = await supabase.from('tasks').update({ ...updates, updated_at }).eq('id', id)
+          if (error) console.error('Error updating task:', error)
+        }
+      },
 
-      completeTask: (id) => set((s) => ({
-        tasks: s.tasks.map((t) =>
-          t.id === id
-            ? { ...t, status: 'done' as TaskStatus, completed_at: new Date().toISOString(), completion_percentage: 100, updated_at: new Date().toISOString() }
-            : t
-        ),
-      })),
+      deleteTask: async (id) => {
+        set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) }))
+        const user = useAuthStore.getState().user
+        if (user) {
+          const { error } = await supabase.from('tasks').delete().eq('id', id)
+          if (error) console.error('Error deleting task:', error)
+        }
+      },
 
-      moveTask: (id, status, position) => set((s) => ({
-        tasks: s.tasks.map((t) =>
-          t.id === id
-            ? { ...t, status, kanban_column: status, position: position ?? t.position, updated_at: new Date().toISOString() }
-            : t
-        ),
-      })),
+      completeTask: async (id) => {
+        const task = get().tasks.find((t) => t.id === id)
+        if (!task) return
+        
+        const isCompleting = task.status !== 'done'
+        const updates: Partial<Task> = {
+          status: isCompleting ? 'done' : 'todo',
+          kanban_column: isCompleting ? 'done' : 'todo',
+          completed_at: isCompleting ? new Date().toISOString() : null,
+          completion_percentage: isCompleting ? 100 : 0,
+        }
+        
+        await get().updateTask(id, updates)
+      },
+
+      moveTask: async (id, status, position) => {
+        const tasks = [...get().tasks]
+        const taskIndex = tasks.findIndex(t => t.id === id)
+        if (taskIndex === -1) return
+
+        const task = tasks[taskIndex]
+        const isCompleting = status === 'done' && task.status !== 'done'
+        
+        const updates: Partial<Task> = {
+          status,
+          kanban_column: status,
+          position: position ?? task.position,
+        }
+
+        if (isCompleting) {
+          updates.completed_at = new Date().toISOString()
+          updates.completion_percentage = 100
+        } else if (status !== 'done') {
+          updates.completed_at = null
+        }
+
+        await get().updateTask(id, updates)
+      },
 
       setFilter: (filter) => set((s) => ({ filter: { ...s.filter, ...filter } })),
       clearFilter: () => set({ filter: {} }),
