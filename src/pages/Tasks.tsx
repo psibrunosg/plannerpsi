@@ -28,19 +28,21 @@ function filterByDateTag(tasks: Task[], tag: DateTagId): Task[] {
   const now = new Date()
   const todayStr = getDateOnly(now.toISOString())
 
-  // Get this Friday
+  // Get this Sunday
   const day = now.getDay()
-  const friday = new Date(now)
-  friday.setDate(now.getDate() + (day <= 5 ? 5 - day : 5 + 7 - day))
-  const fridayStr = getDateOnly(friday.toISOString())
+  const daysToSunday = day === 0 ? 0 : 7 - day
+  const thisSunday = new Date(now)
+  thisSunday.setDate(now.getDate() + daysToSunday)
+  const thisSundayStr = getDateOnly(thisSunday.toISOString())
 
-  // Get next Monday + Friday
-  const nextMon = new Date(now)
-  nextMon.setDate(now.getDate() + (day === 0 ? 1 : 8 - day))
+  // Get next Monday + Sunday
+  const nextMon = new Date(thisSunday)
+  nextMon.setDate(thisSunday.getDate() + 1)
   const nextMonStr = getDateOnly(nextMon.toISOString())
-  const nextFri = new Date(nextMon)
-  nextFri.setDate(nextMon.getDate() + 4)
-  const nextFriStr = getDateOnly(nextFri.toISOString())
+  
+  const nextSun = new Date(nextMon)
+  nextSun.setDate(nextMon.getDate() + 6)
+  const nextSunStr = getDateOnly(nextSun.toISOString())
 
   // Tomorrow
   const tmrw = new Date(now)
@@ -55,11 +57,11 @@ function filterByDateTag(tasks: Task[], tag: DateTagId): Task[] {
     case 'tomorrow':
       return tasks.filter((t) => t.due_date && getDateOnly(t.due_date) === tmrwStr)
     case 'this_week':
-      return tasks.filter((t) => t.due_date && getDateOnly(t.due_date) > todayStr && getDateOnly(t.due_date) <= fridayStr)
+      return tasks.filter((t) => t.due_date && getDateOnly(t.due_date) > todayStr && getDateOnly(t.due_date) <= thisSundayStr)
     case 'next_week':
-      return tasks.filter((t) => t.due_date && getDateOnly(t.due_date) >= nextMonStr && getDateOnly(t.due_date) <= nextFriStr)
+      return tasks.filter((t) => t.due_date && getDateOnly(t.due_date) >= nextMonStr && getDateOnly(t.due_date) <= nextSunStr)
     case 'future':
-      return tasks.filter((t) => t.due_date && getDateOnly(t.due_date) > nextFriStr)
+      return tasks.filter((t) => t.due_date && getDateOnly(t.due_date) > nextSunStr)
     default:
       return tasks
   }
