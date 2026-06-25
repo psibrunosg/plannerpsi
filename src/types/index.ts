@@ -91,7 +91,7 @@ export const PRIORITY_CONFIG: Record<TaskPriority, { label: string; color: strin
 }
 
 export const STATUS_CONFIG: Record<TaskStatus, { label: string; color: string }> = {
-  backlog: { label: 'Backlog', color: 'text-gray-400' },
+  backlog: { label: 'Pendente', color: 'text-gray-400' },
   todo: { label: 'A Fazer', color: 'text-blue-400' },
   in_progress: { label: 'Em Progresso', color: 'text-yellow-400' },
   done: { label: 'Concluído', color: 'text-green-400' },
@@ -99,7 +99,7 @@ export const STATUS_CONFIG: Record<TaskStatus, { label: string; color: string }>
 }
 
 export const KANBAN_COLUMNS: { id: TaskStatus; label: string }[] = [
-  { id: 'backlog', label: 'Backlog' },
+  { id: 'backlog', label: 'Pendente' },
   { id: 'todo', label: 'A Fazer' },
   { id: 'in_progress', label: 'Em Progresso' },
   { id: 'done', label: 'Concluído' },

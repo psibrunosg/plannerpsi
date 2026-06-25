@@ -90,6 +90,9 @@ export const useFocusStore = create<FocusState>()(
         if (!s.activeSession || s.activeSession.isPaused) return s
         const remaining = s.activeSession.remaining - 1
         if (remaining <= 0) {
+          if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+            new Notification('Tempo esgotado!', { body: 'Sua sessão de foco terminou.' })
+          }
           setTimeout(() => get().endSession(), 0)
           return s
         }

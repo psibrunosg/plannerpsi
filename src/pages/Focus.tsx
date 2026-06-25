@@ -21,6 +21,12 @@ export default function Focus() {
     return () => clearInterval(interval)
   }, [activeSession, activeSession?.isPaused, tick])
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+  }, [])
+
   const minutes = activeSession ? Math.floor(activeSession.remaining / 60) : pomodoroSettings.workMinutes
   const seconds = activeSession ? activeSession.remaining % 60 : 0
   const progress = activeSession ? ((activeSession.duration - activeSession.remaining) / activeSession.duration) * 100 : 0
