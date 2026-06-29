@@ -1,4 +1,5 @@
-const API_KEY = import.meta.env.VITE_GOOGLE_DRIVE_API_KEY
+// Chave pública para acesso de leitura aos arquivos. Em produção, restrinja no Google Cloud Console.
+const API_KEY = 'AIzaSyBuTRCQfdRMJ1WH80-14yKKbuCsPN7oD1Y'
 const ROOT_FOLDER_ID = '1OX59Ra9Eq958HIeYKKwVPp9e6FkDP3un'
 const BASE_URL = 'https://www.googleapis.com/drive/v3/files'
 
