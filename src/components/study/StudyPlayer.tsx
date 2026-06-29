@@ -9,11 +9,34 @@ export function StudyPlayer() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const [error, setError] = useState<string | null>(null)
+  const [useIframeFallback, setUseIframeFallback] = useState(false)
 
-  // Reset error when lesson changes
+  const savedTimeRef = useRef<number>(0)
+  const savedPlayingRef = useRef<boolean>(false)
+
+  // Reset states when lesson changes
   useEffect(() => {
     setError(null)
+    setUseIframeFallback(false)
+    savedTimeRef.current = 0
+    savedPlayingRef.current = false
   }, [activeLesson])
+
+  // Restore playback state after switching modes
+  useEffect(() => {
+    const targetMedia = isAudioMode ? audioRef.current : videoRef.current
+    if (targetMedia && savedTimeRef.current > 0 && !useIframeFallback) {
+      targetMedia.currentTime = savedTimeRef.current
+      if (savedPlayingRef.current) {
+        targetMedia.play().catch(e => console.error("Playback falhou:", e))
+      }
+    }
+  }, [isAudioMode, useIframeFallback]) // Trigger when mode changes or fallback changes
+
+  // Reset error when toggling mode
+  useEffect(() => {
+    setError(null)
+  }, [isAudioMode])
 
   const togglePiP = async () => {
     if (!videoRef.current) return
@@ -31,14 +54,11 @@ export function StudyPlayer() {
   // Handle syncing playback time when switching between audio and video
   const toggleMode = () => {
     const currentMedia = isAudioMode ? audioRef.current : videoRef.current
-    const targetMedia = !isAudioMode ? audioRef.current : videoRef.current
     
-    if (currentMedia && targetMedia) {
-      targetMedia.currentTime = currentMedia.currentTime
-      if (!currentMedia.paused) {
-        targetMedia.play().catch(e => console.error("Playback falhou:", e))
-      }
-      currentMedia.pause()
+    // Save current state before unmounting
+    if (currentMedia && !useIframeFallback) {
+      savedTimeRef.current = currentMedia.currentTime
+      savedPlayingRef.current = !currentMedia.paused
     }
     
     setIsAudioMode(!isAudioMode)
@@ -56,6 +76,11 @@ export function StudyPlayer() {
   const hasVideo = !!activeLesson.videoFile
   const hasAudio = !!activeLesson.audioFile
 
+  const handleVideoError = () => {
+    // If native video fails, fallback to Google Drive iframe player
+    setUseIframeFallback(true)
+  }
+
   const renderMedia = () => {
     if (isAudioMode) {
       if (!hasAudio) return <div className="p-8 text-center text-text-muted">Áudio não disponível para esta aula.</div>
@@ -69,12 +94,24 @@ export function StudyPlayer() {
             controls 
             className="w-full max-w-md accent-accent"
             autoPlay
-            onError={() => setError('Erro ao carregar áudio. Verifique sua conexão ou se o arquivo é suportado.')}
+            onError={() => setError('Erro ao carregar áudio. O arquivo pode estar bloqueado pelo Drive.')}
           />
         </div>
       )
     } else {
       if (!hasVideo) return <div className="p-8 text-center text-text-muted">Vídeo não disponível para esta aula.</div>
+      
+      if (useIframeFallback) {
+        return (
+          <iframe 
+            src={`https://drive.google.com/file/d/${activeLesson.videoFile!.id}/preview`}
+            className="h-full w-full border-none"
+            allow="autoplay; fullscreen"
+            allowFullScreen
+          />
+        )
+      }
+
       return (
         <video
           ref={videoRef}
@@ -82,7 +119,7 @@ export function StudyPlayer() {
           controls
           autoPlay
           className="h-full w-full object-contain bg-black"
-          onError={() => setError('Erro ao carregar vídeo. Verifique sua conexão ou se o arquivo é suportado.')}
+          onError={handleVideoError}
         />
       )
     }
@@ -95,7 +132,6 @@ export function StudyPlayer() {
           <div className="flex h-full w-full flex-col items-center justify-center bg-surface-hover p-6 text-center">
             <AlertCircle className="mb-2 h-8 w-8 text-danger" />
             <p className="text-sm text-text-primary">{error}</p>
-            <p className="text-xs text-text-muted mt-2 max-w-md">O Google Drive pode estar bloqueando o stream direto por excesso de acessos, ou o formato não é suportado pelo navegador.</p>
           </div>
         ) : (
           renderMedia()
