@@ -52,9 +52,26 @@ export async function fetchModules(): Promise<DriveModule[]> {
   }))
 }
 
+// Fetch files recursively inside a folder
+async function fetchAllFilesRecursively(folderId: string): Promise<DriveFile[]> {
+  const files = await fetchFolderContents(folderId)
+  let allFiles: DriveFile[] = []
+
+  for (const file of files) {
+    if (file.mimeType === 'application/vnd.google-apps.folder') {
+      const subFiles = await fetchAllFilesRecursively(file.id)
+      allFiles = [...allFiles, ...subFiles]
+    } else {
+      allFiles.push(file)
+    }
+  }
+
+  return allFiles
+}
+
 // Get lessons for a specific module
 export async function fetchModuleLessons(moduleId: string): Promise<LessonGroup[]> {
-  const files = await fetchFolderContents(moduleId)
+  const files = await fetchAllFilesRecursively(moduleId)
   
   // Group files by base name (removing extensions .mp4, .mp3, .md)
   const groups = new Map<string, LessonGroup>()
@@ -91,8 +108,8 @@ export async function fetchModuleLessons(moduleId: string): Promise<LessonGroup[
 
 // Generate direct streaming URL
 export function getDriveStreamUrl(fileId: string): string {
-  // Using the API endpoint for media download (requires API key)
-  return `${BASE_URL}/${fileId}?alt=media&key=${API_KEY}`
+  // Using the API endpoint for media download with acknowledgeAbuse to bypass large file virus scan warnings
+  return `${BASE_URL}/${fileId}?alt=media&key=${API_KEY}&acknowledgeAbuse=true`
 }
 
 // Fetch markdown content
