@@ -1,9 +1,10 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { fetchModules, fetchModuleTopics } from '@/lib/drive'
+import { fetchModules, fetchModuleTopics, COURSES } from '@/lib/drive'
 import type { DriveModule, LessonGroup } from '@/lib/drive'
 
 interface StudyState {
+  activeCourseId: string
   modules: DriveModule[]
   activeModuleId: string | null
   activeLesson: LessonGroup | null
@@ -13,6 +14,7 @@ interface StudyState {
   isAudioMode: boolean
   
   // Actions
+  selectCourse: (courseId: string) => Promise<void>
   loadModules: () => Promise<void>
   selectModule: (moduleId: string) => Promise<void>
   selectLesson: (lesson: LessonGroup) => void
@@ -22,6 +24,7 @@ interface StudyState {
 export const useStudyStore = create<StudyState>()(
   persist(
     (set, get) => ({
+      activeCourseId: COURSES[0].id,
       modules: [],
       activeModuleId: null,
       activeLesson: null,
@@ -30,12 +33,28 @@ export const useStudyStore = create<StudyState>()(
       error: null,
       isAudioMode: false,
 
+      selectCourse: async (courseId: string) => {
+        if (get().activeCourseId === courseId) return
+        set({ 
+          activeCourseId: courseId, 
+          modules: [], 
+          activeModuleId: null, 
+          activeLesson: null,
+          error: null
+        })
+        await get().loadModules()
+      },
+
       loadModules: async () => {
         if (get().modules.length > 0) return // Already loaded
         
+        const courseId = get().activeCourseId
+        const course = COURSES.find(c => c.id === courseId)
+        if (!course) return
+        
         set({ isLoadingModules: true, error: null })
         try {
-          const mods = await fetchModules()
+          const mods = await fetchModules(course.folderId)
           set({ modules: mods, isLoadingModules: false })
           
           // Auto select first module if none selected
@@ -74,6 +93,7 @@ export const useStudyStore = create<StudyState>()(
     {
       name: 'plannerpsi-study-storage',
       partialize: (state) => ({ 
+        activeCourseId: state.activeCourseId,
         activeModuleId: state.activeModuleId,
         isAudioMode: state.isAudioMode 
       }), // Persist user preferences but not the modules cache itself to keep it fresh

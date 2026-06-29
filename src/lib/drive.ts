@@ -1,6 +1,5 @@
 // Chave pública para acesso de leitura aos arquivos. Em produção, restrinja no Google Cloud Console.
 const API_KEY = 'AIzaSyBuTRCQfdRMJ1WH80-14yKKbuCsPN7oD1Y'
-const ROOT_FOLDER_ID = '1OX59Ra9Eq958HIeYKKwVPp9e6FkDP3un'
 const BASE_URL = 'https://www.googleapis.com/drive/v3/files'
 
 export interface DriveFile {
@@ -31,6 +30,17 @@ export interface DriveModule {
   topics: DriveTopic[]
 }
 
+export interface Course {
+  id: string
+  name: string
+  folderId: string
+}
+
+export const COURSES: Course[] = [
+  { id: 'inpbe', name: 'INPBE', folderId: '1OX59Ra9Eq958HIeYKKwVPp9e6FkDP3un' },
+  { id: 'cognitivo', name: 'Cognitivo', folderId: '1H-0QxJrGoDpqOUf2nSlrmLZiCp7Jgg1O' }
+]
+
 // Fetch list of files in a folder
 async function fetchFolderContents(folderId: string): Promise<DriveFile[]> {
   const query = `'${folderId}' in parents and trashed = false`
@@ -44,8 +54,8 @@ async function fetchFolderContents(folderId: string): Promise<DriveFile[]> {
   return data.files || []
 }
 
-export async function fetchModules(): Promise<DriveModule[]> {
-  const files = await fetchFolderContents(ROOT_FOLDER_ID)
+export async function fetchModules(courseFolderId: string): Promise<DriveModule[]> {
+  const files = await fetchFolderContents(courseFolderId)
   const folders = files.filter(f => f.mimeType === 'application/vnd.google-apps.folder')
   
   return folders.map(f => ({
