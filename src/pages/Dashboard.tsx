@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Target, CheckCircle, Clock, TrendingUp, Calendar, Flame } from 'lucide-react'
 import { pageTransition, staggerContainer, staggerItem } from '@/lib/motion'
@@ -5,6 +6,7 @@ import { useTaskStore } from '@/stores/taskStore'
 import { useFocusStore } from '@/stores/focusStore'
 
 export default function Dashboard() {
+  const navigate = useNavigate()
   const tasks = useTaskStore((s) => s.tasks)
   const sessions = useFocusStore((s) => s.sessions)
 
@@ -21,12 +23,12 @@ export default function Dashboard() {
     .reduce((acc, s) => acc + (s.duration_minutes ?? 0), 0)
 
   const widgets = [
-    { title: 'Tarefas Hoje', value: todayTasks.length, subtitle: `${completedToday.length} concluídas`, icon: Target, color: 'text-accent', bg: 'bg-accent/10' },
-    { title: 'Concluídas', value: doneTasks, subtitle: `de ${totalTasks} total`, icon: CheckCircle, color: 'text-success', bg: 'bg-success/10' },
-    { title: 'Em Progresso', value: inProgressTasks, subtitle: 'tarefas ativas', icon: Clock, color: 'text-warning', bg: 'bg-warning/10' },
-    { title: 'Tempo Focado', value: `${todayFocusMinutes}m`, subtitle: 'hoje', icon: Flame, color: 'text-danger', bg: 'bg-danger/10' },
-    { title: 'Produtividade', value: totalTasks > 0 ? `${Math.round((doneTasks / totalTasks) * 100)}%` : '0%', subtitle: 'taxa de conclusão', icon: TrendingUp, color: 'text-info', bg: 'bg-info/10' },
-    { title: 'Próximas', value: tasks.filter((t) => t.due_date && t.status !== 'done' && t.status !== 'archived').length, subtitle: 'com prazo', icon: Calendar, color: 'text-accent-hover', bg: 'bg-accent/10' },
+    { title: 'Tarefas Hoje', value: todayTasks.length, subtitle: `${completedToday.length} concluídas`, icon: Target, color: 'text-accent', bg: 'bg-accent/10', path: '/tasks' },
+    { title: 'Concluídas', value: doneTasks, subtitle: `de ${totalTasks} total`, icon: CheckCircle, color: 'text-success', bg: 'bg-success/10', path: '/tasks' },
+    { title: 'Em Progresso', value: inProgressTasks, subtitle: 'tarefas ativas', icon: Clock, color: 'text-warning', bg: 'bg-warning/10', path: '/tasks' },
+    { title: 'Tempo Focado', value: `${todayFocusMinutes}m`, subtitle: 'hoje', icon: Flame, color: 'text-danger', bg: 'bg-danger/10', path: '/focus' },
+    { title: 'Produtividade', value: totalTasks > 0 ? `${Math.round((doneTasks / totalTasks) * 100)}%` : '0%', subtitle: 'taxa de conclusão', icon: TrendingUp, color: 'text-info', bg: 'bg-info/10', path: '/tasks' },
+    { title: 'Próximas', value: tasks.filter((t) => t.due_date && t.status !== 'done' && t.status !== 'archived').length, subtitle: 'com prazo', icon: Calendar, color: 'text-accent-hover', bg: 'bg-accent/10', path: '/tasks' },
   ]
 
   return (
@@ -38,7 +40,13 @@ export default function Dashboard() {
 
       <motion.div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" variants={staggerContainer} initial="hidden" animate="visible">
         {widgets.map((w) => (
-          <motion.div key={w.title} variants={staggerItem} whileHover={{ scale: 1.02, y: -2 }} className="glass-card p-5">
+          <motion.div 
+            key={w.title} 
+            variants={staggerItem} 
+            whileHover={{ scale: 1.02, y: -2 }} 
+            onClick={() => navigate(w.path)}
+            className="glass-card p-5 cursor-pointer hover:border-accent/50 transition-colors"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-text-muted">{w.title}</p>

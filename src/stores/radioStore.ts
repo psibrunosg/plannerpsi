@@ -15,6 +15,7 @@ interface RadioState {
   volume: number
   currentStation: RadioStation | null
   stations: RadioStation[]
+  favorites: RadioStation[]
   selectedCountry: string
   isLoading: boolean
   
@@ -23,6 +24,7 @@ interface RadioState {
   setVolume: (volume: number) => void
   setCurrentStation: (station: RadioStation) => void
   setSelectedCountry: (country: string) => void
+  toggleFavorite: (station: RadioStation) => void
   searchStations: (query: string, country?: string) => Promise<void>
 }
 
@@ -33,6 +35,7 @@ export const useRadioStore = create<RadioState>()(
       volume: 0.5,
       currentStation: null,
       stations: [],
+      favorites: [],
       selectedCountry: 'BR', // Default: Brazil
       isLoading: false,
 
@@ -41,6 +44,16 @@ export const useRadioStore = create<RadioState>()(
       setCurrentStation: (station) => set({ currentStation: station, isPlaying: true }),
       setSelectedCountry: (country) => set({ selectedCountry: country }),
       
+      toggleFavorite: (station) => {
+        const { favorites } = get()
+        const exists = favorites.find(f => f.id === station.id)
+        if (exists) {
+          set({ favorites: favorites.filter(f => f.id !== station.id) })
+        } else {
+          set({ favorites: [...favorites, station] })
+        }
+      },
+
       searchStations: async (query: string, country?: string) => {
         set({ isLoading: true })
         try {
@@ -74,8 +87,9 @@ export const useRadioStore = create<RadioState>()(
       partialize: (state) => ({ 
         volume: state.volume, 
         currentStation: state.currentStation,
-        selectedCountry: state.selectedCountry
-      }), // only persist volume, country, and current station
+        selectedCountry: state.selectedCountry,
+        favorites: state.favorites
+      }), // persist favorites
     }
   )
 )

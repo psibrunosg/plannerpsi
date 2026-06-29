@@ -10,6 +10,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   Sparkles,
+  BookOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { sidebarVariants } from '@/lib/motion'
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { path: '/focus', icon: Timer, label: 'Foco' },
   { path: '/planning', icon: CalendarDays, label: 'Planejamento' },
   { path: '/procedures', icon: ClipboardList, label: 'Procedimentos' },
+  { path: '/study', icon: BookOpen, label: 'Estudos' },
   { path: '/settings', icon: Settings, label: 'Configurações' },
 ]
 

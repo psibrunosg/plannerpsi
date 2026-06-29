@@ -1,51 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Radio, Play, Pause, Volume2, VolumeX, Search, Globe, ChevronDown, Check, Loader2 } from 'lucide-react'
+import { Radio, Play, Pause, Volume2, VolumeX } from 'lucide-react'
 import { useRadioStore } from '@/stores/radioStore'
 import { cn } from '@/lib/cn'
-
-const COUNTRIES = [
-  { code: 'BR', name: 'Brasil' },
-  { code: 'AR', name: 'Argentina' },
-  { code: 'CO', name: 'Colômbia' },
-  { code: 'PR', name: 'Porto Rico' },
-  { code: 'UY', name: 'Uruguai' },
-  { code: 'US', name: 'EUA' }
-]
 
 export function RadioControls() {
   const { 
     isPlaying, setIsPlaying, 
     volume, setVolume, 
     currentStation, setCurrentStation,
-    stations, searchStations,
-    selectedCountry, setSelectedCountry,
-    isLoading
+    favorites
   } = useRadioStore()
 
   const [isOpen, setIsOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showCountries, setShowCountries] = useState(false)
-  
-  // Fetch initial stations if empty
-  useEffect(() => {
-    if (stations.length === 0) {
-      searchStations('', selectedCountry)
-    }
-  }, []) // eslint-disable-line
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    searchStations(searchQuery, selectedCountry)
-  }
-  
-  const handleCountrySelect = (code: string) => {
-    setSelectedCountry(code)
-    setShowCountries(false)
-    searchStations(searchQuery, code)
-  }
-
-  const currentCountryName = COUNTRIES.find(c => c.code === selectedCountry)?.name || 'País'
 
   return (
     <div className="relative">
@@ -119,54 +86,10 @@ export function RadioControls() {
 
                 <hr className="border-border-subtle" />
 
-                {/* Search and Filters */}
-                <div className="flex gap-2 relative">
-                  <div className="relative">
-                    <button 
-                      onClick={() => setShowCountries(!showCountries)}
-                      className="flex h-9 items-center gap-1 rounded-md border border-border-subtle bg-surface px-2 text-xs text-text-secondary hover:bg-surface-hover"
-                    >
-                      <Globe className="h-3 w-3" />
-                      {currentCountryName}
-                      <ChevronDown className="h-3 w-3" />
-                    </button>
-                    
-                    {showCountries && (
-                      <div className="absolute left-0 top-10 z-50 w-32 rounded-md border border-border-subtle bg-surface py-1 shadow-lg">
-                        {COUNTRIES.map(c => (
-                          <button
-                            key={c.code}
-                            onClick={() => handleCountrySelect(c.code)}
-                            className="flex w-full items-center justify-between px-3 py-1.5 text-left text-xs hover:bg-surface-hover text-text-primary"
-                          >
-                            {c.name}
-                            {selectedCountry === c.code && <Check className="h-3 w-3 text-accent" />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <form onSubmit={handleSearch} className="flex-1 relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-text-muted" />
-                    <input 
-                      type="text" 
-                      placeholder="Buscar rádio..." 
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="h-9 w-full rounded-md border border-border-subtle bg-surface pl-8 pr-3 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:outline-none"
-                    />
-                  </form>
-                </div>
-
                 {/* Stations List */}
                 <div className="h-48 overflow-y-auto custom-scrollbar -mx-2 px-2 flex flex-col gap-1">
-                  {isLoading ? (
-                    <div className="flex h-full items-center justify-center">
-                      <Loader2 className="h-5 w-5 animate-spin text-accent" />
-                    </div>
-                  ) : stations.length > 0 ? (
-                    stations.map(station => (
+                  {favorites.length > 0 ? (
+                    favorites.map(station => (
                       <button
                         key={station.id}
                         onClick={() => setCurrentStation(station)}
@@ -207,8 +130,8 @@ export function RadioControls() {
                   ) : (
                     <div className="flex h-full flex-col items-center justify-center text-center text-text-muted p-4">
                       <Radio className="mb-2 h-6 w-6 opacity-20" />
-                      <p className="text-sm">Nenhuma rádio encontrada.</p>
-                      <p className="text-xs mt-1">Tente outro nome ou país.</p>
+                      <p className="text-sm">Nenhuma favorita encontrada.</p>
+                      <p className="text-xs mt-1">Vá em Configurações para adicionar rádios.</p>
                     </div>
                   )}
                 </div>

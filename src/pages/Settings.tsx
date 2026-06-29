@@ -6,7 +6,18 @@ import { useUIStore } from '@/stores/uiStore'
 import { useFocusStore } from '@/stores/focusStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
-import { Calendar, Link as LinkIcon, Copy } from 'lucide-react'
+import { useRadioStore } from '@/stores/radioStore'
+import { Calendar, Link as LinkIcon, Copy, Radio, Search, Globe, ChevronDown, Check, Loader2, Star, Play, Pause } from 'lucide-react'
+import { useState, useEffect } from 'react'
+
+const COUNTRIES = [
+  { code: 'BR', name: 'Brasil' },
+  { code: 'AR', name: 'Argentina' },
+  { code: 'CO', name: 'Colômbia' },
+  { code: 'PR', name: 'Porto Rico' },
+  { code: 'UY', name: 'Uruguai' },
+  { code: 'US', name: 'EUA' }
+]
 
 export default function Settings() {
   const theme = useUIStore((s) => s.theme)
@@ -15,6 +26,34 @@ export default function Settings() {
   const updateSettings = useFocusStore((s) => s.updateSettings)
   const user = useAuthStore((s) => s.user)
   const addToast = useToastStore((s) => s.addToast)
+
+  const {
+    stations, searchStations, selectedCountry, setSelectedCountry, isLoading,
+    favorites, toggleFavorite, currentStation, setCurrentStation, isPlaying, setIsPlaying
+  } = useRadioStore()
+
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showCountries, setShowCountries] = useState(false)
+
+  // Fetch initial stations if empty
+  useEffect(() => {
+    if (stations.length === 0) {
+      searchStations('', selectedCountry)
+    }
+  }, []) // eslint-disable-line
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    searchStations(searchQuery, selectedCountry)
+  }
+  
+  const handleCountrySelect = (code: string) => {
+    setSelectedCountry(code)
+    setShowCountries(false)
+    searchStations(searchQuery, code)
+  }
+
+  const currentCountryName = COUNTRIES.find(c => c.code === selectedCountry)?.name || 'País'
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
   const calendarFeedUrl = user ? `${supabaseUrl}/functions/v1/calendar-feed?user_id=${user.id}` : ''
@@ -104,6 +143,122 @@ export default function Settings() {
               <p><b>Dica:</b> No Google Calendar, vá em <i>Adicionar calendário &gt; Do URL</i> e cole este link.</p>
               <p>O serviço atualiza as informações automaticamente em segundo plano.</p>
             </div>
+          </div>
+        </motion.div>
+
+        <motion.div variants={staggerItem} className="glass-card p-6">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-primary">
+            <Radio className="h-5 w-5" /> Rádios Favoritas
+          </h3>
+          <p className="mb-4 text-sm text-text-secondary">
+            Busque e adicione rádios à sua lista de favoritos para acesso rápido no player do topo.
+          </p>
+
+          <div className="flex gap-2 relative mb-4">
+            <div className="relative">
+              <button 
+                onClick={() => setShowCountries(!showCountries)}
+                className="flex h-10 items-center gap-1 rounded-[var(--radius-sm)] border border-border-subtle bg-surface px-3 text-sm text-text-secondary hover:bg-surface-hover transition-colors"
+              >
+                <Globe className="h-4 w-4" />
+                {currentCountryName}
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              
+              {showCountries && (
+                <div className="absolute left-0 top-11 z-50 w-40 rounded-[var(--radius-sm)] border border-border-subtle bg-surface py-1 shadow-lg">
+                  {COUNTRIES.map(c => (
+                    <button
+                      key={c.code}
+                      onClick={() => handleCountrySelect(c.code)}
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-surface-hover text-text-primary transition-colors"
+                    >
+                      {c.name}
+                      {selectedCountry === c.code && <Check className="h-4 w-4 text-accent" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <form onSubmit={handleSearch} className="flex-1 relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-text-muted" />
+              <input 
+                type="text" 
+                placeholder="Buscar rádio por nome..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-10 w-full rounded-[var(--radius-sm)] border border-border-subtle bg-surface pl-9 pr-3 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:outline-none transition-colors"
+              />
+            </form>
+          </div>
+
+          <div className="h-[300px] overflow-y-auto custom-scrollbar -mx-2 px-2 flex flex-col gap-2">
+            {isLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin text-accent" />
+              </div>
+            ) : stations.length > 0 ? (
+              stations.map(station => {
+                const isFavorite = favorites.some(f => f.id === station.id)
+                const isCurrent = currentStation?.id === station.id
+
+                return (
+                  <div
+                    key={station.id}
+                    className={cn(
+                      "flex items-center gap-3 rounded-[var(--radius-sm)] p-2 transition-colors border",
+                      isCurrent ? "bg-accent/5 border-accent/20" : "bg-surface-hover border-transparent hover:border-border-subtle"
+                    )}
+                  >
+                    <button
+                      onClick={() => {
+                        if (isCurrent) {
+                          setIsPlaying(!isPlaying)
+                        } else {
+                          setCurrentStation(station)
+                        }
+                      }}
+                      className="relative flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] bg-surface overflow-hidden shrink-0 border border-border-subtle hover:border-accent transition-colors"
+                    >
+                      {station.favicon ? (
+                        <img src={station.favicon} alt="" className="h-full w-full object-cover bg-white opacity-40" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                      ) : (
+                        <Radio className="h-5 w-5 text-text-muted opacity-40" />
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center text-text-primary">
+                        {isCurrent && isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
+                      </div>
+                    </button>
+                    
+                    <div className="flex-1 overflow-hidden">
+                      <p className={cn(
+                        "truncate text-sm font-medium",
+                        isCurrent ? "text-accent" : "text-text-primary"
+                      )}>
+                        {station.name}
+                      </p>
+                      <p className="truncate text-xs text-text-muted">
+                        {station.tags.split(',').slice(0, 3).join(', ')}
+                      </p>
+                    </div>
+                    
+                    <button
+                      onClick={() => toggleFavorite(station)}
+                      className="p-2 text-text-muted hover:text-accent transition-colors"
+                    >
+                      <Star className={cn("h-5 w-5", isFavorite && "fill-accent text-accent")} />
+                    </button>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center text-center text-text-muted p-4">
+                <Radio className="mb-2 h-8 w-8 opacity-20" />
+                <p className="text-sm">Nenhuma rádio encontrada.</p>
+                <p className="text-xs mt-1">Tente outro nome ou país.</p>
+              </div>
+            )}
           </div>
         </motion.div>
       </motion.div>
