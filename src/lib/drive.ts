@@ -11,12 +11,6 @@ export interface DriveFile {
   thumbnailLink?: string
 }
 
-export interface DriveModule {
-  id: string
-  name: string
-  lessons: LessonGroup[]
-}
-
 export interface LessonGroup {
   baseName: string
   videoFile?: DriveFile
@@ -24,10 +18,21 @@ export interface LessonGroup {
   transcriptFile?: DriveFile
 }
 
+export interface DriveTopic {
+  id: string
+  name: string
+  subtopics: DriveTopic[]
+  lessons: LessonGroup[]
+}
+
+export interface DriveModule {
+  id: string
+  name: string
+  topics: DriveTopic[]
+}
+
 // Fetch list of files in a folder
 async function fetchFolderContents(folderId: string): Promise<DriveFile[]> {
-  if (!API_KEY) throw new Error('API Key não configurada')
-  
   const query = `'${folderId}' in parents and trashed = false`
   const fields = 'files(id, name, mimeType, hasThumbnail, thumbnailLink)'
   const url = `${BASE_URL}?q=${encodeURIComponent(query)}&fields=${encodeURIComponent(fields)}&key=${API_KEY}&orderBy=name`
@@ -39,50 +44,52 @@ async function fetchFolderContents(folderId: string): Promise<DriveFile[]> {
   return data.files || []
 }
 
-// Get all modules (subfolders of root)
 export async function fetchModules(): Promise<DriveModule[]> {
   const files = await fetchFolderContents(ROOT_FOLDER_ID)
-  // filter only folders
   const folders = files.filter(f => f.mimeType === 'application/vnd.google-apps.folder')
   
   return folders.map(f => ({
     id: f.id,
     name: f.name,
-    lessons: []
+    topics: []
   }))
 }
 
-// Fetch files recursively inside a folder
-async function fetchAllFilesRecursively(folderId: string): Promise<DriveFile[]> {
+// Fetch files and structure them recursively into DriveTopic
+async function fetchFolderTree(folderId: string, folderName: string): Promise<DriveTopic> {
   const files = await fetchFolderContents(folderId)
-  let allFiles: DriveFile[] = []
+  
+  const topic: DriveTopic = {
+    id: folderId,
+    name: folderName,
+    subtopics: [],
+    lessons: []
+  }
+
+  const rawFiles: DriveFile[] = []
+
+  // Concurrently fetch all subtopics
+  const subFolderPromises: Promise<DriveTopic>[] = []
 
   for (const file of files) {
     if (file.mimeType === 'application/vnd.google-apps.folder') {
-      const subFiles = await fetchAllFilesRecursively(file.id)
-      allFiles = [...allFiles, ...subFiles]
+      subFolderPromises.push(fetchFolderTree(file.id, file.name))
     } else {
-      allFiles.push(file)
+      rawFiles.push(file)
     }
   }
 
-  return allFiles
-}
+  topic.subtopics = await Promise.all(subFolderPromises)
+  // Sort subtopics by name
+  topic.subtopics.sort((a, b) => a.name.localeCompare(b.name))
 
-// Get lessons for a specific module
-export async function fetchModuleLessons(moduleId: string): Promise<LessonGroup[]> {
-  const files = await fetchAllFilesRecursively(moduleId)
-  
-  // Group files by base name (removing extensions .mp4, .mp3, .md)
+  // Group raw files into lessons
   const groups = new Map<string, LessonGroup>()
 
-  files.forEach(file => {
-    // Only care about video, audio and markdown
-    if (
-      !file.name.toLowerCase().endsWith('.mp4') && 
-      !file.name.toLowerCase().endsWith('.mp3') && 
-      !file.name.toLowerCase().endsWith('.md')
-    ) {
+  rawFiles.forEach(file => {
+    if (!file.name.toLowerCase().endsWith('.mp4') && 
+        !file.name.toLowerCase().endsWith('.mp3') && 
+        !file.name.toLowerCase().endsWith('.md')) {
       return
     }
 
@@ -102,8 +109,30 @@ export async function fetchModuleLessons(moduleId: string): Promise<LessonGroup[
     else if (ext === 'md') group.transcriptFile = file
   })
 
-  // Convert map to array and sort by name
-  return Array.from(groups.values()).sort((a, b) => a.baseName.localeCompare(b.baseName))
+  topic.lessons = Array.from(groups.values()).sort((a, b) => a.baseName.localeCompare(b.baseName))
+
+  return topic
+}
+
+// Get topics for a specific module
+export async function fetchModuleTopics(moduleId: string, moduleName: string): Promise<DriveTopic[]> {
+  // A Module behaves like the root topic for this subtree.
+  // We want to return its children (topics) and its own lessons (if any, packaged as a default topic).
+  const moduleRoot = await fetchFolderTree(moduleId, moduleName)
+  
+  const topics = [...moduleRoot.subtopics]
+  
+  // If the module folder itself contains direct lessons, put them in a pseudo-topic
+  if (moduleRoot.lessons.length > 0) {
+    topics.unshift({
+      id: `${moduleId}-root`,
+      name: 'Aulas do Módulo',
+      subtopics: [],
+      lessons: moduleRoot.lessons
+    })
+  }
+  
+  return topics
 }
 
 // Generate direct streaming URL

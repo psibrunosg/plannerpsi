@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { fetchModules, fetchModuleLessons } from '@/lib/drive'
+import { fetchModules, fetchModuleTopics } from '@/lib/drive'
 import type { DriveModule, LessonGroup } from '@/lib/drive'
 
 interface StudyState {
@@ -54,10 +54,11 @@ export const useStudyStore = create<StudyState>()(
           const mods = get().modules
           const modIndex = mods.findIndex(m => m.id === moduleId)
           
-          if (modIndex >= 0 && mods[modIndex].lessons.length === 0) {
-            const lessons = await fetchModuleLessons(moduleId)
+          if (modIndex >= 0 && mods[modIndex].topics.length === 0) {
+            const moduleName = mods[modIndex].name
+            const topics = await fetchModuleTopics(moduleId, moduleName)
             const updatedMods = [...mods]
-            updatedMods[modIndex] = { ...updatedMods[modIndex], lessons }
+            updatedMods[modIndex] = { ...updatedMods[modIndex], topics }
             set({ modules: updatedMods })
           }
           set({ isLoadingLessons: false })
