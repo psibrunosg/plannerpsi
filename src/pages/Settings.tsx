@@ -4,12 +4,26 @@ import { cn } from '@/lib/cn'
 import { pageTransition, staggerContainer, staggerItem } from '@/lib/motion'
 import { useUIStore } from '@/stores/uiStore'
 import { useFocusStore } from '@/stores/focusStore'
+import { useAuthStore } from '@/stores/authStore'
+import { useToastStore } from '@/stores/toastStore'
+import { Calendar, Link as LinkIcon, Copy } from 'lucide-react'
 
 export default function Settings() {
   const theme = useUIStore((s) => s.theme)
   const toggleTheme = useUIStore((s) => s.toggleTheme)
   const pomodoroSettings = useFocusStore((s) => s.pomodoroSettings)
   const updateSettings = useFocusStore((s) => s.updateSettings)
+  const user = useAuthStore((s) => s.user)
+  const addToast = useToastStore((s) => s.addToast)
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
+  const calendarFeedUrl = user ? `${supabaseUrl}/functions/v1/calendar-feed?user_id=${user.id}` : ''
+
+  const copyToClipboard = () => {
+    if (!calendarFeedUrl) return
+    navigator.clipboard.writeText(calendarFeedUrl)
+    addToast('Link copiado para a área de transferência!', 'success')
+  }
 
   return (
     <motion.div variants={pageTransition} initial="hidden" animate="visible" exit="exit">
@@ -56,6 +70,40 @@ export default function Settings() {
                   className="w-20 rounded-[var(--radius-sm)] bg-surface-hover px-3 py-1.5 text-center text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent" />
               </div>
             ))}
+          </div>
+        </motion.div>
+
+        <motion.div variants={staggerItem} className="glass-card p-6">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-primary">
+            <Calendar className="h-5 w-5" /> Integração de Calendário (iCal)
+          </h3>
+          <p className="mb-4 text-sm text-text-secondary">
+            Use este link exclusivo para sincronizar suas tarefas (que possuem data) com o <b>Apple Calendar (iCal)</b>, <b>Google Calendar</b>, <b>Outlook</b> ou outro app.
+          </p>
+          
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between rounded-[var(--radius-sm)] bg-surface-hover p-3 border border-border-subtle">
+              <div className="flex items-center gap-2 overflow-hidden mr-4">
+                <LinkIcon className="h-4 w-4 text-text-muted shrink-0" />
+                <span className="text-xs text-text-muted truncate font-mono">
+                  {calendarFeedUrl || 'Carregando...'}
+                </span>
+              </div>
+              <motion.button 
+                whileHover={{ scale: 1.05 }} 
+                whileTap={{ scale: 0.95 }}
+                onClick={copyToClipboard}
+                className="flex items-center gap-2 rounded bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent hover:bg-accent/20 shrink-0"
+              >
+                <Copy className="h-3.5 w-3.5" />
+                Copiar
+              </motion.button>
+            </div>
+            
+            <div className="text-xs text-text-muted space-y-1">
+              <p><b>Dica:</b> No Google Calendar, vá em <i>Adicionar calendário &gt; Do URL</i> e cole este link.</p>
+              <p>O serviço atualiza as informações automaticamente em segundo plano.</p>
+            </div>
           </div>
         </motion.div>
       </motion.div>
