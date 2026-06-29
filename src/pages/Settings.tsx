@@ -59,7 +59,8 @@ export default function Settings() {
   // Adiciona &ext=.ics para enganar parsers estritos como o do Outlook Desktop
   const baseCalendarUrl = user ? `${supabaseUrl}/functions/v1/calendar-feed?user_id=${user.id}&ext=.ics` : ''
   const webcalUrl = baseCalendarUrl.replace('https://', 'webcal://').replace('http://', 'webcal://')
-  const outlookWebUrl = baseCalendarUrl ? `https://outlook.office.com/calendar/0/addfromweb?url=${encodeURIComponent(webcalUrl)}&name=Planner%20PSI` : ''
+  // Outlook Web requires an https:// URL for the addfromweb parameter, not a webcal:// URL
+  const outlookWebUrl = baseCalendarUrl ? `https://outlook.office.com/calendar/0/addfromweb?url=${encodeURIComponent(baseCalendarUrl)}&name=Planner%20PSI` : ''
 
   const copyToClipboard = () => {
     if (!baseCalendarUrl) return
