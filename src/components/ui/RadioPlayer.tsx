@@ -4,6 +4,7 @@ import { useToastStore } from '@/stores/toastStore'
 
 export function RadioPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const lastLoadedUrl = useRef<string | null>(null)
   const isPlaying = useRadioStore(s => s.isPlaying)
   const volume = useRadioStore(s => s.volume)
   const currentStation = useRadioStore(s => s.currentStation)
@@ -16,9 +17,10 @@ export function RadioPlayer() {
     const audio = audioRef.current
 
     if (currentStation) {
-      if (audio.src !== currentStation.url) {
+      if (lastLoadedUrl.current !== currentStation.url) {
         audio.src = currentStation.url
         audio.load()
+        lastLoadedUrl.current = currentStation.url
       }
       
       if (isPlaying) {
@@ -36,8 +38,9 @@ export function RadioPlayer() {
     } else {
       audio.pause()
       audio.src = ''
+      lastLoadedUrl.current = null
     }
-  }, [currentStation, isPlaying, setIsPlaying, addToast])
+  }, [currentStation, isPlaying]) // removed setIsPlaying and addToast to prevent unnecessary re-runs
 
   // Handle volume changes
   useEffect(() => {
