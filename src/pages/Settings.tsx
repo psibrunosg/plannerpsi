@@ -56,11 +56,14 @@ export default function Settings() {
   const currentCountryName = COUNTRIES.find(c => c.code === selectedCountry)?.name || 'País'
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-  const calendarFeedUrl = user ? `${supabaseUrl}/functions/v1/calendar-feed?user_id=${user.id}` : ''
+  // Adiciona &ext=.ics para enganar parsers estritos como o do Outlook Desktop
+  const baseCalendarUrl = user ? `${supabaseUrl}/functions/v1/calendar-feed?user_id=${user.id}&ext=.ics` : ''
+  const webcalUrl = baseCalendarUrl.replace('https://', 'webcal://').replace('http://', 'webcal://')
+  const outlookWebUrl = baseCalendarUrl ? `https://outlook.office.com/calendar/0/addfromweb?url=${encodeURIComponent(webcalUrl)}&name=Planner%20PSI` : ''
 
   const copyToClipboard = () => {
-    if (!calendarFeedUrl) return
-    navigator.clipboard.writeText(calendarFeedUrl)
+    if (!baseCalendarUrl) return
+    navigator.clipboard.writeText(baseCalendarUrl)
     addToast('Link copiado para a área de transferência!', 'success')
   }
 
@@ -117,15 +120,35 @@ export default function Settings() {
             <Calendar className="h-5 w-5" /> Integração de Calendário (iCal)
           </h3>
           <p className="mb-4 text-sm text-text-secondary">
-            Use este link exclusivo para sincronizar suas tarefas (que possuem data) com o <b>Apple Calendar (iCal)</b>, <b>Google Calendar</b>, <b>Outlook</b> ou outro app.
+            Use este link exclusivo para sincronizar suas tarefas com <b>Apple Calendar</b>, <b>Google Calendar</b> ou <b>Outlook</b>.
           </p>
           
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
+            {/* Quick Actions */}
+            <div className="flex gap-2">
+              <a 
+                href={outlookWebUrl}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded bg-[#0078D4]/10 px-4 py-2 text-sm font-medium text-[#0078D4] hover:bg-[#0078D4]/20 border border-[#0078D4]/20 transition-colors"
+              >
+                <Calendar className="h-4 w-4" />
+                Adicionar ao Outlook Web
+              </a>
+              <a 
+                href={webcalUrl}
+                className="flex items-center gap-2 rounded bg-surface-hover px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-active border border-border-subtle transition-colors"
+              >
+                <LinkIcon className="h-4 w-4" />
+                Abrir App Padrão
+              </a>
+            </div>
+
             <div className="flex items-center justify-between rounded-[var(--radius-sm)] bg-surface-hover p-3 border border-border-subtle">
               <div className="flex items-center gap-2 overflow-hidden mr-4">
                 <LinkIcon className="h-4 w-4 text-text-muted shrink-0" />
                 <span className="text-xs text-text-muted truncate font-mono">
-                  {calendarFeedUrl || 'Carregando...'}
+                  {baseCalendarUrl || 'Carregando...'}
                 </span>
               </div>
               <motion.button 
@@ -140,8 +163,7 @@ export default function Settings() {
             </div>
             
             <div className="text-xs text-text-muted space-y-1">
-              <p><b>Dica:</b> No Google Calendar, vá em <i>Adicionar calendário &gt; Do URL</i> e cole este link.</p>
-              <p>O serviço atualiza as informações automaticamente em segundo plano.</p>
+              <p><b>Outlook Desktop:</b> Clique em "Copiar", vá no Outlook &gt; Adicionar Calendário &gt; Assinar da Web.</p>
             </div>
           </div>
         </motion.div>
