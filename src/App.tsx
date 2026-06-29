@@ -52,8 +52,8 @@ export default function App() {
     }
   }, [session])
 
-  if (!initialized || isMigrating) {
-    return <div className="flex min-h-screen items-center justify-center bg-surface"><div className="text-accent animate-pulse">Carregando e sincronizando dados...</div></div>
+  if (!initialized) {
+    return <div className="flex min-h-screen items-center justify-center bg-surface"><div className="text-accent animate-pulse">Carregando...</div></div>
   }
 
   if (!session) {
@@ -67,7 +67,7 @@ export default function App() {
 
   return (
     <>
-      <AppShell>
+      <AppShell isSyncing={isMigrating}>
         <AnimatePresence mode="wait">
           <Routes>
             <Route path="/" element={<Dashboard />} />

@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
-import { Search, Sun, Moon, Plus, Command } from 'lucide-react'
+import { Search, Sun, Moon, Plus, Command, RefreshCw } from 'lucide-react'
 import { useUIStore } from '@/stores/uiStore'
+import { RadioControls } from './RadioControls'
 
-export function Header() {
+export function Header({ isSyncing = false }: { isSyncing?: boolean }) {
   const theme = useUIStore((s) => s.theme)
   const toggleTheme = useUIStore((s) => s.toggleTheme)
   const setCommandPaletteOpen = useUIStore((s) => s.setCommandPaletteOpen)
@@ -11,8 +12,11 @@ export function Header() {
   return (
     <header className="glass sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border-subtle px-6">
       <div className="flex items-center gap-4">
-        <h2 className="text-lg font-semibold text-text-primary">
+        <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
           {getGreeting()}
+          {isSyncing && (
+            <RefreshCw className="h-4 w-4 text-accent animate-spin" />
+          )}
         </h2>
       </div>
 
@@ -39,6 +43,10 @@ export function Header() {
           <Plus className="h-4 w-4" />
           <span className="hidden md:inline">Nova Tarefa</span>
         </motion.button>
+
+        <div className="mx-1 h-6 w-px bg-border-subtle hidden md:block"></div>
+
+        <RadioControls />
 
         <motion.button
           whileHover={{ scale: 1.1, rotate: 15 }}
