@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { BookOpen, Cloud, Download } from 'lucide-react'
+import { BookOpen, Cloud } from 'lucide-react'
 import { pageTransition, staggerContainer, staggerItem } from '@/lib/motion'
 
 export default function Study() {
