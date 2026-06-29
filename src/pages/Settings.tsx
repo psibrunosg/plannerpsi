@@ -56,8 +56,8 @@ export default function Settings() {
   const currentCountryName = COUNTRIES.find(c => c.code === selectedCountry)?.name || 'País'
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-  // Adiciona &ext=.ics para enganar parsers estritos como o do Outlook Desktop
-  const baseCalendarUrl = user ? `${supabaseUrl}/functions/v1/calendar-feed?user_id=${user.id}&ext=.ics` : ''
+  // Use path formatting para terminar em .ics, o que agrada o Outlook Web
+  const baseCalendarUrl = user ? `${supabaseUrl}/functions/v1/calendar-feed/${user.id}.ics` : ''
   const webcalUrl = baseCalendarUrl.replace('https://', 'webcal://').replace('http://', 'webcal://')
   // Outlook Web requires an https:// URL for the addfromweb parameter, not a webcal:// URL
   const outlookWebUrl = baseCalendarUrl ? `https://outlook.office.com/calendar/0/addfromweb?url=${encodeURIComponent(baseCalendarUrl)}&name=Planner%20PSI` : ''

@@ -58,7 +58,16 @@ function generateICal(tasks: any[]): string {
 serve(async (req) => {
   try {
     const url = new URL(req.url)
-    const userId = url.searchParams.get('user_id')
+    let userId = url.searchParams.get('user_id')
+
+    // Try to parse from path if not in query, e.g., /calendar-feed/9f6651b8-fcd1-4318-abf9-6736dc2e1698.ics
+    if (!userId) {
+      const parts = url.pathname.split('/')
+      const lastPart = parts[parts.length - 1]
+      if (lastPart.endsWith('.ics')) {
+        userId = lastPart.replace('.ics', '')
+      }
+    }
 
     if (!userId) {
       return new Response('Missing user_id parameter', { status: 400 })
