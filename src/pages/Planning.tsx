@@ -232,6 +232,98 @@ function WeeklyReview() {
   )
 }
 
+function MoodRetrospective() {
+  const notes = usePlanningStore((s) => s.notes)
+  const [period, setPeriod] = useState<'week' | 'month' | 'quarter'>('week')
+
+  const now = new Date()
+  const daysMap = { week: 7, month: 30, quarter: 90 }
+  
+  const startDate = new Date(now)
+  startDate.setDate(now.getDate() - daysMap[period])
+  const startDateStr = startDate.toISOString().split('T')[0]
+
+  const relevantNotes = notes.filter(n => n.note_date >= startDateStr && n.mood)
+  const total = relevantNotes.length
+
+  const moodCounts = relevantNotes.reduce((acc, note) => {
+    if (note.mood) {
+      acc[note.mood] = (acc[note.mood] || 0) + 1
+    }
+    return acc
+  }, {} as Record<string, number>)
+
+  return (
+    <motion.div variants={staggerItem} className="glass-card p-6">
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] bg-pink-500/10">
+            <Heart className="h-5 w-5 text-pink-400" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-text-primary">Retrospectiva de Humor</h3>
+            <p className="text-xs text-text-muted">Como você tem se sentido</p>
+          </div>
+        </div>
+        <div className="flex gap-1 rounded-[var(--radius-sm)] bg-surface-hover p-1">
+          {[
+            { id: 'week', label: '7d' },
+            { id: 'month', label: '30d' },
+            { id: 'quarter', label: '90d' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setPeriod(tab.id as 'week' | 'month' | 'quarter')}
+              className={cn(
+                'rounded px-2 py-1 text-[10px] font-medium transition-colors',
+                period === tab.id ? 'bg-surface shadow-sm text-accent' : 'text-text-muted hover:text-text-secondary'
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {total > 0 ? (
+        <div className="space-y-3 mt-2">
+          {MOOD_OPTIONS.map((opt) => {
+            const count = moodCounts[opt.value] || 0
+            const percentage = Math.round((count / total) * 100)
+            return (
+              <div key={opt.value} className="flex items-center gap-3">
+                <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-hover", opt.color)}>
+                  <opt.icon className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="mb-1 flex justify-between text-xs">
+                    <span className="font-medium text-text-primary">{opt.label}</span>
+                    <span className="text-text-muted">{count} dia{count !== 1 ? 's' : ''} ({percentage}%)</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-hover">
+                    <motion.div 
+                      initial={{ width: 0 }} 
+                      animate={{ width: `${percentage}%` }} 
+                      transition={{ duration: 0.5, ease: 'easeOut' }}
+                      className={cn("h-full", opt.color.replace('text-', 'bg-'))} 
+                    />
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="flex h-32 flex-col items-center justify-center text-center text-text-muted">
+          <Smile className="mb-2 h-6 w-6 opacity-20" />
+          <p className="text-sm">Sem registros no período.</p>
+          <p className="text-xs">Preencha seu ritual matinal!</p>
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
 function DailyNotes() {
   const notes = usePlanningStore((s) => s.notes)
   const ensureTodayNote = usePlanningStore((s) => s.ensureTodayNote)
@@ -317,9 +409,10 @@ export default function Planning() {
         <p className="mt-1 text-text-secondary">Organize seu dia e semana</p>
       </div>
 
-      <motion.div className="grid grid-cols-1 gap-6 md:grid-cols-2" variants={staggerContainer} initial="hidden" animate="visible">
+      <motion.div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3" variants={staggerContainer} initial="hidden" animate="visible">
         <MorningRitual />
         <WeeklyReview />
+        <MoodRetrospective />
         <DailyNotes />
       </motion.div>
     </motion.div>
