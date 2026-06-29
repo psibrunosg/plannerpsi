@@ -39,6 +39,7 @@ interface TaskState {
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>
   deleteTask: (id: string) => Promise<void>
   completeTask: (id: string) => Promise<void>
+  archiveCompletedTasks: () => Promise<void>
   moveTask: (id: string, status: TaskStatus, position?: number) => Promise<void>
   setFilter: (filter: Partial<TaskFilter>) => void
   clearFilter: () => void
@@ -117,6 +118,16 @@ export const useTaskStore = create<TaskState>()(
         }
         
         await get().updateTask(id, updates)
+      },
+
+      archiveCompletedTasks: async () => {
+        const completedTasks = get().tasks.filter((t) => t.status === 'done')
+        for (const task of completedTasks) {
+          await get().updateTask(task.id, { 
+            status: 'archived',
+            kanban_column: 'archived'
+          })
+        }
       },
 
       moveTask: async (id, status, position) => {

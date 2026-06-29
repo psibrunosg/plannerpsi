@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { List, Kanban, Calendar, GanttChart, Plus, Filter } from 'lucide-react'
+import { List, Kanban, Calendar, GanttChart, Plus, Filter, Archive } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { pageTransition } from '@/lib/motion'
 import { useUIStore } from '@/stores/uiStore'
 import { useTaskStore } from '@/stores/taskStore'
+import { useToastStore } from '@/stores/toastStore'
 import type { ViewMode, DateTagId, Task } from '@/types'
 import { PRIORITY_CONFIG, STATUS_CONFIG, DATE_FILTER_TABS } from '@/types'
 import { KanbanBoard } from '@/components/views/KanbanBoard'
@@ -157,6 +158,8 @@ export default function Tasks() {
   const filter = useTaskStore((s) => s.filter)
   const filteredTasks = useMemo(() => useTaskStore.getState().filteredTasks(), [tasks, filter])
   const [activeDateTag, setActiveDateTag] = useState<DateTagId>('all')
+  const archiveCompletedTasks = useTaskStore(s => s.archiveCompletedTasks)
+  const addToast = useToastStore(s => s.addToast)
 
   const dateFilteredTasks = useMemo(
     () => filterByDateTag(filteredTasks, activeDateTag),
@@ -173,10 +176,19 @@ export default function Tasks() {
   }, [filteredTasks])
 
   const ActiveView = VIEW_COMPONENTS[viewMode]
+  
+  const hasCompletedTasks = tasks.some(t => t.status === 'done')
+
+  const handleArchive = async () => {
+    if (confirm("Tem certeza que deseja arquivar TODAS as tarefas concluídas? Elas sumirão desta lista.")) {
+      await archiveCompletedTasks()
+      addToast("Tarefas arquivadas com sucesso!", "success")
+    }
+  }
 
   return (
     <motion.div variants={pageTransition} initial="hidden" animate="visible" exit="exit">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold"><span className="gradient-text">Tarefas</span></h1>
           <p className="mt-1 text-text-secondary">
@@ -187,7 +199,7 @@ export default function Tasks() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center rounded-[var(--radius-sm)] bg-surface-elevated p-1">
             {VIEW_OPTIONS.map((opt) => (
               <motion.button key={opt.id} whileTap={{ scale: 0.95 }} onClick={() => setViewMode(opt.id)}
@@ -198,6 +210,19 @@ export default function Tasks() {
               </motion.button>
             ))}
           </div>
+
+          {hasCompletedTasks && (
+            <motion.button 
+              whileHover={{ scale: 1.05 }} 
+              whileTap={{ scale: 0.95 }} 
+              onClick={handleArchive}
+              className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-surface-elevated border border-border-subtle px-3 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover"
+              title="Arquivar Tarefas Concluídas"
+            >
+              <Archive className="h-4 w-4" />
+              <span className="hidden sm:inline">Limpar Concluídas</span>
+            </motion.button>
+          )}
 
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setTaskFormOpen(true)}
             className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover">
