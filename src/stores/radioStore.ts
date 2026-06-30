@@ -85,6 +85,54 @@ const CURATED_STATIONS: RadioStation[] = [
     favicon: 'https://i.scdn.co/image/ab67706f00000003058cbfa898499de7256598c0',
     countrycode: 'BR',
     tags: 'bossa,brasil,relax'
+  },
+  {
+    id: '46d02cdb-49a6-11e9-a4d7-52543be04c81',
+    name: 'Rádio Gaúcha (RS)',
+    url: 'https://1132747t.ha.azioncdn.net/primary/gaucha_rbs.sdp/playlist.m3u8',
+    favicon: 'https://gauchazh.clicrbs.com.br/static/icons/mstile-70x70.png',
+    countrycode: 'BR',
+    tags: 'rs,notícias,futebol,brasil'
+  },
+  {
+    id: '521e0177-f6a0-4207-9ec4-c780befc06a9',
+    name: 'Rádio Atlântida (RS)',
+    url: 'https://1852747t.ha.azioncdn.net/primary/atl_poa.sdp/playlist.m3u8',
+    favicon: 'https://atl.clicrbs.com.br/wp-content/themes/atlantida/assets/images/favicon.ico',
+    countrycode: 'BR',
+    tags: 'rs,pop,rock,brasil'
+  },
+  {
+    id: '3998f9ae-ed80-4319-8109-0acb29efb256',
+    name: 'BH FM 102.1',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/BHFMAAC.aac',
+    favicon: 'https://i.postimg.cc/ncT9hqH6/04008003142.png',
+    countrycode: 'BR',
+    tags: 'pop,sertanejo,brasil'
+  },
+  {
+    id: 'f5198fbd-3ce3-40fd-ba7b-3669acf99680',
+    name: 'Amor 90.9',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/XHOKFMAAC.aac',
+    favicon: 'https://i.iheart.com/v3/re/new_assets/5de5724ef553a4f94f50fe05?ops=fit(240%2C240)',
+    countrycode: 'MX',
+    tags: 'romantica,pop'
+  },
+  {
+    id: 'd11f4ae1-8302-4883-b4b3-f02d308e3dda',
+    name: 'Hot 102',
+    url: 'https://server7.servistreaming.com/proxy/hot?mp=%2Fstream%3Ftype%3D.mp3&_=1',
+    favicon: 'https://hot102pr.com/favicon.ico',
+    countrycode: 'PR',
+    tags: 'pop,mainstream'
+  },
+  {
+    id: '00bc4f1d-050c-49ae-bc42-a8aaa5d0ff5b',
+    name: 'Sertaneja 106.7',
+    url: 'https://sc4s.cdn.upx.com:8067/stream',
+    favicon: 'https://assets.clubefm.com.br/uploads/site/logo/2/106-sertaneja-4fff3e1f118ab621432fa4d74136e042e86b6eedbabf561ded0dfd61123d980e.png',
+    countrycode: 'BR',
+    tags: 'sertanejo,brasil'
   }
 ]
 
