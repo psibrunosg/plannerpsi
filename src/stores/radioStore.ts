@@ -15,6 +15,22 @@ export interface RadioStation {
 // Fixed curated list of reliable focus/study radios
 const CURATED_STATIONS: RadioStation[] = [
   {
+    id: 'alegria-fm',
+    name: 'Rádio Alegria FM',
+    url: 'https://cast.hoost.com.br:8103/stream',
+    favicon: 'https://radioalegria.com.br/wp-content/uploads/2020/08/cropped-logo-alegria-32x32.png',
+    countrycode: 'BR',
+    tags: 'sertanejo,rs,alegria'
+  },
+  {
+    id: 'oceano-fm',
+    name: 'Rádio Oceano FM',
+    url: 'https://stream.zeno.fm/oceano-fm',
+    favicon: '',
+    countrycode: 'BR',
+    tags: 'pelotas,rs,oceano'
+  },
+  {
     id: 'lofi-girl',
     name: 'Lofi Girl - beats to relax/study to',
     url: 'https://play.streamafrica.net/lofiradio',
@@ -151,7 +167,7 @@ interface RadioState {
   toggleFavorite: (station: RadioStation) => Promise<void>
   loadFavoritesFromDB: () => Promise<void>
   initStations: () => void
-  searchStations: (query: string, country?: string) => Promise<void>
+  searchStations: (query: string) => Promise<void>
 }
 
 export const useRadioStore = create<RadioState>()(
@@ -216,7 +232,7 @@ export const useRadioStore = create<RadioState>()(
         }
       },
 
-      searchStations: async (query, country = 'BR') => {
+      searchStations: async (query) => {
         if (!query.trim()) {
           set({ stations: CURATED_STATIONS })
           return
@@ -224,7 +240,8 @@ export const useRadioStore = create<RadioState>()(
 
         set({ isLoading: true })
         try {
-          const res = await fetch(`https://de1.api.radio-browser.info/json/stations/search?name=${encodeURIComponent(query)}&countrycode=${country}&limit=15&hidebroken=true&order=clickcount&reverse=true`)
+          // Removes countrycode limits so it searches anywhere in the world
+          const res = await fetch(`https://de1.api.radio-browser.info/json/stations/search?name=${encodeURIComponent(query)}&limit=15&hidebroken=true&order=clickcount&reverse=true`)
           const data = await res.json()
           
           const results: RadioStation[] = data.map((s: any) => ({
@@ -236,7 +253,7 @@ export const useRadioStore = create<RadioState>()(
             tags: s.tags
           }))
           
-          set({ stations: results })
+          set({ stations: results.length > 0 ? results : [] })
         } catch (error) {
           console.error('Failed to search stations:', error)
           set({ stations: CURATED_STATIONS })
