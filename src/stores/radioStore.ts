@@ -55,6 +55,30 @@ const CURATED_STATIONS: RadioStation[] = [
     tags: 'ambient,relax,focus'
   },
   {
+    id: 'venice-classic',
+    name: 'Venice Classic Radio Italia',
+    url: 'https://uk1.streamingpulse.com/ssl/vcr1',
+    favicon: 'https://www.veniceclassicradio.eu/images/vcr-logo.png',
+    countrycode: 'IT',
+    tags: 'classical,venice,italy,focus'
+  },
+  {
+    id: 'classic-fm',
+    name: 'Classic FM (UK)',
+    url: 'https://media-ssl.musicradio.com/ClassicFM',
+    favicon: 'https://upload.wikimedia.org/wikipedia/en/thumb/5/52/Classic_FM_logo.svg/1200px-Classic_FM_logo.svg.png',
+    countrycode: 'UK',
+    tags: 'classical,uk,focus'
+  },
+  {
+    id: 'kusc-classical',
+    name: 'KUSC Classical (Los Angeles)',
+    url: 'https://stream.kusc.org/128k',
+    favicon: 'https://www.kusc.org/wp-content/uploads/2016/12/KUSC-Logo.png',
+    countrycode: 'US',
+    tags: 'classical,symphony,focus'
+  },
+  {
     id: 'bossanova',
     name: 'Bossa Nova Hits',
     url: 'https://stream.zeno.fm/y13x1bntm5zuv',
