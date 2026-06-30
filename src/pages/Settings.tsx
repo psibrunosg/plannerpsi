@@ -147,60 +147,79 @@ export default function Settings() {
             Adicione essas rádios de alta qualidade e confiabilidade aos seus favoritos clicando na estrelinha.
           </p>
 
-          <div className="h-[300px] overflow-y-auto custom-scrollbar -mx-2 px-2 flex flex-col gap-2">
-            {stations.map(station => {
-              const isFavorite = favorites.some(f => f.id === station.id)
-              const isCurrent = currentStation?.id === station.id
+          <div className="mb-4 flex gap-2">
+            <input
+              type="text"
+              placeholder="Buscar outras rádios no mundo todo..."
+              className="flex-1 rounded-[var(--radius-sm)] border border-border-subtle bg-surface-hover px-3 py-2 text-sm text-text-primary outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  useRadioStore.getState().searchStations(e.currentTarget.value)
+                }
+              }}
+            />
+          </div>
 
-              return (
-                <div
-                  key={station.id}
-                  className={cn(
-                    "flex items-center gap-3 rounded-[var(--radius-sm)] p-2 transition-colors border",
-                    isCurrent ? "bg-accent/5 border-accent/20" : "bg-surface-hover border-transparent hover:border-border-subtle"
-                  )}
-                >
-                  <button
-                    onClick={() => {
-                      if (isCurrent) {
-                        setIsPlaying(!isPlaying)
-                      } else {
-                        setCurrentStation(station)
-                      }
-                    }}
-                    className="relative flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] bg-surface overflow-hidden shrink-0 border border-border-subtle hover:border-accent transition-colors"
-                  >
-                    {station.favicon ? (
-                      <img src={station.favicon} alt="" className="h-full w-full object-cover bg-white opacity-40" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                    ) : (
-                      <Radio className="h-5 w-5 text-text-muted opacity-40" />
+          <div className="h-[300px] overflow-y-auto custom-scrollbar -mx-2 px-2 flex flex-col gap-2">
+            {useRadioStore.getState().isLoading ? (
+              <div className="p-4 text-center text-sm text-text-muted animate-pulse">Buscando rádios...</div>
+            ) : stations.length === 0 ? (
+              <div className="p-4 text-center text-sm text-text-muted">Nenhuma rádio encontrada.</div>
+            ) : (
+              stations.map(station => {
+                const isFavorite = favorites.some(f => f.id === station.id)
+                const isCurrent = currentStation?.id === station.id
+
+                return (
+                  <div
+                    key={station.id}
+                    className={cn(
+                      "flex items-center gap-3 rounded-[var(--radius-sm)] p-2 transition-colors border",
+                      isCurrent ? "bg-accent/5 border-accent/20" : "bg-surface-hover border-transparent hover:border-border-subtle"
                     )}
-                    <div className="absolute inset-0 flex items-center justify-center text-text-primary">
-                      {isCurrent && isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
-                    </div>
-                  </button>
-                  
-                  <div className="flex-1 overflow-hidden">
-                    <p className={cn(
-                      "truncate text-sm font-medium",
-                      isCurrent ? "text-accent" : "text-text-primary"
-                    )}>
-                      {station.name}
-                    </p>
-                    <p className="truncate text-xs text-text-muted">
-                      {station.tags.split(',').slice(0, 3).join(', ')}
-                    </p>
-                  </div>
-                  
-                  <button
-                    onClick={() => toggleFavorite(station)}
-                    className="p-2 text-text-muted hover:text-accent transition-colors"
                   >
-                    <Star className={cn("h-5 w-5", isFavorite && "fill-accent text-accent")} />
-                  </button>
-                </div>
-              )
-            })}
+                    <button
+                      onClick={() => {
+                        if (isCurrent) {
+                          setIsPlaying(!isPlaying)
+                        } else {
+                          setCurrentStation(station)
+                        }
+                      }}
+                      className="relative flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] bg-surface overflow-hidden shrink-0 border border-border-subtle hover:border-accent transition-colors"
+                    >
+                      {station.favicon ? (
+                        <img src={station.favicon} alt="" className="h-full w-full object-cover bg-white opacity-40" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                      ) : (
+                        <Radio className="h-5 w-5 text-text-muted opacity-40" />
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center text-text-primary">
+                        {isCurrent && isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
+                      </div>
+                    </button>
+                    
+                    <div className="flex-1 overflow-hidden">
+                      <p className={cn(
+                        "truncate text-sm font-medium",
+                        isCurrent ? "text-accent" : "text-text-primary"
+                      )}>
+                        {station.name}
+                      </p>
+                      <p className="truncate text-xs text-text-muted">
+                        {station.tags.split(',').slice(0, 3).join(', ')}
+                      </p>
+                    </div>
+                    
+                    <button
+                      onClick={() => toggleFavorite(station)}
+                      className="p-2 text-text-muted hover:text-accent transition-colors"
+                    >
+                      <Star className={cn("h-5 w-5", isFavorite && "fill-accent text-accent")} />
+                    </button>
+                  </div>
+                )
+              })
+            )}
           </div>
         </motion.div>
       </motion.div>

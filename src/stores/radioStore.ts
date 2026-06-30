@@ -151,6 +151,7 @@ interface RadioState {
   toggleFavorite: (station: RadioStation) => Promise<void>
   loadFavoritesFromDB: () => Promise<void>
   initStations: () => void
+  searchStations: (query: string, country?: string) => Promise<void>
 }
 
 export const useRadioStore = create<RadioState>()(
@@ -212,6 +213,35 @@ export const useRadioStore = create<RadioState>()(
             }, { onConflict: 'user_id' })
           
           if (error) console.error('Error syncing favorite radios:', error)
+        }
+      },
+
+      searchStations: async (query, country = 'BR') => {
+        if (!query.trim()) {
+          set({ stations: CURATED_STATIONS })
+          return
+        }
+
+        set({ isLoading: true })
+        try {
+          const res = await fetch(`https://de1.api.radio-browser.info/json/stations/search?name=${encodeURIComponent(query)}&countrycode=${country}&limit=15&hidebroken=true&order=clickcount&reverse=true`)
+          const data = await res.json()
+          
+          const results: RadioStation[] = data.map((s: any) => ({
+            id: s.stationuuid,
+            name: s.name,
+            url: s.url_resolved || s.url,
+            favicon: s.favicon,
+            countrycode: s.countrycode,
+            tags: s.tags
+          }))
+          
+          set({ stations: results })
+        } catch (error) {
+          console.error('Failed to search stations:', error)
+          set({ stations: CURATED_STATIONS })
+        } finally {
+          set({ isLoading: false })
         }
       },
     }),
