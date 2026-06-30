@@ -24,6 +24,7 @@ interface FocusState {
   loading: boolean
   setSessions: (sessions: FocusSession[]) => void
   fetchSessions: () => Promise<void>
+  loadPreferencesFromDB: () => Promise<void>
   startSession: (taskId: string | null, type: SessionType, durationMinutes: number) => void
   pauseSession: () => void
   resumeSession: () => void
@@ -49,12 +50,33 @@ export const useFocusStore = create<FocusState>()(
 
       setSessions: (sessions) => set({ sessions }),
 
+      loadPreferencesFromDB: async () => {
+        const user = useAuthStore.getState().user
+        if (!user) return
+        
+        const { data, error } = await supabase
+          .from('user_preferences')
+          .select('pomodoro_settings, completed_pomodoros_total')
+          .eq('user_id', user.id)
+          .single()
+
+        if (!error && data) {
+          set({
+            pomodoroSettings: {
+              ...get().pomodoroSettings,
+              ...(data.pomodoro_settings || {})
+            },
+            completedPomodoros: data.completed_pomodoros_total || 0
+          })
+        }
+      },
+
       fetchSessions: async () => {
         const user = useAuthStore.getState().user
         if (!user) return
         set({ loading: true })
         
-        // Only fetch today's sessions to calculate completedPomodoros correctly, or fetch recent ones
+        // Fetch recent sessions
         const { data, error } = await supabase
           .from('focus_sessions')
           .select('*')
@@ -62,13 +84,7 @@ export const useFocusStore = create<FocusState>()(
           .limit(50)
           
         if (!error && data) {
-          const today = new Date().toISOString().split('T')[0]
-          const completedToday = data.filter(s => 
-            s.session_type === 'pomodoro' && 
-            s.started_at.startsWith(today)
-          ).length
-
-          set({ sessions: data, completedPomodoros: completedToday, loading: false })
+          set({ sessions: data, loading: false })
         } else {
           set({ loading: false })
         }
@@ -94,7 +110,7 @@ export const useFocusStore = create<FocusState>()(
       })),
 
       endSession: async () => {
-        const { activeSession } = get()
+        const { activeSession, completedPomodoros } = get()
         if (!activeSession) return
 
         const session: FocusSession = {
@@ -107,21 +123,35 @@ export const useFocusStore = create<FocusState>()(
           created_at: new Date().toISOString(),
         }
 
+        const newCompletedPomodoros = activeSession.type === 'pomodoro'
+          ? completedPomodoros + 1
+          : completedPomodoros
+
         set((s) => ({
           activeSession: null,
           sessions: [session, ...s.sessions],
-          completedPomodoros: activeSession.type === 'pomodoro'
-            ? s.completedPomodoros + 1
-            : s.completedPomodoros,
+          completedPomodoros: newCompletedPomodoros,
         }))
 
         const user = useAuthStore.getState().user
         if (user) {
-          const { error } = await supabase.from('focus_sessions').insert({
+          // Save session
+          const { error: sessionError } = await supabase.from('focus_sessions').insert({
             ...session,
             user_id: user.id
           })
-          if (error) console.error('Error saving focus session:', error)
+          if (sessionError) console.error('Error saving focus session:', sessionError)
+
+          // Sync total pomodoros
+          if (activeSession.type === 'pomodoro') {
+            await supabase
+              .from('user_preferences')
+              .upsert({ 
+                user_id: user.id, 
+                completed_pomodoros_total: newCompletedPomodoros,
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'user_id' })
+          }
         }
       },
 
@@ -142,9 +172,21 @@ export const useFocusStore = create<FocusState>()(
         activeSession: s.activeSession ? { ...s.activeSession, remaining } : null,
       })),
 
-      updateSettings: (settings) => set({
-        pomodoroSettings: { ...get().pomodoroSettings, ...settings },
-      }),
+      updateSettings: async (settings) => {
+        const newSettings = { ...get().pomodoroSettings, ...settings }
+        set({ pomodoroSettings: newSettings })
+        
+        const user = useAuthStore.getState().user
+        if (user) {
+          await supabase
+            .from('user_preferences')
+            .upsert({ 
+              user_id: user.id, 
+              pomodoro_settings: newSettings,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' })
+        }
+      },
     }),
     {
       name: 'planner-focus-storage',

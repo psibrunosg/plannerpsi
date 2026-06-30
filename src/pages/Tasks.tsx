@@ -156,8 +156,14 @@ export default function Tasks() {
   const { viewMode, setViewMode, setTaskFormOpen } = useUIStore()
   const tasks = useTaskStore((s) => s.tasks)
   const filter = useTaskStore((s) => s.filter)
-  const filteredTasks = useMemo(() => useTaskStore.getState().filteredTasks(), [tasks, filter])
+  
+  const [showArchived, setShowArchived] = useState(false)
   const [activeDateTag, setActiveDateTag] = useState<DateTagId>('all')
+  
+  const filteredTasks = useMemo(() => 
+    showArchived ? useTaskStore.getState().archivedTasks() : useTaskStore.getState().filteredTasks(), 
+  [tasks, filter, showArchived])
+
   const archiveCompletedTasks = useTaskStore(s => s.archiveCompletedTasks)
   const addToast = useToastStore(s => s.addToast)
 
@@ -175,7 +181,7 @@ export default function Tasks() {
     return result
   }, [filteredTasks])
 
-  const ActiveView = VIEW_COMPONENTS[viewMode]
+  const ActiveView = showArchived ? ListView : VIEW_COMPONENTS[viewMode]
   
   const hasCompletedTasks = tasks.some(t => t.status === 'done')
 
@@ -190,9 +196,9 @@ export default function Tasks() {
     <motion.div variants={pageTransition} initial="hidden" animate="visible" exit="exit">
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold"><span className="gradient-text">Tarefas</span></h1>
+          <h1 className="text-3xl font-bold"><span className="gradient-text">{showArchived ? 'Tarefas Arquivadas' : 'Tarefas'}</span></h1>
           <p className="mt-1 text-text-secondary">
-            {activeDateTag === 'all'
+            {activeDateTag === 'all' || showArchived
               ? `${filteredTasks.length} tarefa${filteredTasks.length !== 1 ? 's' : ''}`
               : `${dateFilteredTasks.length} de ${filteredTasks.length} tarefas`
             }
@@ -200,18 +206,33 @@ export default function Tasks() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center rounded-[var(--radius-sm)] bg-surface-elevated p-1">
-            {VIEW_OPTIONS.map((opt) => (
-              <motion.button key={opt.id} whileTap={{ scale: 0.95 }} onClick={() => setViewMode(opt.id)}
-                className={cn('flex items-center gap-1.5 rounded-[6px] px-3 py-1.5 text-xs font-medium transition-colors',
-                  viewMode === opt.id ? 'bg-accent/15 text-accent' : 'text-text-muted hover:text-text-secondary')}>
-                <opt.icon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{opt.label}</span>
-              </motion.button>
-            ))}
-          </div>
+          {!showArchived && (
+            <div className="flex items-center rounded-[var(--radius-sm)] bg-surface-elevated p-1">
+              {VIEW_OPTIONS.map((opt) => (
+                <motion.button key={opt.id} whileTap={{ scale: 0.95 }} onClick={() => setViewMode(opt.id)}
+                  className={cn('flex items-center gap-1.5 rounded-[6px] px-3 py-1.5 text-xs font-medium transition-colors',
+                    viewMode === opt.id ? 'bg-accent/15 text-accent' : 'text-text-muted hover:text-text-secondary')}>
+                  <opt.icon className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{opt.label}</span>
+                </motion.button>
+              ))}
+            </div>
+          )}
 
-          {hasCompletedTasks && (
+          <motion.button 
+            whileHover={{ scale: 1.05 }} 
+            whileTap={{ scale: 0.95 }} 
+            onClick={() => setShowArchived(!showArchived)}
+            className={cn("flex items-center gap-2 rounded-[var(--radius-sm)] border px-3 py-2 text-sm font-medium transition-colors",
+              showArchived ? "bg-accent/10 border-accent/20 text-accent" : "bg-surface-elevated border-border-subtle text-text-secondary hover:text-text-primary hover:bg-surface-hover"
+            )}
+            title={showArchived ? "Voltar às Tarefas Ativas" : "Ver Arquivadas"}
+          >
+            <Archive className="h-4 w-4" />
+            <span className="hidden sm:inline">{showArchived ? 'Ocultar Arquivadas' : 'Mostrar Arquivadas'}</span>
+          </motion.button>
+
+          {!showArchived && hasCompletedTasks && (
             <motion.button 
               whileHover={{ scale: 1.05 }} 
               whileTap={{ scale: 0.95 }} 
@@ -232,42 +253,47 @@ export default function Tasks() {
         </div>
       </div>
 
-      {/* Date filter tabs bar */}
-      <div className="mb-5 flex items-center gap-1 overflow-x-auto rounded-[var(--radius-md)] bg-surface-elevated/60 p-1.5">
-        {DATE_FILTER_TABS.map((tab) => (
-          <motion.button
-            key={tab.id}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setActiveDateTag(tab.id)}
-            className={cn(
-              'relative flex items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-sm)] px-3.5 py-2 text-xs font-medium transition-all',
-              activeDateTag === tab.id
-                ? cn('bg-surface-active', tab.color)
-                : 'text-text-muted hover:text-text-secondary hover:bg-surface-hover/50',
-            )}
-          >
-            {tab.label}
-            {counts[tab.id] > 0 && (
-              <span className={cn(
-                'ml-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none',
-                activeDateTag === tab.id ? 'bg-white/10' : 'bg-surface-hover',
-                tab.id === 'overdue' && counts[tab.id] > 0 && 'bg-red-500/20 text-red-400',
-              )}>
-                {counts[tab.id]}
-              </span>
-            )}
-            {activeDateTag === tab.id && (
-              <motion.div
-                layoutId="date-tab-indicator"
-                className="absolute inset-0 rounded-[var(--radius-sm)] border border-border/50"
-                transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-              />
-            )}
-          </motion.button>
-        ))}
-      </div>
+      {!showArchived && (
+        <div className="mb-5 flex items-center gap-1 overflow-x-auto rounded-[var(--radius-md)] bg-surface-elevated/60 p-1.5">
+          {DATE_FILTER_TABS.map((tab) => (
+            <motion.button
+              key={tab.id}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setActiveDateTag(tab.id)}
+              className={cn(
+                'relative flex items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-sm)] px-3.5 py-2 text-xs font-medium transition-all',
+                activeDateTag === tab.id
+                  ? cn('bg-surface-active', tab.color)
+                  : 'text-text-muted hover:text-text-secondary hover:bg-surface-hover/50',
+              )}
+            >
+              {tab.label}
+              {counts[tab.id] > 0 && (
+                <span className={cn(
+                  'ml-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none',
+                  activeDateTag === tab.id ? 'bg-white/10' : 'bg-surface-hover',
+                  tab.id === 'overdue' && counts[tab.id] > 0 && 'bg-red-500/20 text-red-400',
+                )}>
+                  {counts[tab.id]}
+                </span>
+              )}
+              {activeDateTag === tab.id && (
+                <motion.div
+                  layoutId="date-tab-indicator"
+                  className="absolute inset-0 rounded-[var(--radius-sm)] border border-border/50"
+                  transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                />
+              )}
+            </motion.button>
+          ))}
+        </div>
+      )}
 
-      <ActiveView />
+      {showArchived ? (
+        <ListView />
+      ) : (
+        <ActiveView />
+      )}
     </motion.div>
   )
 }

@@ -45,6 +45,7 @@ interface TaskState {
   clearFilter: () => void
   setLoading: (loading: boolean) => void
   filteredTasks: () => Task[]
+  archivedTasks: () => Task[]
 }
 
 export const useTaskStore = create<TaskState>()(
@@ -185,6 +186,12 @@ export const useTaskStore = create<TaskState>()(
           const pb = priorityOrder[b.priority] ?? 3
           if (pa !== pb) return pa - pb
           return (a.position ?? 0) - (b.position ?? 0)
+        })
+      },
+
+      archivedTasks: () => {
+        return (get().tasks || []).filter((t) => t.status === 'archived').sort((a, b) => {
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
         })
       },
     }),

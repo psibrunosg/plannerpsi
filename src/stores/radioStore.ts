@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/authStore'
 
 export interface RadioStation {
   id: string
@@ -10,22 +12,73 @@ export interface RadioStation {
   tags: string
 }
 
+// Fixed curated list of reliable focus/study radios
+const CURATED_STATIONS: RadioStation[] = [
+  {
+    id: 'lofi-girl',
+    name: 'Lofi Girl - beats to relax/study to',
+    url: 'https://play.streamafrica.net/lofiradio',
+    favicon: 'https://lofigirl.com/wp-content/uploads/2023/02/CROPPED-favicon-192x192.png',
+    countrycode: 'FR',
+    tags: 'lofi,focus,study,chill'
+  },
+  {
+    id: 'chillhop',
+    name: 'Chillhop Radio',
+    url: 'https://stream.zeno.fm/f3wvbbqmdg8uv',
+    favicon: 'https://chillhop.com/wp-content/uploads/2020/09/chillhop-icon.png',
+    countrycode: 'NL',
+    tags: 'lofi,chillhop,study'
+  },
+  {
+    id: 'classical-mpr',
+    name: 'Classical MPR (Minnesota Public Radio)',
+    url: 'https://cms.stream.publicradio.org/cms.mp3',
+    favicon: 'https://www.yourclassical.org/favicon.ico',
+    countrycode: 'US',
+    tags: 'classical,focus,study'
+  },
+  {
+    id: 'jazz-groove',
+    name: 'The Jazz Groove',
+    url: 'https://audio-edge-12uht.fra.h.radiomast.io/871891a3-2313-4ff0-bf4a-0a4ffbe2b0ea',
+    favicon: 'https://jazzgroove.org/favicon.ico',
+    countrycode: 'US',
+    tags: 'jazz,smooth,relax'
+  },
+  {
+    id: 'ambient-sleeping-pill',
+    name: 'Ambient Sleeping Pill',
+    url: 'https://radio.stereoscenic.com/asp-s',
+    favicon: 'https://ambientsleepingpill.com/favicon.ico',
+    countrycode: 'US',
+    tags: 'ambient,relax,focus'
+  },
+  {
+    id: 'bossanova',
+    name: 'Bossa Nova Hits',
+    url: 'https://stream.zeno.fm/y13x1bntm5zuv',
+    favicon: 'https://i.scdn.co/image/ab67706f00000003058cbfa898499de7256598c0',
+    countrycode: 'BR',
+    tags: 'bossa,brasil,relax'
+  }
+]
+
 interface RadioState {
   isPlaying: boolean
   volume: number
   currentStation: RadioStation | null
   stations: RadioStation[]
   favorites: RadioStation[]
-  selectedCountry: string
   isLoading: boolean
   
   // Actions
   setIsPlaying: (playing: boolean) => void
   setVolume: (volume: number) => void
   setCurrentStation: (station: RadioStation) => void
-  setSelectedCountry: (country: string) => void
-  toggleFavorite: (station: RadioStation) => void
-  searchStations: (query: string, country?: string) => Promise<void>
+  toggleFavorite: (station: RadioStation) => Promise<void>
+  loadFavoritesFromDB: () => Promise<void>
+  initStations: () => void
 }
 
 export const useRadioStore = create<RadioState>()(
@@ -34,51 +87,59 @@ export const useRadioStore = create<RadioState>()(
       isPlaying: false,
       volume: 0.5,
       currentStation: null,
-      stations: [],
+      stations: CURATED_STATIONS,
       favorites: [],
-      selectedCountry: 'BR', // Default: Brazil
       isLoading: false,
 
       setIsPlaying: (playing) => set({ isPlaying: playing }),
       setVolume: (volume) => set({ volume }),
       setCurrentStation: (station) => set({ currentStation: station, isPlaying: true }),
-      setSelectedCountry: (country) => set({ selectedCountry: country }),
       
-      toggleFavorite: (station) => {
-        const { favorites } = get()
-        const exists = favorites.find(f => f.id === station.id)
-        if (exists) {
-          set({ favorites: favorites.filter(f => f.id !== station.id) })
-        } else {
-          set({ favorites: [...favorites, station] })
+      initStations: () => {
+        // Just sets the curated stations
+        set({ stations: CURATED_STATIONS })
+      },
+
+      loadFavoritesFromDB: async () => {
+        const user = useAuthStore.getState().user
+        if (!user) return
+
+        const { data, error } = await supabase
+          .from('user_preferences')
+          .select('favorite_radios')
+          .eq('user_id', user.id)
+          .single()
+
+        if (!error && data?.favorite_radios) {
+          set({ favorites: data.favorite_radios as RadioStation[] })
         }
       },
 
-      searchStations: async (query: string, country?: string) => {
-        set({ isLoading: true })
-        try {
-          const searchCountry = country || get().selectedCountry
-          // Fetch from Radio Browser API
-          // Using a reliable node: de1.api.radio-browser.info
-          const apiUrl = `https://de1.api.radio-browser.info/json/stations/search?name=${encodeURIComponent(query)}&countrycode=${searchCountry}&limit=30&hidebroken=true&order=clickcount&reverse=true`
+      toggleFavorite: async (station) => {
+        const { favorites } = get()
+        const exists = favorites.find(f => f.id === station.id)
+        let newFavorites = []
+        
+        if (exists) {
+          newFavorites = favorites.filter(f => f.id !== station.id)
+        } else {
+          newFavorites = [...favorites, station]
+        }
+        
+        set({ favorites: newFavorites })
+
+        // Sync to Supabase
+        const user = useAuthStore.getState().user
+        if (user) {
+          const { error } = await supabase
+            .from('user_preferences')
+            .upsert({ 
+              user_id: user.id, 
+              favorite_radios: newFavorites,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' })
           
-          const response = await fetch(apiUrl)
-          const data = await response.json()
-          
-          const mappedStations: RadioStation[] = data.map((s: any) => ({
-            id: s.stationuuid,
-            name: s.name,
-            url: s.url_resolved || s.url,
-            favicon: s.favicon,
-            countrycode: s.countrycode,
-            tags: s.tags
-          }))
-          
-          set({ stations: mappedStations })
-        } catch (error) {
-          console.error("Failed to fetch radio stations", error)
-        } finally {
-          set({ isLoading: false })
+          if (error) console.error('Error syncing favorite radios:', error)
         }
       },
     }),
@@ -87,9 +148,9 @@ export const useRadioStore = create<RadioState>()(
       partialize: (state) => ({ 
         volume: state.volume, 
         currentStation: state.currentStation,
-        selectedCountry: state.selectedCountry,
+        // We still persist favorites locally for faster load, but DB is source of truth on cross-device
         favorites: state.favorites
-      }), // persist favorites
+      }),
     }
   )
 )

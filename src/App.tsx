@@ -19,6 +19,7 @@ import { useTaskStore } from '@/stores/taskStore'
 import { usePlanningStore } from '@/stores/planningStore'
 import { useFocusStore } from '@/stores/focusStore'
 import { useProcedureStore } from '@/stores/procedureStore'
+import { useRadioStore } from '@/stores/radioStore'
 
 export default function App() {
 
@@ -45,7 +46,9 @@ export default function App() {
           useTaskStore.getState().fetchTasks(),
           usePlanningStore.getState().fetchNotes(),
           useFocusStore.getState().fetchSessions(),
-          useProcedureStore.getState().fetchProcedures()
+          useFocusStore.getState().loadPreferencesFromDB(),
+          useProcedureStore.getState().fetchProcedures(),
+          useRadioStore.getState().loadFavoritesFromDB()
         ])
         setIsMigrating(false)
       }

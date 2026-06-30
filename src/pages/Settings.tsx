@@ -7,17 +7,8 @@ import { useFocusStore } from '@/stores/focusStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
 import { useRadioStore } from '@/stores/radioStore'
-import { Calendar, Link as LinkIcon, Copy, Radio, Search, Globe, ChevronDown, Check, Loader2, Star, Play, Pause } from 'lucide-react'
-import { useState, useEffect } from 'react'
-
-const COUNTRIES = [
-  { code: 'BR', name: 'Brasil' },
-  { code: 'AR', name: 'Argentina' },
-  { code: 'CO', name: 'Colômbia' },
-  { code: 'PR', name: 'Porto Rico' },
-  { code: 'UY', name: 'Uruguai' },
-  { code: 'US', name: 'EUA' }
-]
+import { Calendar, Link as LinkIcon, Copy, Radio, Star, Play, Pause } from 'lucide-react'
+import { useEffect } from 'react'
 
 export default function Settings() {
   const theme = useUIStore((s) => s.theme)
@@ -28,38 +19,17 @@ export default function Settings() {
   const addToast = useToastStore((s) => s.addToast)
 
   const {
-    stations, searchStations, selectedCountry, setSelectedCountry, isLoading,
+    stations, initStations,
     favorites, toggleFavorite, currentStation, setCurrentStation, isPlaying, setIsPlaying
   } = useRadioStore()
 
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showCountries, setShowCountries] = useState(false)
-
-  // Fetch initial stations if empty
   useEffect(() => {
-    if (stations.length === 0) {
-      searchStations('', selectedCountry)
-    }
-  }, []) // eslint-disable-line
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    searchStations(searchQuery, selectedCountry)
-  }
-  
-  const handleCountrySelect = (code: string) => {
-    setSelectedCountry(code)
-    setShowCountries(false)
-    searchStations(searchQuery, code)
-  }
-
-  const currentCountryName = COUNTRIES.find(c => c.code === selectedCountry)?.name || 'País'
+    initStations()
+  }, [initStations])
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-  // Use path formatting para terminar em .ics, o que agrada o Outlook Web
   const baseCalendarUrl = user ? `${supabaseUrl}/functions/v1/calendar-feed/${user.id}.ics` : ''
   const webcalUrl = baseCalendarUrl.replace('https://', 'webcal://').replace('http://', 'webcal://')
-  // Outlook Web requires an https:// URL for the addfromweb parameter, not a webcal:// URL
   const outlookWebUrl = baseCalendarUrl ? `https://outlook.office.com/calendar/0/addfromweb?url=${encodeURIComponent(baseCalendarUrl)}&name=Planner%20PSI` : ''
 
   const copyToClipboard = () => {
@@ -125,26 +95,6 @@ export default function Settings() {
           </p>
           
           <div className="flex flex-col gap-4">
-            {/* Quick Actions */}
-            <div className="flex gap-2">
-              <a 
-                href={outlookWebUrl}
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded bg-[#0078D4]/10 px-4 py-2 text-sm font-medium text-[#0078D4] hover:bg-[#0078D4]/20 border border-[#0078D4]/20 transition-colors"
-              >
-                <Calendar className="h-4 w-4" />
-                Adicionar ao Outlook Web
-              </a>
-              <a 
-                href={webcalUrl}
-                className="flex items-center gap-2 rounded bg-surface-hover px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-active border border-border-subtle transition-colors"
-              >
-                <LinkIcon className="h-4 w-4" />
-                Abrir App Padrão
-              </a>
-            </div>
-
             <div className="flex items-center justify-between rounded-[var(--radius-sm)] bg-surface-hover p-3 border border-border-subtle">
               <div className="flex items-center gap-2 overflow-hidden mr-4">
                 <LinkIcon className="h-4 w-4 text-text-muted shrink-0" />
@@ -159,132 +109,102 @@ export default function Settings() {
                 className="flex items-center gap-2 rounded bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent hover:bg-accent/20 shrink-0"
               >
                 <Copy className="h-3.5 w-3.5" />
-                Copiar
+                Copiar URL (.ics)
               </motion.button>
+            </div>
+
+            <div className="flex gap-2 mt-2">
+              <a 
+                href={outlookWebUrl}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded bg-[#0078D4]/10 px-4 py-2 text-sm font-medium text-[#0078D4] hover:bg-[#0078D4]/20 border border-[#0078D4]/20 transition-colors"
+              >
+                <Calendar className="h-4 w-4" />
+                Adicionar ao Outlook Web
+              </a>
+              <a 
+                href={webcalUrl}
+                className="flex items-center gap-2 rounded bg-surface-hover px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-active border border-border-subtle transition-colors"
+              >
+                <LinkIcon className="h-4 w-4" />
+                Abrir App Padrão (Apple, etc)
+              </a>
             </div>
             
             <div className="text-xs text-text-muted space-y-1">
-              <p><b>Outlook Desktop:</b> Clique em "Copiar", vá no Outlook &gt; Adicionar Calendário &gt; Assinar da Web.</p>
+              <p><b>Google Calendar:</b> Copie a URL (.ics) acima &gt; Configurações &gt; Adicionar calendário &gt; Do URL.</p>
+              <p><b>Outlook Desktop:</b> Copie a URL (.ics) &gt; Adicionar Calendário &gt; Assinar da Web.</p>
             </div>
           </div>
         </motion.div>
 
         <motion.div variants={staggerItem} className="glass-card p-6">
           <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-primary">
-            <Radio className="h-5 w-5" /> Rádios Favoritas
+            <Radio className="h-5 w-5" /> Rádios de Foco Curadas
           </h3>
           <p className="mb-4 text-sm text-text-secondary">
-            Busque e adicione rádios à sua lista de favoritos para acesso rápido no player do topo.
+            Adicione essas rádios de alta qualidade e confiabilidade aos seus favoritos clicando na estrelinha.
           </p>
 
-          <div className="flex gap-2 relative mb-4">
-            <div className="relative">
-              <button 
-                onClick={() => setShowCountries(!showCountries)}
-                className="flex h-10 items-center gap-1 rounded-[var(--radius-sm)] border border-border-subtle bg-surface px-3 text-sm text-text-secondary hover:bg-surface-hover transition-colors"
-              >
-                <Globe className="h-4 w-4" />
-                {currentCountryName}
-                <ChevronDown className="h-4 w-4" />
-              </button>
-              
-              {showCountries && (
-                <div className="absolute left-0 top-11 z-50 w-40 rounded-[var(--radius-sm)] border border-border-subtle bg-surface py-1 shadow-lg">
-                  {COUNTRIES.map(c => (
-                    <button
-                      key={c.code}
-                      onClick={() => handleCountrySelect(c.code)}
-                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-surface-hover text-text-primary transition-colors"
-                    >
-                      {c.name}
-                      {selectedCountry === c.code && <Check className="h-4 w-4 text-accent" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <form onSubmit={handleSearch} className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-text-muted" />
-              <input 
-                type="text" 
-                placeholder="Buscar rádio por nome..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 w-full rounded-[var(--radius-sm)] border border-border-subtle bg-surface pl-9 pr-3 text-sm text-text-primary placeholder-text-muted focus:border-accent focus:outline-none transition-colors"
-              />
-            </form>
-          </div>
-
           <div className="h-[300px] overflow-y-auto custom-scrollbar -mx-2 px-2 flex flex-col gap-2">
-            {isLoading ? (
-              <div className="flex h-full items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-accent" />
-              </div>
-            ) : stations.length > 0 ? (
-              stations.map(station => {
-                const isFavorite = favorites.some(f => f.id === station.id)
-                const isCurrent = currentStation?.id === station.id
+            {stations.map(station => {
+              const isFavorite = favorites.some(f => f.id === station.id)
+              const isCurrent = currentStation?.id === station.id
 
-                return (
-                  <div
-                    key={station.id}
-                    className={cn(
-                      "flex items-center gap-3 rounded-[var(--radius-sm)] p-2 transition-colors border",
-                      isCurrent ? "bg-accent/5 border-accent/20" : "bg-surface-hover border-transparent hover:border-border-subtle"
-                    )}
+              return (
+                <div
+                  key={station.id}
+                  className={cn(
+                    "flex items-center gap-3 rounded-[var(--radius-sm)] p-2 transition-colors border",
+                    isCurrent ? "bg-accent/5 border-accent/20" : "bg-surface-hover border-transparent hover:border-border-subtle"
+                  )}
+                >
+                  <button
+                    onClick={() => {
+                      if (isCurrent) {
+                        setIsPlaying(!isPlaying)
+                      } else {
+                        setCurrentStation(station)
+                      }
+                    }}
+                    className="relative flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] bg-surface overflow-hidden shrink-0 border border-border-subtle hover:border-accent transition-colors"
                   >
-                    <button
-                      onClick={() => {
-                        if (isCurrent) {
-                          setIsPlaying(!isPlaying)
-                        } else {
-                          setCurrentStation(station)
-                        }
-                      }}
-                      className="relative flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] bg-surface overflow-hidden shrink-0 border border-border-subtle hover:border-accent transition-colors"
-                    >
-                      {station.favicon ? (
-                        <img src={station.favicon} alt="" className="h-full w-full object-cover bg-white opacity-40" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                      ) : (
-                        <Radio className="h-5 w-5 text-text-muted opacity-40" />
-                      )}
-                      <div className="absolute inset-0 flex items-center justify-center text-text-primary">
-                        {isCurrent && isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
-                      </div>
-                    </button>
-                    
-                    <div className="flex-1 overflow-hidden">
-                      <p className={cn(
-                        "truncate text-sm font-medium",
-                        isCurrent ? "text-accent" : "text-text-primary"
-                      )}>
-                        {station.name}
-                      </p>
-                      <p className="truncate text-xs text-text-muted">
-                        {station.tags.split(',').slice(0, 3).join(', ')}
-                      </p>
+                    {station.favicon ? (
+                      <img src={station.favicon} alt="" className="h-full w-full object-cover bg-white opacity-40" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                    ) : (
+                      <Radio className="h-5 w-5 text-text-muted opacity-40" />
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center text-text-primary">
+                      {isCurrent && isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
                     </div>
-                    
-                    <button
-                      onClick={() => toggleFavorite(station)}
-                      className="p-2 text-text-muted hover:text-accent transition-colors"
-                    >
-                      <Star className={cn("h-5 w-5", isFavorite && "fill-accent text-accent")} />
-                    </button>
+                  </button>
+                  
+                  <div className="flex-1 overflow-hidden">
+                    <p className={cn(
+                      "truncate text-sm font-medium",
+                      isCurrent ? "text-accent" : "text-text-primary"
+                    )}>
+                      {station.name}
+                    </p>
+                    <p className="truncate text-xs text-text-muted">
+                      {station.tags.split(',').slice(0, 3).join(', ')}
+                    </p>
                   </div>
-                )
-              })
-            ) : (
-              <div className="flex h-full flex-col items-center justify-center text-center text-text-muted p-4">
-                <Radio className="mb-2 h-8 w-8 opacity-20" />
-                <p className="text-sm">Nenhuma rádio encontrada.</p>
-                <p className="text-xs mt-1">Tente outro nome ou país.</p>
-              </div>
-            )}
+                  
+                  <button
+                    onClick={() => toggleFavorite(station)}
+                    className="p-2 text-text-muted hover:text-accent transition-colors"
+                  >
+                    <Star className={cn("h-5 w-5", isFavorite && "fill-accent text-accent")} />
+                  </button>
+                </div>
+              )
+            })}
           </div>
         </motion.div>
       </motion.div>
     </motion.div>
   )
 }
+
