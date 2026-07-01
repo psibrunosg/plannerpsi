@@ -77,16 +77,28 @@ async function fetchFolderTree(folderId: string, folderName: string): Promise<Dr
   }
 
   const rawFiles: DriveFile[] = []
-
-  // Concurrently fetch all subtopics
   const subFolderPromises: Promise<DriveTopic>[] = []
+  const mediaFolderPromises: Promise<DriveFile[]>[] = []
 
   for (const file of files) {
     if (file.mimeType === 'application/vnd.google-apps.folder') {
-      subFolderPromises.push(fetchFolderTree(file.id, file.name))
+      const lowerName = file.name.toLowerCase()
+      // If the folder is a media container, fetch its contents to merge them here
+      if (['mp3', 'mp4', 'videos', 'vídeos', 'transcrição', 'transcrições', 'transcricao', 'transcricoes', 'áudios', 'audios'].includes(lowerName)) {
+        mediaFolderPromises.push(fetchFolderContents(file.id))
+      } else {
+        // Otherwise, it's a real subtopic
+        subFolderPromises.push(fetchFolderTree(file.id, file.name))
+      }
     } else {
       rawFiles.push(file)
     }
+  }
+
+  // Merge media folders into rawFiles
+  if (mediaFolderPromises.length > 0) {
+    const mediaFoldersContents = await Promise.all(mediaFolderPromises)
+    mediaFoldersContents.forEach(contents => rawFiles.push(...contents))
   }
 
   topic.subtopics = await Promise.all(subFolderPromises)
@@ -107,16 +119,20 @@ async function fetchFolderTree(folderId: string, folderName: string): Promise<Dr
     if (!extMatch) return
     
     const ext = extMatch[1].toLowerCase()
-    const baseName = file.name.substring(0, file.name.length - ext.length - 1).trim()
+    const baseNameRaw = file.name.substring(0, file.name.length - ext.length - 1).trim()
+    
+    // Normalize baseName to prevent duplicates (e.g. "01-Name" vs "01 - Name")
+    const baseNameKey = baseNameRaw.toLowerCase().replace(/\s*-\s*/g, '-').replace(/\s+/g, ' ')
 
-    if (!groups.has(baseName)) {
-      groups.set(baseName, { baseName })
+    if (!groups.has(baseNameKey)) {
+      groups.set(baseNameKey, { baseName: baseNameRaw })
     }
     
-    const group = groups.get(baseName)!
-    if (ext === 'mp4') group.videoFile = file
-    else if (ext === 'mp3') group.audioFile = file
-    else if (ext === 'md') group.transcriptFile = file
+    const group = groups.get(baseNameKey)!
+    // Prefer the first found if multiple exist, but usually they are 1 to 1
+    if (ext === 'mp4' && !group.videoFile) group.videoFile = file
+    else if (ext === 'mp3' && !group.audioFile) group.audioFile = file
+    else if (ext === 'md' && !group.transcriptFile) group.transcriptFile = file
   })
 
   topic.lessons = Array.from(groups.values()).sort((a, b) => a.baseName.localeCompare(b.baseName))
