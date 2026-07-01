@@ -166,59 +166,98 @@ export default function Settings() {
             ) : stations.length === 0 ? (
               <div className="p-4 text-center text-sm text-text-muted">Nenhuma rádio encontrada.</div>
             ) : (
-              stations.map(station => {
-                const isFavorite = favorites.some(f => f.id === station.id)
-                const isCurrent = currentStation?.id === station.id
+              (() => {
+                const groupedStations = stations.reduce((acc, station) => {
+                  const code = station.countrycode?.toUpperCase() || 'OTHER'
+                  if (!acc[code]) acc[code] = []
+                  acc[code].push(station)
+                  return acc
+                }, {} as Record<string, typeof stations>)
 
-                return (
-                  <div
-                    key={station.id}
-                    className={cn(
-                      "flex items-center gap-3 rounded-[var(--radius-sm)] p-2 transition-colors border",
-                      isCurrent ? "bg-accent/5 border-accent/20" : "bg-surface-hover border-transparent hover:border-border-subtle"
-                    )}
-                  >
-                    <button
-                      onClick={() => {
-                        if (isCurrent) {
-                          setIsPlaying(!isPlaying)
-                        } else {
-                          setCurrentStation(station)
-                        }
-                      }}
-                      className="relative flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] bg-surface overflow-hidden shrink-0 border border-border-subtle hover:border-accent transition-colors"
-                    >
-                      {station.favicon ? (
-                        <img src={station.favicon} alt="" className="h-full w-full object-cover bg-white opacity-40" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                      ) : (
-                        <Radio className="h-5 w-5 text-text-muted opacity-40" />
-                      )}
-                      <div className="absolute inset-0 flex items-center justify-center text-text-primary">
-                        {isCurrent && isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
-                      </div>
-                    </button>
-                    
-                    <div className="flex-1 overflow-hidden">
-                      <p className={cn(
-                        "truncate text-sm font-medium",
-                        isCurrent ? "text-accent" : "text-text-primary"
-                      )}>
-                        {station.name}
-                      </p>
-                      <p className="truncate text-xs text-text-muted">
-                        {station.tags.split(',').slice(0, 3).join(', ')}
-                      </p>
+                const countryLabels: Record<string, { label: string, emoji: string }> = {
+                  'BR': { label: 'Brasil', emoji: '🇧🇷' },
+                  'CO': { label: 'Colômbia', emoji: '🇨🇴' },
+                  'PR': { label: 'Porto Rico', emoji: '🇵🇷' },
+                  'UY': { label: 'Uruguai', emoji: '🇺🇾' },
+                  'OTHER': { label: 'Foco & Lo-Fi', emoji: '🎧' },
+                }
+
+                const getCountryLabel = (code: string) => countryLabels[code] || { label: `Outros (${code})`, emoji: '🌍' }
+
+                // Sort keys to put BR first, then CO, PR, UY, OTHER
+                const sortedKeys = Object.keys(groupedStations).sort((a, b) => {
+                  const order = ['BR', 'CO', 'PR', 'UY', 'OTHER']
+                  const indexA = order.indexOf(a)
+                  const indexB = order.indexOf(b)
+                  if (indexA !== -1 && indexB !== -1) return indexA - indexB
+                  if (indexA !== -1) return -1
+                  if (indexB !== -1) return 1
+                  return a.localeCompare(b)
+                })
+
+                return sortedKeys.map(code => (
+                  <div key={code} className="mb-2">
+                    <h4 className="mb-2 mt-1 px-1 text-xs font-semibold text-text-muted flex items-center gap-1.5 uppercase tracking-wider">
+                      <span>{getCountryLabel(code).emoji}</span> {getCountryLabel(code).label}
+                    </h4>
+                    <div className="flex flex-col gap-2">
+                      {groupedStations[code].map(station => {
+                        const isFavorite = favorites.some(f => f.id === station.id)
+                        const isCurrent = currentStation?.id === station.id
+
+                        return (
+                          <div
+                            key={station.id}
+                            className={cn(
+                              "flex items-center gap-3 rounded-[var(--radius-sm)] p-2 transition-colors border",
+                              isCurrent ? "bg-accent/5 border-accent/20" : "bg-surface-hover border-transparent hover:border-border-subtle"
+                            )}
+                          >
+                            <button
+                              onClick={() => {
+                                if (isCurrent) {
+                                  setIsPlaying(!isPlaying)
+                                } else {
+                                  setCurrentStation(station)
+                                }
+                              }}
+                              className="relative flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] bg-surface overflow-hidden shrink-0 border border-border-subtle hover:border-accent transition-colors"
+                            >
+                              {station.favicon ? (
+                                <img src={station.favicon} alt="" className="h-full w-full object-cover bg-white opacity-40" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                              ) : (
+                                <Radio className="h-5 w-5 text-text-muted opacity-40" />
+                              )}
+                              <div className="absolute inset-0 flex items-center justify-center text-text-primary">
+                                {isCurrent && isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
+                              </div>
+                            </button>
+                            
+                            <div className="flex-1 overflow-hidden">
+                              <p className={cn(
+                                "truncate text-sm font-medium",
+                                isCurrent ? "text-accent" : "text-text-primary"
+                              )}>
+                                {station.name}
+                              </p>
+                              <p className="truncate text-xs text-text-muted">
+                                {station.tags.split(',').slice(0, 3).join(', ')}
+                              </p>
+                            </div>
+                            
+                            <button
+                              onClick={() => toggleFavorite(station)}
+                              className="p-2 text-text-muted hover:text-accent transition-colors"
+                            >
+                              <Star className={cn("h-5 w-5", isFavorite && "fill-accent text-accent")} />
+                            </button>
+                          </div>
+                        )
+                      })}
                     </div>
-                    
-                    <button
-                      onClick={() => toggleFavorite(station)}
-                      className="p-2 text-text-muted hover:text-accent transition-colors"
-                    >
-                      <Star className={cn("h-5 w-5", isFavorite && "fill-accent text-accent")} />
-                    </button>
                   </div>
-                )
-              })
+                ))
+              })()
             )}
           </div>
         </motion.div>

@@ -206,6 +206,62 @@ const CURATED_STATIONS: RadioStation[] = [
     favicon: 'https://firebasestorage.googleapis.com/v0/b/radiogalaxy-580f4.appspot.com/o/images%2FIMG_20240623_101428021.jpg?alt=media&token=4553b784-4a5a-41b8-ae80-1e11e7359772',
     countrycode: 'UY',
     tags: 'deportes,noticias'
+  },
+  {
+    id: 'f05a93b9-c679-481f-b793-1a43d45c1e90',
+    name: 'Band FM Triângulo 99.9 Mhz',
+    url: 'https://stm28.xcast.com.br:11364/stream',
+    favicon: 'https://bandfmcambui.com.br/wp-content/uploads/2018/12/cropped-favicon-1-32x32.png',
+    countrycode: 'BR',
+    tags: 'música popular,brasil'
+  },
+  {
+    id: '59b79175-8524-45ad-ba89-bb6c16d7e2c0',
+    name: 'Mix FM',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/MIXFM_POAAAC.aac',
+    favicon: 'https://radiomixfm.com.br/wp-content/uploads/2021/03/cropped-favicon-32x32.png',
+    countrycode: 'BR',
+    tags: 'jovem,pop-rock'
+  },
+  {
+    id: '44c845a6-12f3-42d7-90d8-687994d51f14',
+    name: 'W Radio',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/WRADIOAAC.aac',
+    favicon: 'https://www.wradio.com.co/pf/resources/wradio-colombia/touch-icon-ipad.png?d=248',
+    countrycode: 'CO',
+    tags: 'news,talk'
+  },
+  {
+    id: '6f022fbe-c202-4c7d-bd6c-b14953f9163a',
+    name: 'La Mega 92.9 FM',
+    url: 'https://us-b4-p-e-qg12-audio.cdn.mdstrm.com/live-audio-aw/632cb48f613bac0856b931ab',
+    favicon: 'https://cdn.lamega.com.co/wp-content/uploads/2021/11/cropped-logo-lamega-32x32.png',
+    countrycode: 'CO',
+    tags: 'entretenimiento,pop'
+  },
+  {
+    id: '4dc3cedb-ff17-46ce-86d6-65f874532d5c',
+    name: 'Sarandi 690',
+    url: 'https://radiolatina.live:10977/sarandi',
+    favicon: 'https://www.sarandi690.com.uy/wp-content/uploads/2019/12/cropped-favicon-32x32.png',
+    countrycode: 'UY',
+    tags: 'news,talk'
+  },
+  {
+    id: 'f51dc707-4538-4f8d-8fd2-2933013c8389',
+    name: 'Azul FM 101.9',
+    url: 'https://azul-2.nty.uy/',
+    favicon: '',
+    countrycode: 'UY',
+    tags: 'indie,rock'
+  },
+  {
+    id: 'e3f0dd24-ebee-11e8-a471-52543be04c81',
+    name: 'AZ Rock',
+    url: 'http://cassini.shoutca.st:9300/stream',
+    favicon: 'https://azrockradio.com/wp-content/uploads/2019/10/cropped-favicon-32x32.png',
+    countrycode: 'PR',
+    tags: 'rock'
   }
 ]
 
