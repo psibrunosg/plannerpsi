@@ -105,8 +105,8 @@ const CURATED_STATIONS: RadioStation[] = [
   },
   {
     id: '521e0177-f6a0-4207-9ec4-c780befc06a9',
-    name: 'Rádio Atlântida (RS)',
-    url: 'https://1852747t.ha.azioncdn.net/primary/atl_poa.sdp/playlist.m3u8',
+    name: 'Rádio Atlântida (Rede)',
+    url: 'https://27353.live.streamtheworld.com:443/ATL_FLO.mp3',
     favicon: 'https://cdn.instant.audio/images/logos/radiosaovivo-net/atlantida-poa.png',
     countrycode: 'BR',
     tags: 'rs,pop,rock,brasil'
