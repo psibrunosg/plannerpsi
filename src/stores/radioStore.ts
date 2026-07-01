@@ -262,6 +262,70 @@ const CURATED_STATIONS: RadioStation[] = [
     favicon: 'https://azrockradio.com/wp-content/uploads/2019/10/cropped-favicon-32x32.png',
     countrycode: 'PR',
     tags: 'rock'
+  },
+  {
+    id: 'b8999692-0fba-4660-8934-c74167efc9e0',
+    name: 'Antena 1  - Porto Alegre',
+    url: 'https://antenaone.crossradio.com.br/stream/1',
+    favicon: 'https://www.antena1.com.br/apple-touch-icon.png',
+    countrycode: 'BR',
+    tags: ''
+  },
+  {
+    id: '9cc39d6a-ee85-4b81-95bf-92b6141670c8',
+    name: 'Rádio Transamérica 100.1 FM',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/RT_SPAAC.aac',
+    favicon: 'https://img.radios.com.br/radio/lg/radio8803_1578516680.png',
+    countrycode: 'BR',
+    tags: 'música pop,sertanejo,sertanejo raiz'
+  },
+  {
+    id: '1261b546-da1d-4525-8119-44d5c7112ec8',
+    name: 'Rádio Guaíba',
+    url: 'https://radio.saopaulo01.com.br:10827/stream',
+    favicon: 'https://guaiba.com.br/wp-content/uploads//2025/03/svgviewer-output.svg',
+    countrycode: 'BR',
+    tags: ''
+  },
+  {
+    id: '940b0a24-b79f-41b1-915f-d05ed49b8e82',
+    name: 'Tropicana (Medellín) 98.9 FM',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/TR_MEDELLINAAC.aac',
+    favicon: 'https://www.tropicanafm.com/wp-content/uploads/2021/02/cropped-favicon_tropicana-32x32.png',
+    countrycode: 'CO',
+    tags: 'salsa'
+  },
+  {
+    id: 'bc6840d8-645e-4ba0-ab6c-76f37808d2c7',
+    name: 'Medellin 104.9 - Olimpica Stereo',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/OLP_MEDELLINAAC.aac?1707017722',
+    favicon: 'http://www.olimpicastereo.com.co/icon?b8748d2f62517688',
+    countrycode: 'CO',
+    tags: ''
+  },
+  {
+    id: 'ab414e56-3733-4c14-845a-b82d73fb099c',
+    name: 'Fidelity 95.7',
+    url: 'https://server7.servistreaming.com/proxy/fidelity?_=1&mp=/stream?type=.mp3',
+    favicon: 'https://fidelitypr.com/wp-content/uploads/2025/09/cropped-Untitled-design-45.png',
+    countrycode: 'PR',
+    tags: ''
+  },
+  {
+    id: '130a1d84-3350-494a-b27c-4d8ac3b8e77c',
+    name: 'CX 20 Radio Monte Carlo',
+    url: 'https://streamingcasazorrilla.innovanexo.com:8000/montecarlo.mp3',
+    favicon: '',
+    countrycode: 'UY',
+    tags: 'aqui esta su disco,la super radio,music'
+  },
+  {
+    id: '96443c16-bb54-4437-964d-eef2d6f65239',
+    name: 'Del Sol FM',
+    url: 'https://delsol-1.nty.uy/?type=http&nocache=2780&dbl=0',
+    favicon: 'https://delsol.uy/favicon.ico',
+    countrycode: 'UY',
+    tags: ''
   }
 ]
 
