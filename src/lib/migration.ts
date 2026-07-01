@@ -1,8 +1,10 @@
 import { supabase } from './supabase'
 import type { Task, DailyNote, FocusSession, Procedure } from '@/types'
+import { useToastStore } from '@/stores/toastStore'
 
 export async function migrateLocalDataToSupabase(userId: string) {
   let migratedItems = 0
+  const addToast = useToastStore.getState().addToast
 
   try {
     // 1. Migrate Tasks
@@ -24,6 +26,7 @@ export async function migrateLocalDataToSupabase(userId: string) {
             localStorage.setItem('planner-tasks-storage', JSON.stringify(parsed))
           } else {
             console.error('Task migration error:', error)
+            addToast('Erro ao sincronizar tarefas com a nuvem. Verifique o Supabase.', 'error')
           }
         }
       }
