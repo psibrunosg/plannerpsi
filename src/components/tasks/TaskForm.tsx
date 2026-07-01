@@ -14,7 +14,8 @@ export function TaskForm() {
   const setTaskFormOpen = useUIStore((s) => s.setTaskFormOpen)
   const taskDetailId = useUIStore((s) => s.taskDetailId)
   const setTaskDetailId = useUIStore((s) => s.setTaskDetailId)
-  const tasks = useTaskStore((s) => s.tasks)
+  
+  // Get actions without subscribing to state changes
   const addTask = useTaskStore((s) => s.addTask)
   const updateTask = useTaskStore((s) => s.updateTask)
   const deleteTask = useTaskStore((s) => s.deleteTask)
@@ -54,7 +55,8 @@ export function TaskForm() {
 
   useEffect(() => {
     if (taskDetailId) {
-      const task = tasks.find(t => t.id === taskDetailId)
+      // Read imperatively to avoid re-rendering TaskForm on every global task change
+      const task = useTaskStore.getState().tasks.find(t => t.id === taskDetailId)
       if (task) {
         setTitle(task.title)
         setDescription(task.description || '')
@@ -68,7 +70,7 @@ export function TaskForm() {
     } else if (taskFormOpen) {
       reset()
     }
-  }, [taskDetailId, taskFormOpen, tasks])
+  }, [taskDetailId, taskFormOpen])
 
   const handleSelectDateTag = (tagId: string) => {
     const tag = SMART_DATE_TAGS.find((t) => t.id === tagId)
@@ -98,40 +100,48 @@ export function TaskForm() {
       completion_percentage: completionPercentage,
     }
 
-    if (isEditing && taskDetailId) {
-      updateTask(taskDetailId, {
-        ...taskData,
-        updated_at: new Date().toISOString(),
-      })
-      addToast('Tarefa atualizada!', 'success')
-    } else {
-      addTask({
-        id: crypto.randomUUID(),
-        ...taskData,
-        status: _status,
-        actual_minutes: null,
-        parent_id: null,
-        is_recurring: false,
-        recurrence_rule: null,
-        completed_at: null,
-        position: 0,
-        kanban_column: _status,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        user_id: null,
-      })
-      addToast('Tarefa criada!', 'success')
-    }
-
+    // Defer the heavy store update to allow the modal exit animation to be fluid
+    const editingId = taskDetailId
+    
     closeForm()
+    
+    setTimeout(() => {
+      if (isEditing && editingId) {
+        updateTask(editingId, {
+          ...taskData,
+          updated_at: new Date().toISOString(),
+        })
+        addToast('Tarefa atualizada!', 'success')
+      } else {
+        addTask({
+          id: crypto.randomUUID(),
+          ...taskData,
+          status: _status,
+          actual_minutes: null,
+          parent_id: null,
+          is_recurring: false,
+          recurrence_rule: null,
+          completed_at: null,
+          position: 0,
+          kanban_column: _status,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          user_id: null,
+        })
+        addToast('Tarefa criada!', 'success')
+      }
+    }, 250) // 250ms covers the Framer Motion exit animation duration
   }
 
   const handleDelete = () => {
     if (isEditing && taskDetailId) {
       if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
-        deleteTask(taskDetailId)
-        addToast('Tarefa excluída!', 'success')
+        const idToDelete = taskDetailId
         closeForm()
+        setTimeout(() => {
+          deleteTask(idToDelete)
+          addToast('Tarefa excluída!', 'success')
+        }, 250)
       }
     }
   }

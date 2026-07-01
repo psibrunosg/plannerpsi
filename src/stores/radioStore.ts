@@ -18,18 +18,11 @@ const CURATED_STATIONS: RadioStation[] = [
     id: 'alegria-fm',
     name: 'Rádio Alegria FM',
     url: 'https://cast.hoost.com.br:8103/stream',
-    favicon: 'https://radioalegria.com.br/wp-content/uploads/2020/08/cropped-logo-alegria-32x32.png',
+    favicon: 'https://cdn.instant.audio/images/logos/radiosaovivo-net/alegria-poa.png',
     countrycode: 'BR',
     tags: 'sertanejo,rs,alegria'
   },
-  {
-    id: 'oceano-fm',
-    name: 'Rádio Oceano FM',
-    url: 'https://stream.zeno.fm/oceano-fm',
-    favicon: '',
-    countrycode: 'BR',
-    tags: 'pelotas,rs,oceano'
-  },
+
   {
     id: 'lofi-girl',
     name: 'Lofi Girl - beats to relax/study to',
@@ -106,7 +99,7 @@ const CURATED_STATIONS: RadioStation[] = [
     id: '46d02cdb-49a6-11e9-a4d7-52543be04c81',
     name: 'Rádio Gaúcha (RS)',
     url: 'https://1132747t.ha.azioncdn.net/primary/gaucha_rbs.sdp/playlist.m3u8',
-    favicon: 'https://gauchazh.clicrbs.com.br/static/icons/mstile-70x70.png',
+    favicon: 'https://cdn.instant.audio/images/logos/radiosaovivo-net/gaucha-poa.png',
     countrycode: 'BR',
     tags: 'rs,notícias,futebol,brasil'
   },
@@ -114,7 +107,7 @@ const CURATED_STATIONS: RadioStation[] = [
     id: '521e0177-f6a0-4207-9ec4-c780befc06a9',
     name: 'Rádio Atlântida (RS)',
     url: 'https://1852747t.ha.azioncdn.net/primary/atl_poa.sdp/playlist.m3u8',
-    favicon: 'https://atl.clicrbs.com.br/wp-content/themes/atlantida/assets/images/favicon.ico',
+    favicon: 'https://cdn.instant.audio/images/logos/radiosaovivo-net/atlantida-poa.png',
     countrycode: 'BR',
     tags: 'rs,pop,rock,brasil'
   },
@@ -149,6 +142,70 @@ const CURATED_STATIONS: RadioStation[] = [
     favicon: 'https://assets.clubefm.com.br/uploads/site/logo/2/106-sertaneja-4fff3e1f118ab621432fa4d74136e042e86b6eedbabf561ded0dfd61123d980e.png',
     countrycode: 'BR',
     tags: 'sertanejo,brasil'
+  },
+  {
+    id: 'a41c5dcc-7cd8-44da-a071-d74a3ea01ce4',
+    name: 'Metropolitana FM (Maceió/SP)',
+    url: 'https://streaming.livespanel.com:8032/maceiofm',
+    favicon: 'https://www.radios.com.br/aovivo/radio-metropolitana-977-fm/260824',
+    countrycode: 'BR',
+    tags: 'pop,rock,sertanejo'
+  },
+  {
+    id: 'be54b4d2-f3f6-45d5-b449-06adcaf36830',
+    name: '89 FM A Rádio Rock (SP)',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO_89FM_ADP.aac?dist=site-89fm',
+    favicon: 'https://www.radiorock.com.br/wp-content/uploads/2019/04/cropped-favicon-1-32x32.png',
+    countrycode: 'BR',
+    tags: 'rock,alternativo'
+  },
+  {
+    id: 'b443a768-fca4-42cb-8b4a-6a3437399c27',
+    name: 'FM O DIA 100.5 (RJ)',
+    url: 'http://streaming.livespanel.com:20000/live',
+    favicon: 'https://fmodia.com.br/wp-content/uploads/2021/04/cropped-favicon-fmodia-32x32.png',
+    countrycode: 'BR',
+    tags: 'pagode,funk,pop'
+  },
+  {
+    id: '66ffbb08-88bd-11e9-ad01-52543be04c81',
+    name: 'Jovem Pan (Porto Alegre)',
+    url: 'http://centova6.ciclanohost.com.br:9256/;',
+    favicon: 'https://s.jpimg.com.br/wp-content/themes/jovempan/assets/build/images/favicons/apple-touch-icon.png',
+    countrycode: 'BR',
+    tags: 'pop,news'
+  },
+  {
+    id: '6a436cad-5aa9-4a8d-a879-7f8328749b3e',
+    name: 'Caracol Radio (Colômbia)',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/CARACOL_RADIOAAC.aac',
+    favicon: 'https://caracol.com.co/pf/resources/caracol-colombia/touch-icon-ipad.png?d=174',
+    countrycode: 'CO',
+    tags: 'news,talk'
+  },
+  {
+    id: 'bc36c5f0-7b45-479f-aa41-3caf3a912377',
+    name: 'Radioacktiva (Bogotá)',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO_ACTIVAAAC.aac',
+    favicon: 'https://www.radioacktiva.com/wp-content/uploads/2024/12/cropped-favicon-new1-180x180.png',
+    countrycode: 'CO',
+    tags: 'classic rock'
+  },
+  {
+    id: 'b95692d0-9b6f-4810-b6e6-395bbe6a5d0b',
+    name: 'WKAQ 580 (Porto Rico)',
+    url: 'https://televicentro.streamguys1.com/wkaqam-icy?key=a548fad34362b181adc2d8c3cc86b7cf1d424ef2d81c4050b3e6e1ba21f8de3d&source=tunein&source=TuneIn&us_privacy=1YNY&bundle=tunein.com&lat=18.4038&long=-66.1493&aw_0_1st.playerid=RadioTime&aw_0_1st.skey=1772682016&aw_0_1st.bundleId=tunein.com&lon=-66.1493&listenerid=555c2c74177be24010a700c94e4e5933&aw_0_1st.abtest=&partnerId=RadioTime&aw_0_1st.stationId=s30075&aw_0_1st.premium=false&aw_0_1st.platform=tunein&aw_0_1st.genre_id=g255&aw_0_1st.class=talk&aw_0_1st.ads_partner_alias=dsk.Web&aw_0_azn.planguage=[iv,%20es]&aw_0_1st.is_ondemand=false&aw_0_1st.topicId=na&aw_0_1st.affiliateIds=a116918,a40075,a39100&aw_0_1st.bandId=1&delivery=1&aw_0_1st.lotamesegments=;;',
+    favicon: 'https://bloximages.chicago2.vip.townnews.com/wkaq580.com/content/tncms/custom/image/9732c65a-a5bb-11ee-8102-67d137cd6b72.png?resize=400%2C167',
+    countrycode: 'PR',
+    tags: 'news,talk'
+  },
+  {
+    id: '747c7cb7-e1d6-4447-ad7f-5fd8de9157a3',
+    name: 'Sport 890 (Uruguai)',
+    url: 'https://alba-uy-sport890-sport890.stream.mediatiquestream.com/index.m3u8',
+    favicon: 'https://firebasestorage.googleapis.com/v0/b/radiogalaxy-580f4.appspot.com/o/images%2FIMG_20240623_101428021.jpg?alt=media&token=4553b784-4a5a-41b8-ae80-1e11e7359772',
+    countrycode: 'UY',
+    tags: 'deportes,noticias'
   }
 ]
 
@@ -158,6 +215,7 @@ interface RadioState {
   currentStation: RadioStation | null
   stations: RadioStation[]
   favorites: RadioStation[]
+  recentStations: RadioStation[]
   isLoading: boolean
   
   // Actions
@@ -178,11 +236,17 @@ export const useRadioStore = create<RadioState>()(
       currentStation: null,
       stations: CURATED_STATIONS,
       favorites: [],
+      recentStations: [],
       isLoading: false,
 
       setIsPlaying: (playing) => set({ isPlaying: playing }),
       setVolume: (volume) => set({ volume }),
-      setCurrentStation: (station) => set({ currentStation: station, isPlaying: true }),
+      setCurrentStation: (station) => {
+        const { recentStations } = get()
+        // Remove duplicates and keep only the latest 5
+        const newRecent = [station, ...recentStations.filter(s => s.id !== station.id)].slice(0, 5)
+        set({ currentStation: station, isPlaying: true, recentStations: newRecent })
+      },
       
       initStations: () => {
         // Just sets the curated stations
@@ -268,7 +332,8 @@ export const useRadioStore = create<RadioState>()(
         volume: state.volume, 
         currentStation: state.currentStation,
         // We still persist favorites locally for faster load, but DB is source of truth on cross-device
-        favorites: state.favorites
+        favorites: state.favorites,
+        recentStations: state.recentStations
       }),
     }
   )

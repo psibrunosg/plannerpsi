@@ -4,6 +4,7 @@ import { Target, CheckCircle, Clock, TrendingUp, Calendar, Flame } from 'lucide-
 import { pageTransition, staggerContainer, staggerItem } from '@/lib/motion'
 import { useTaskStore } from '@/stores/taskStore'
 import { useFocusStore } from '@/stores/focusStore'
+import { WeatherWidget } from '@/components/dashboard/WeatherWidget'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -33,9 +34,14 @@ export default function Dashboard() {
 
   return (
     <motion.div variants={pageTransition} initial="hidden" animate="visible" exit="exit">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold"><span className="gradient-text">Dashboard</span></h1>
-        <p className="mt-1 text-text-secondary">Visão geral do seu progresso</p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold"><span className="gradient-text">Dashboard</span></h1>
+          <p className="mt-1 text-text-secondary">Visão geral do seu progresso</p>
+        </div>
+        <div className="w-full sm:w-64 shrink-0">
+          <WeatherWidget />
+        </div>
       </div>
 
       <motion.div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" variants={staggerContainer} initial="hidden" animate="visible">

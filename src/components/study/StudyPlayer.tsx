@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { Headphones, Video, PictureInPicture2, AlertCircle } from 'lucide-react'
+import { Headphones, Video, PictureInPicture2, AlertCircle, CheckCircle } from 'lucide-react'
 import { useStudyStore } from '@/stores/studyStore'
 import { getDriveStreamUrl } from '@/lib/drive'
 import { cn } from '@/lib/cn'
 
 export function StudyPlayer() {
-  const { activeLesson, isAudioMode, setIsAudioMode } = useStudyStore()
+  const { activeLesson, isAudioMode, setIsAudioMode, completedLessons, toggleLessonCompleted } = useStudyStore()
   const videoRef = useRef<HTMLVideoElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const [error, setError] = useState<string | null>(null)
@@ -75,6 +75,7 @@ export function StudyPlayer() {
 
   const hasVideo = !!activeLesson.videoFile
   const hasAudio = !!activeLesson.audioFile
+  const isCompleted = completedLessons.includes(activeLesson.baseName)
 
   const handleVideoError = () => {
     // If native video fails, fallback to Google Drive iframe player
@@ -146,6 +147,19 @@ export function StudyPlayer() {
         </div>
         
         <div className="flex shrink-0 items-center gap-2">
+          <button
+            onClick={() => toggleLessonCompleted(activeLesson.baseName)}
+            className={cn(
+              "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+              isCompleted 
+                ? "bg-success/10 text-success border-success/30 hover:bg-success/20" 
+                : "border-border-subtle text-text-secondary hover:bg-surface-hover hover:text-text-primary"
+            )}
+          >
+            <CheckCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">{isCompleted ? 'Concluída' : 'Marcar Concluída'}</span>
+          </button>
+
           {hasAudio && hasVideo && (
             <button
               onClick={toggleMode}

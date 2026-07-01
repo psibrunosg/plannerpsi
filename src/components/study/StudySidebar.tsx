@@ -1,19 +1,24 @@
 import { useEffect, useState } from 'react'
-import { Folder, PlayCircle, Loader2, AlertCircle, ChevronDown, ChevronRight, FolderOpen } from 'lucide-react'
+import { Folder, PlayCircle, Loader2, AlertCircle, ChevronDown, ChevronRight, FolderOpen, CheckCircle } from 'lucide-react'
 import { useStudyStore } from '@/stores/studyStore'
 import { cn } from '@/lib/cn'
+import { COURSES } from '@/lib/drive'
 import type { DriveTopic, LessonGroup } from '@/lib/drive'
+
+// ... TopicNode definition ...
 
 function TopicNode({ 
   topic, 
   depth = 0, 
   activeLesson, 
-  onSelectLesson 
+  onSelectLesson,
+  completedLessons
 }: { 
   topic: DriveTopic, 
   depth?: number, 
   activeLesson: LessonGroup | null, 
-  onSelectLesson: (l: LessonGroup) => void 
+  onSelectLesson: (l: LessonGroup) => void,
+  completedLessons: string[]
 }) {
   const [isOpen, setIsOpen] = useState(depth === 0) // root level topics are open by default
   const hasChildren = topic.subtopics.length > 0 || topic.lessons.length > 0
@@ -24,6 +29,7 @@ function TopicNode({
       <div className="space-y-0.5 mt-1">
         {topic.lessons.map(lesson => {
           const isActiveLesson = activeLesson?.baseName === lesson.baseName
+          const isCompleted = completedLessons.includes(lesson.baseName)
           return (
             <button
               key={lesson.baseName}
@@ -34,7 +40,8 @@ function TopicNode({
               )}
             >
               <PlayCircle className={cn("h-3.5 w-3.5 shrink-0", isActiveLesson ? "text-accent" : "")} />
-              <span className="truncate leading-tight">{lesson.baseName}</span>
+              <span className="truncate leading-tight flex-1">{lesson.baseName}</span>
+              {isCompleted && <CheckCircle className="h-3.5 w-3.5 shrink-0 text-success" />}
             </button>
           )
         })}
@@ -61,10 +68,11 @@ function TopicNode({
       {isOpen && hasChildren && (
         <div className="pl-3 py-0.5 space-y-0.5 border-l border-border-subtle/50 ml-2">
           {topic.subtopics.map(sub => (
-            <TopicNode key={sub.id} topic={sub} depth={depth + 1} activeLesson={activeLesson} onSelectLesson={onSelectLesson} />
+            <TopicNode key={sub.id} topic={sub} depth={depth + 1} activeLesson={activeLesson} onSelectLesson={onSelectLesson} completedLessons={completedLessons} />
           ))}
           {topic.lessons.map(lesson => {
             const isActiveLesson = activeLesson?.baseName === lesson.baseName
+            const isCompleted = completedLessons.includes(lesson.baseName)
             return (
               <button
                 key={lesson.baseName}
@@ -75,7 +83,8 @@ function TopicNode({
                 )}
               >
                 <PlayCircle className={cn("h-3.5 w-3.5 shrink-0", isActiveLesson ? "text-accent" : "")} />
-                <span className="truncate leading-tight">{lesson.baseName}</span>
+                <span className="truncate leading-tight flex-1">{lesson.baseName}</span>
+                {isCompleted && <CheckCircle className="h-3.5 w-3.5 shrink-0 text-success" />}
               </button>
             )
           })}
@@ -97,12 +106,15 @@ export function StudySidebar() {
     isLoadingLessons,
     error,
     activeCourseId,
-    selectCourse
+    selectCourse,
+    completedLessons,
+    loadCompletedLessonsFromDB
   } = useStudyStore()
 
   useEffect(() => {
     loadModules()
-  }, [loadModules])
+    loadCompletedLessonsFromDB()
+  }, [loadModules, loadCompletedLessonsFromDB])
 
   return (
     <div className="flex h-full w-72 flex-col glass-card border-r border-border-subtle overflow-hidden">
@@ -114,25 +126,19 @@ export function StudySidebar() {
         </div>
         
         {/* Course Selector */}
-        <div className="flex bg-surface rounded-lg p-1 border border-border-subtle">
-          <button
-            onClick={() => selectCourse('inpbe')}
-            className={cn(
-              "flex-1 text-xs py-1.5 px-2 rounded-md font-medium transition-colors text-center",
-              activeCourseId === 'inpbe' ? "bg-accent/10 text-accent shadow-sm" : "text-text-secondary hover:text-text-primary"
-            )}
-          >
-            INPBE
-          </button>
-          <button
-            onClick={() => selectCourse('cognitivo')}
-            className={cn(
-              "flex-1 text-xs py-1.5 px-2 rounded-md font-medium transition-colors text-center",
-              activeCourseId === 'cognitivo' ? "bg-accent/10 text-accent shadow-sm" : "text-text-secondary hover:text-text-primary"
-            )}
-          >
-            Cognitivo
-          </button>
+        <div className="flex bg-surface rounded-lg p-1 border border-border-subtle flex-wrap gap-1">
+          {COURSES.map(course => (
+            <button
+              key={course.id}
+              onClick={() => selectCourse(course.id)}
+              className={cn(
+                "flex-1 text-xs py-1.5 px-2 rounded-md font-medium transition-colors text-center min-w-[60px]",
+                activeCourseId === course.id ? "bg-accent/10 text-accent shadow-sm" : "text-text-secondary hover:text-text-primary"
+              )}
+            >
+              {course.name}
+            </button>
+          ))}
         </div>
       </div>
       
@@ -183,6 +189,7 @@ export function StudySidebar() {
                             topic={topic} 
                             activeLesson={activeLesson} 
                             onSelectLesson={selectLesson} 
+                            completedLessons={completedLessons}
                           />
                         ))}
                       </div>

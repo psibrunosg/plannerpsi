@@ -19,27 +19,27 @@ export const springGentle: Transition = {
 }
 
 export const fadeIn: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.3 } },
+  hidden: { opacity: 1 },
+  visible: { opacity: 1, transition: { duration: 0 } },
 }
 
 export const slideUp: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: spring },
+  hidden: { opacity: 1, y: 0 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0 } },
 }
 
 export const slideRight: Variants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: { opacity: 1, x: 0, transition: spring },
+  hidden: { opacity: 1, x: 0 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0 } },
 }
 
 export const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: { opacity: 1, scale: 1, transition: springBouncy },
+  hidden: { opacity: 1, scale: 1 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0 } },
 }
 
 export const staggerContainer: Variants = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   visible: {
     opacity: 1,
     transition: { staggerChildren: 0, delayChildren: 0 },
@@ -47,20 +47,20 @@ export const staggerContainer: Variants = {
 }
 
 export const staggerItem: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: spring },
+  hidden: { opacity: 1, y: 0 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0 } },
 }
 
 export const modalOverlay: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.2 } },
-  exit: { opacity: 0, transition: { duration: 0.15 } },
+  hidden: { opacity: 1 },
+  visible: { opacity: 1, transition: { duration: 0 } },
+  exit: { opacity: 0, transition: { duration: 0 } },
 }
 
 export const modalContent: Variants = {
-  hidden: { opacity: 0, scale: 0.95, y: 8 },
-  visible: { opacity: 1, scale: 1, y: 0, transition: springBouncy },
-  exit: { opacity: 0, scale: 0.97, y: 4, transition: { duration: 0.15 } },
+  hidden: { opacity: 1, scale: 1, y: 0 },
+  visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0 } },
+  exit: { opacity: 0, scale: 1, y: 0, transition: { duration: 0 } },
 }
 
 export const sidebarVariants: Variants = {
@@ -75,9 +75,9 @@ export const toastVariants: Variants = {
 }
 
 export const pageTransition: Variants = {
-  hidden: { opacity: 0, y: 8 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.15, ease: 'easeOut' } },
-  exit: { opacity: 0, y: -4, transition: { duration: 0.1 } },
+  hidden: { opacity: 1, y: 0 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0 } },
+  exit: { opacity: 0, y: 0, transition: { duration: 0 } },
 }
 
 export const checkboxVariants: Variants = {

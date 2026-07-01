@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/authStore'
 import { fetchModules, fetchModuleTopics, COURSES } from '@/lib/drive'
 import type { DriveModule, LessonGroup } from '@/lib/drive'
 
@@ -12,6 +14,7 @@ interface StudyState {
   isLoadingLessons: boolean
   error: string | null
   isAudioMode: boolean
+  completedLessons: string[]
   
   // Actions
   selectCourse: (courseId: string) => Promise<void>
@@ -19,6 +22,8 @@ interface StudyState {
   selectModule: (moduleId: string) => Promise<void>
   selectLesson: (lesson: LessonGroup) => void
   setIsAudioMode: (isAudio: boolean) => void
+  toggleLessonCompleted: (lessonId: string) => Promise<void>
+  loadCompletedLessonsFromDB: () => Promise<void>
 }
 
 export const useStudyStore = create<StudyState>()(
@@ -32,6 +37,48 @@ export const useStudyStore = create<StudyState>()(
       isLoadingLessons: false,
       error: null,
       isAudioMode: false,
+      completedLessons: [],
+
+      loadCompletedLessonsFromDB: async () => {
+        const user = useAuthStore.getState().user
+        if (!user) return
+
+        const { data, error } = await supabase
+          .from('user_preferences')
+          .select('completed_lessons')
+          .eq('user_id', user.id)
+          .single()
+
+        if (!error && data?.completed_lessons) {
+          set({ completedLessons: data.completed_lessons as string[] })
+        }
+      },
+
+      toggleLessonCompleted: async (lessonId: string) => {
+        const { completedLessons } = get()
+        let newCompleted = []
+        
+        if (completedLessons.includes(lessonId)) {
+          newCompleted = completedLessons.filter(id => id !== lessonId)
+        } else {
+          newCompleted = [...completedLessons, lessonId]
+        }
+        
+        set({ completedLessons: newCompleted })
+
+        const user = useAuthStore.getState().user
+        if (user) {
+          const { error } = await supabase
+            .from('user_preferences')
+            .upsert({ 
+              user_id: user.id, 
+              completed_lessons: newCompleted,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' })
+          
+          if (error) console.error('Error syncing completed lessons:', error)
+        }
+      },
 
       selectCourse: async (courseId: string) => {
         if (get().activeCourseId === courseId) return
@@ -67,6 +114,11 @@ export const useStudyStore = create<StudyState>()(
       },
 
       selectModule: async (moduleId: string) => {
+        if (get().activeModuleId === moduleId) {
+          set({ activeModuleId: null })
+          return
+        }
+
         set({ activeModuleId: moduleId, isLoadingLessons: true, error: null })
         try {
           // Check if lessons are already loaded
@@ -95,7 +147,8 @@ export const useStudyStore = create<StudyState>()(
       partialize: (state) => ({ 
         activeCourseId: state.activeCourseId,
         activeModuleId: state.activeModuleId,
-        isAudioMode: state.isAudioMode 
+        isAudioMode: state.isAudioMode,
+        completedLessons: state.completedLessons
       }), // Persist user preferences but not the modules cache itself to keep it fresh
     }
   )

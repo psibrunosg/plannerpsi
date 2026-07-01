@@ -38,7 +38,9 @@ export interface Course {
 
 export const COURSES: Course[] = [
   { id: 'inpbe', name: 'INPBE', folderId: '1OX59Ra9Eq958HIeYKKwVPp9e6FkDP3un' },
-  { id: 'cognitivo', name: 'Cognitivo', folderId: '1H-0QxJrGoDpqOUf2nSlrmLZiCp7Jgg1O' }
+  { id: 'cognitivo-tcc', name: 'TCC', folderId: '1wwMlvl-gtizObMQb1RdFaGD0Zh3UNZkY' },
+  { id: 'cognitivo-te', name: 'TE', folderId: '12fm6GTWrmVa9P9-dNXCWYYVjVD4ntdSy' },
+  { id: 'cognitivo-outros', name: 'Cognitivo', folderId: '1H-0QxJrGoDpqOUf2nSlrmLZiCp7Jgg1O' }
 ]
 
 // Fetch list of files in a folder
@@ -56,7 +58,13 @@ async function fetchFolderContents(folderId: string): Promise<DriveFile[]> {
 
 export async function fetchModules(courseFolderId: string): Promise<DriveModule[]> {
   const files = await fetchFolderContents(courseFolderId)
-  const folders = files.filter(f => f.mimeType === 'application/vnd.google-apps.folder')
+  let folders = files.filter(f => f.mimeType === 'application/vnd.google-apps.folder')
+  
+  // Se for a pasta raiz do Cognitivo, ignorar as pastas que viraram cursos próprios (TCC e TE)
+  if (courseFolderId === '1H-0QxJrGoDpqOUf2nSlrmLZiCp7Jgg1O') {
+    const ignoreIds = ['1wwMlvl-gtizObMQb1RdFaGD0Zh3UNZkY', '12fm6GTWrmVa9P9-dNXCWYYVjVD4ntdSy']
+    folders = folders.filter(f => !ignoreIds.includes(f.id))
+  }
   
   return folders.map(f => ({
     id: f.id,

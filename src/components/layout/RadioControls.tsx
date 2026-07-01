@@ -1,15 +1,16 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Radio, Play, Pause, Volume2, VolumeX } from 'lucide-react'
+import { Radio, Play, Pause, Volume2, VolumeX, Trash2, Settings } from 'lucide-react'
 import { useRadioStore } from '@/stores/radioStore'
 import { cn } from '@/lib/cn'
+import { Link } from 'react-router-dom'
 
 export function RadioControls() {
   const { 
     isPlaying, setIsPlaying, 
     volume, setVolume, 
     currentStation, setCurrentStation,
-    favorites
+    favorites, toggleFavorite
   } = useRadioStore()
 
   const [isOpen, setIsOpen] = useState(false)
@@ -88,53 +89,116 @@ export function RadioControls() {
 
                 {/* Stations List */}
                 <div className="h-48 overflow-y-auto custom-scrollbar -mx-2 px-2 flex flex-col gap-1">
+                  
+                  {/* Recent Stations Section */}
+                  {useRadioStore.getState().recentStations.length > 0 && (
+                    <div className="mb-2">
+                      <p className="px-2 pb-1 text-xs font-semibold text-text-muted uppercase tracking-wider">Tocadas Recentemente</p>
+                      {useRadioStore.getState().recentStations.map(station => (
+                        <div key={`recent-${station.id}`} className="flex items-center gap-1 group">
+                          <button
+                            onClick={() => setCurrentStation(station)}
+                            title={`Rádio: ${station.name}\nGêneros: ${station.tags}\nLocal: ${station.countrycode}\n\n(Metadados em tempo real bloqueados via web)`}
+                            className={cn(
+                              "flex-1 flex items-center gap-3 rounded-md p-2 text-left transition-colors",
+                              currentStation?.id === station.id ? "bg-accent/10" : "hover:bg-surface-hover"
+                            )}
+                          >
+                            {station.favicon ? (
+                              <img src={station.favicon} alt="" className="h-6 w-6 rounded-sm object-cover bg-white" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                            ) : (
+                              <div className="flex h-6 w-6 items-center justify-center rounded-sm bg-border-subtle">
+                                <Radio className="h-3 w-3 text-text-muted" />
+                              </div>
+                            )}
+                            <div className="flex-1 overflow-hidden">
+                              <p className={cn("truncate text-sm font-medium", currentStation?.id === station.id ? "text-accent" : "text-text-primary")}>
+                                {station.name}
+                              </p>
+                            </div>
+                            {currentStation?.id === station.id && isPlaying && (
+                              <div className="flex gap-0.5 mr-1 h-3 items-end">
+                                <motion.div animate={{ height: ["40%", "100%", "40%"] }} transition={{ repeat: Infinity, duration: 0.8 }} className="w-1 bg-accent rounded-t-sm" />
+                                <motion.div animate={{ height: ["80%", "30%", "80%"] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1 bg-accent rounded-t-sm" />
+                                <motion.div animate={{ height: ["50%", "100%", "50%"] }} transition={{ repeat: Infinity, duration: 0.9, delay: 0.1 }} className="w-1 bg-accent rounded-t-sm" />
+                              </div>
+                            )}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Favorites Section */}
+                  <p className="px-2 pb-1 text-xs font-semibold text-text-muted uppercase tracking-wider">Favoritas</p>
                   {favorites.length > 0 ? (
                     favorites.map(station => (
-                      <button
-                        key={station.id}
-                        onClick={() => setCurrentStation(station)}
-                        className={cn(
-                          "flex items-center gap-3 rounded-md p-2 text-left transition-colors",
-                          currentStation?.id === station.id 
-                            ? "bg-accent/10" 
-                            : "hover:bg-surface-hover"
-                        )}
-                      >
-                        {station.favicon ? (
-                          <img src={station.favicon} alt="" className="h-8 w-8 rounded-sm object-cover bg-white" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                        ) : (
-                          <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-border-subtle">
-                            <Radio className="h-4 w-4 text-text-muted" />
+                      <div key={`fav-${station.id}`} className="flex items-center gap-1 group">
+                        <button
+                          onClick={() => setCurrentStation(station)}
+                          title={`Rádio: ${station.name}\nGêneros: ${station.tags}\nLocal: ${station.countrycode}\n\n(Metadados em tempo real bloqueados via web)`}
+                          className={cn(
+                            "flex-1 flex items-center gap-3 rounded-md p-2 text-left transition-colors",
+                            currentStation?.id === station.id 
+                              ? "bg-accent/10" 
+                              : "hover:bg-surface-hover"
+                          )}
+                        >
+                          {station.favicon ? (
+                            <img src={station.favicon} alt="" className="h-8 w-8 rounded-sm object-cover bg-white" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                          ) : (
+                            <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-border-subtle">
+                              <Radio className="h-4 w-4 text-text-muted" />
+                            </div>
+                          )}
+                          <div className="flex-1 overflow-hidden">
+                            <p className={cn(
+                              "truncate text-sm font-medium",
+                              currentStation?.id === station.id ? "text-accent" : "text-text-primary"
+                            )}>
+                              {station.name}
+                            </p>
+                            <p className="truncate text-xs text-text-muted">
+                              {station.tags.split(',').slice(0, 2).join(', ')}
+                            </p>
                           </div>
-                        )}
-                        <div className="flex-1 overflow-hidden">
-                          <p className={cn(
-                            "truncate text-sm font-medium",
-                            currentStation?.id === station.id ? "text-accent" : "text-text-primary"
-                          )}>
-                            {station.name}
-                          </p>
-                          <p className="truncate text-xs text-text-muted">
-                            {station.tags.split(',').slice(0, 2).join(', ')}
-                          </p>
-                        </div>
-                        {currentStation?.id === station.id && isPlaying && (
-                          <div className="flex gap-0.5 mr-1 h-3 items-end">
-                            <motion.div animate={{ height: ["40%", "100%", "40%"] }} transition={{ repeat: Infinity, duration: 0.8 }} className="w-1 bg-accent rounded-t-sm" />
-                            <motion.div animate={{ height: ["80%", "30%", "80%"] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1 bg-accent rounded-t-sm" />
-                            <motion.div animate={{ height: ["50%", "100%", "50%"] }} transition={{ repeat: Infinity, duration: 0.9, delay: 0.1 }} className="w-1 bg-accent rounded-t-sm" />
-                          </div>
-                        )}
-                      </button>
+                          {currentStation?.id === station.id && isPlaying && (
+                            <div className="flex gap-0.5 mr-1 h-3 items-end">
+                              <motion.div animate={{ height: ["40%", "100%", "40%"] }} transition={{ repeat: Infinity, duration: 0.8 }} className="w-1 bg-accent rounded-t-sm" />
+                              <motion.div animate={{ height: ["80%", "30%", "80%"] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1 bg-accent rounded-t-sm" />
+                              <motion.div animate={{ height: ["50%", "100%", "50%"] }} transition={{ repeat: Infinity, duration: 0.9, delay: 0.1 }} className="w-1 bg-accent rounded-t-sm" />
+                            </div>
+                          )}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleFavorite(station)
+                          }}
+                          title="Remover Rádio"
+                          className="p-2 text-text-muted hover:text-error hover:bg-error/10 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     ))
                   ) : (
                     <div className="flex h-full flex-col items-center justify-center text-center text-text-muted p-4">
                       <Radio className="mb-2 h-6 w-6 opacity-20" />
                       <p className="text-sm">Nenhuma favorita encontrada.</p>
-                      <p className="text-xs mt-1">Vá em Configurações para adicionar rádios.</p>
+                      <p className="text-xs mt-1">Adicione rádios para começarem a aparecer aqui.</p>
                     </div>
                   )}
                 </div>
+                
+                <Link
+                  to="/settings"
+                  onClick={() => setIsOpen(false)}
+                  className="mt-2 flex items-center justify-center gap-2 rounded-md bg-surface-hover hover:bg-surface-active border border-border-subtle p-2 text-sm font-medium text-text-primary transition-colors"
+                >
+                  <Settings className="h-4 w-4" />
+                  Gerenciar Rádios
+                </Link>
               </div>
             </motion.div>
           </>
