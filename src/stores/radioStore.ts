@@ -17,7 +17,7 @@ const CURATED_STATIONS: RadioStation[] = [
   {
     id: 'alegria-fm',
     name: 'Rádio Alegria FM',
-    url: 'https://cast.hoost.com.br:8103/stream',
+    url: 'https://superaudio.radio.br/stream/alegrianh',
     favicon: 'https://cdn.instant.audio/images/logos/radiosaovivo-net/alegria-poa.png',
     countrycode: 'BR',
     tags: 'sertanejo,rs,alegria'
