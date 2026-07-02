@@ -171,7 +171,8 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
         position: (parsed.position && (parsed.position.x !== 0 || parsed.position.y !== 0)) 
           ? parsed.position 
           : { x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 },
-        data: { label: step.title, step, onDelete: handleDeleteStepNode, onEdit: handleEditStepNode }
+        data: { label: step.title, step, onDelete: handleDeleteStepNode, onEdit: handleEditStepNode },
+        className: "!bg-transparent !border-none !shadow-none !p-0"
       }
     })
 
@@ -181,7 +182,7 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
       target: e.target,
       type: 'deletableEdge',
       animated: true,
-      style: { stroke: 'var(--color-accent)', strokeWidth: 2 },
+      style: { stroke: 'var(--accent)', strokeWidth: 2 },
       data: { onDelete: handleDeleteEdge }
     }))
 
@@ -206,7 +207,7 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
       ...params, 
       type: 'deletableEdge',
       animated: true, 
-      style: { stroke: 'var(--color-accent)', strokeWidth: 2 },
+      style: { stroke: 'var(--accent)', strokeWidth: 2 },
       data: { onDelete: handleDeleteEdge }
     }, eds))
     setIsDirty(true)
@@ -251,7 +252,8 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
       id: newStep.id,
       type: 'stepNode',
       position: parsedDesc.position,
-      data: { label: newStep.title, step: newStep, onDelete: handleDeleteStepNode, onEdit: handleEditStepNode }
+      data: { label: newStep.title, step: newStep, onDelete: handleDeleteStepNode, onEdit: handleEditStepNode },
+      className: "!bg-transparent !border-none !shadow-none !p-0"
     }])
     setIsCreating(false)
   }
@@ -286,14 +288,16 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
         colorMode={theme}
         className="bg-surface-hover/20"
       >
-        <Controls className="!bg-surface !border-border-subtle !fill-text-primary" />
-        <MiniMap 
-          nodeStrokeColor={() => 'var(--color-accent)'}
-          nodeColor={() => 'var(--color-surface)'}
-          maskColor="rgba(0, 0, 0, 0.1)"
-          className="!bg-surface !border-border-subtle rounded-lg overflow-hidden" 
+        <Controls 
+          className="!bg-surface !border-border-subtle !fill-text-primary overflow-hidden rounded-lg shadow-md" 
         />
-        <Background gap={12} size={1} color="var(--color-text-muted)" />
+        <MiniMap 
+          nodeStrokeColor={() => 'var(--accent)'}
+          nodeColor={() => 'var(--surface-active)'}
+          maskColor="var(--glass-bg)"
+          className="!bg-surface !border-border-subtle rounded-lg overflow-hidden shadow-lg" 
+        />
+        <Background gap={12} size={1} color="var(--text-muted)" />
 
         <Panel position="top-left" className="m-4">
           <div className="flex items-center gap-4 bg-surface p-2 rounded-xl shadow-md border border-border-subtle">

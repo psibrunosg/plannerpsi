@@ -149,6 +149,16 @@
                 0 0 40px rgba(124, 92, 252, 0.05);
   }
 
+  .react-flow__controls-button {
+    background-color: var(--surface) !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    fill: var(--text-primary) !important;
+  }
+  
+  .react-flow__controls-button:hover {
+    background-color: var(--surface-hover) !important;
+  }
+
   .gradient-text {
     background: linear-gradient(135deg, #7c5cfc 0%, #a78bfa 50%, #60a5fa 100%);
     -webkit-background-clip: text;
