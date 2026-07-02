@@ -33,7 +33,7 @@ export default function Login() {
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: window.location.origin + import.meta.env.BASE_URL,
           },
         })
         if (error) throw error
@@ -41,7 +41,7 @@ export default function Login() {
         setMode('login')
       } else if (mode === 'forgot') {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin + '/?type=recovery',
+          redirectTo: window.location.origin + import.meta.env.BASE_URL + '?type=recovery',
         })
         if (error) throw error
         addToast('Email de recuperação enviado! Verifique sua caixa de entrada.', 'success')
