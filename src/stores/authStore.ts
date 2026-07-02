@@ -7,6 +7,8 @@ interface AuthState {
   session: Session | null
   loading: boolean
   initialized: boolean
+  isRecoveryMode: boolean
+  setRecoveryMode: (val: boolean) => void
   setUser: (user: User | null) => void
   setSession: (session: Session | null) => void
   initialize: () => Promise<void>
@@ -18,7 +20,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   session: null,
   loading: true,
   initialized: false,
+  isRecoveryMode: false,
 
+  setRecoveryMode: (val) => set({ isRecoveryMode: val }),
   setUser: (user) => set({ user }),
   setSession: (session) => set({ session, user: session?.user ?? null }),
 
@@ -27,8 +31,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { data: { session } } = await supabase.auth.getSession()
       set({ session, user: session?.user ?? null, initialized: true, loading: false })
 
-      supabase.auth.onAuthStateChange((_event, session) => {
+      supabase.auth.onAuthStateChange((event, session) => {
         set({ session, user: session?.user ?? null })
+        if (event === 'PASSWORD_RECOVERY') {
+          set({ isRecoveryMode: true })
+        }
       })
     } catch (error) {
       console.error('Error initializing auth:', error)

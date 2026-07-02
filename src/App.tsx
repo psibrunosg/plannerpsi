@@ -13,6 +13,7 @@ import Procedures from '@/pages/Procedures'
 import Study from '@/pages/Study'
 import Settings from '@/pages/Settings'
 import Login from '@/pages/Login'
+import UpdatePassword from '@/pages/UpdatePassword'
 import { migrateLocalDataToSupabase } from '@/lib/migration'
 import { useAuthStore } from '@/stores/authStore'
 import { useTaskStore } from '@/stores/taskStore'
@@ -26,6 +27,7 @@ export default function App() {
   const initialize = useAuthStore(s => s.initialize)
   const initialized = useAuthStore(s => s.initialized)
   const session = useAuthStore(s => s.session)
+  const isRecoveryMode = useAuthStore(s => s.isRecoveryMode)
 
   const [isMigrating, setIsMigrating] = useState(false)
 
@@ -64,6 +66,15 @@ export default function App() {
     return (
       <>
         <Login />
+        <ToastContainer />
+      </>
+    )
+  }
+
+  if (isRecoveryMode) {
+    return (
+      <>
+        <UpdatePassword />
         <ToastContainer />
       </>
     )
