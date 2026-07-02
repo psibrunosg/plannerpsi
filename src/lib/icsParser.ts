@@ -8,19 +8,34 @@ export interface ICSEvent {
 }
 
 export async function fetchICSEvents(url: string): Promise<ICSEvent[]> {
-  try {
-    // We use allorigins.win to bypass CORS restrictions
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
-    const response = await fetch(proxyUrl)
-    if (!response.ok) {
-      throw new Error('Falha ao buscar calendário')
+  const proxies = [
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+  ]
+
+  let lastError: any = null
+
+  for (const proxyUrl of proxies) {
+    try {
+      const response = await fetch(proxyUrl)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+      const data = await response.text()
+      // Validação básica para garantir que é um ICS
+      if (data && data.includes('BEGIN:VCALENDAR')) {
+        return parseICS(data)
+      } else {
+        throw new Error('Conteúdo retornado não é um ICS válido')
+      }
+    } catch (error) {
+      console.warn(`Proxy falhou (${proxyUrl}):`, error)
+      lastError = error
     }
-    const data = await response.text()
-    return parseICS(data)
-  } catch (error) {
-    console.error('Erro ao buscar ICS:', error)
-    return []
   }
+
+  console.error('Erro ao buscar ICS em todos os proxies:', lastError)
+  throw new Error('Falha ao buscar calendário')
 }
 
 function parseICS(icsData: string): ICSEvent[] {
