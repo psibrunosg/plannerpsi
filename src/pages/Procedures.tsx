@@ -1,13 +1,16 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Trash2, X, AlignLeft, KanbanSquare } from 'lucide-react'
+import { Plus, Trash2, X, AlignLeft, KanbanSquare, ListPlus } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { pageTransition, staggerContainer, staggerItem, modalOverlay, modalContent } from '@/lib/motion'
 import { useProcedureStore } from '@/stores/procedureStore'
+import { useTaskStore } from '@/stores/taskStore'
 import { useToastStore } from '@/stores/toastStore'
+import { useAuthStore } from '@/stores/authStore'
 import { ProcedureBoard } from '@/components/procedures/ProcedureBoard'
 import { ProcedureFlow } from '@/components/procedures/ProcedureFlow'
+import { parseStepDesc } from '@/lib/procedureParser'
 import type { Procedure } from '@/types'
 
 function ProcedureForm({ onClose }: { onClose: () => void }) {
@@ -85,6 +88,72 @@ function ProcedureForm({ onClose }: { onClose: () => void }) {
 
 function BoardCard({ procedure, onClick }: { procedure: Procedure; onClick: () => void }) {
   const deleteProcedure = useProcedureStore((s) => s.deleteProcedure)
+  const addTask = useTaskStore((s) => s.addTask)
+  const addToast = useToastStore((s) => s.addToast)
+  const user = useAuthStore((s) => s.user)
+
+  const handleInstantiate = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (procedure.steps.length === 0) {
+      addToast('O plano não tem passos.', 'error')
+      return
+    }
+
+    const today = new Date().toISOString()
+    const parentId = crypto.randomUUID()
+    
+    // Create parent task
+    const parentTask = {
+      id: parentId,
+      title: procedure.name,
+      description: procedure.description || null,
+      status: 'todo' as const,
+      priority: 'p3' as const,
+      due_date: today,
+      tags: [],
+      is_recurring: false,
+      estimated_minutes: null,
+      actual_minutes: null,
+      parent_id: null,
+      recurrence_rule: null,
+      completed_at: null,
+      position: 0,
+      kanban_column: 'todo',
+      completion_percentage: 0,
+      created_at: today,
+      updated_at: today,
+      user_id: user?.id || ''
+    }
+    addTask(parentTask)
+
+    // Create subtasks
+    const sortedSteps = [...procedure.steps].sort((a, b) => a.order - b.order)
+    sortedSteps.forEach((step, index) => {
+      addTask({
+        id: crypto.randomUUID(),
+        title: step.title,
+        description: step.description ? parseStepDesc(step.description).text || null : null,
+        status: 'todo' as const,
+        priority: 'p3' as const,
+        due_date: today,
+        parent_id: parentId,
+        tags: [],
+        position: index,
+        is_recurring: false,
+        estimated_minutes: null,
+        actual_minutes: null,
+        recurrence_rule: null,
+        completed_at: null,
+        kanban_column: 'todo',
+        completion_percentage: 0,
+        created_at: today,
+        updated_at: today,
+        user_id: user?.id || ''
+      })
+    })
+
+    addToast(`Plano '${procedure.name}' adicionado às tarefas de hoje!`, 'success')
+  }
 
   return (
     <motion.div variants={staggerItem} className="glass-card group relative cursor-pointer overflow-hidden transition-all hover:border-accent/30 hover:shadow-lg" onClick={onClick}>
@@ -94,12 +163,21 @@ function BoardCard({ procedure, onClick }: { procedure: Procedure; onClick: () =
             <KanbanSquare className="h-5 w-5 text-accent" />
           </div>
           
-          <button
-            onClick={(e) => { e.stopPropagation(); deleteProcedure(procedure.id); }}
-            className="rounded p-1.5 text-text-muted opacity-0 hover:bg-danger/10 hover:text-danger group-hover:opacity-100 transition-all"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleInstantiate}
+              className="rounded p-1.5 text-text-muted opacity-0 hover:bg-accent/10 hover:text-accent group-hover:opacity-100 transition-all"
+              title="Adicionar às tarefas do dia"
+            >
+              <ListPlus className="h-4 w-4" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); deleteProcedure(procedure.id); }}
+              className="rounded p-1.5 text-text-muted opacity-0 hover:bg-danger/10 hover:text-danger group-hover:opacity-100 transition-all"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
         </div>
         
         <h3 className="mb-1 font-semibold text-text-primary line-clamp-1">{procedure.name}</h3>
