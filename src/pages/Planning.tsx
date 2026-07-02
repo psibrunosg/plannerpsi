@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sunrise, ListChecks, CalendarDays, Smile, Meh, Frown, Heart,
@@ -39,13 +39,15 @@ function MorningRitual() {
   const [priorityInput, setPriorityInput] = useState('')
   const [priorities, setPriorities] = useState<string[]>([])
   const [mood, setMood] = useState<Mood | null>(null)
+  const initialized = useRef<string | null>(null)
 
-  // Sync state when note is loaded
+  // Sync state when note is loaded (only once per note)
   useEffect(() => {
-    if (note) {
+    if (note && note.id !== initialized.current) {
       setYesterdayReview(note.yesterday_review ?? '')
       setPriorities(note.today_priorities ?? [])
       setMood(note.mood ?? null)
+      initialized.current = note.id
     }
   }, [note])
 
@@ -360,10 +362,12 @@ function DailyNotes() {
   }, [ensureTodayNote])
 
   const [noteText, setNoteText] = useState('')
+  const initialized = useRef<string | null>(null)
 
   useEffect(() => {
-    if (note) {
+    if (note && note.id !== initialized.current) {
       setNoteText(note.notes ?? '')
+      initialized.current = note.id
     }
   }, [note])
 
