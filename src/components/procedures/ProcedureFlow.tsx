@@ -69,17 +69,26 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
   const [edges, setEdges, onEdgesChangeCore] = useEdgesState<Edge>([])
   const [isDirty, setIsDirty] = useState(false)
 
+  const handleDeleteStepNode = useCallback((stepId: string) => {
+    deleteStep(procedure.id, stepId)
+    setNodes(nds => nds.filter(n => n.id !== stepId))
+    setEdges(eds => eds.filter(e => e.source !== stepId && e.target !== stepId))
+    setIsDirty(true)
+  }, [procedure.id, deleteStep, setNodes, setEdges])
+
   // Initialize nodes and edges from procedure
   useEffect(() => {
     // Only initialize once on mount or when procedure id changes to avoid overriding un-saved local dragging
-    if (nodes.length > 0 && isDirty) return
+    if (isDirty) return
 
     const initialNodes: Node[] = procedure.steps.map(step => {
       const parsed = parseStepDesc(step.description)
       return {
         id: step.id,
         type: 'stepNode',
-        position: parsed.position || { x: Math.random() * 200, y: Math.random() * 200 },
+        position: (parsed.position && (parsed.position.x !== 0 || parsed.position.y !== 0)) 
+          ? parsed.position 
+          : { x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 },
         data: { label: step.title, step, onDelete: handleDeleteStepNode }
       }
     })
@@ -94,15 +103,8 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
 
     setNodes(initialNodes)
     setEdges(initialEdges)
-    setIsDirty(false)
-  }, [procedure.id]) // Re-run if we switch procedures
-
-  const handleDeleteStepNode = useCallback((stepId: string) => {
-    deleteStep(procedure.id, stepId)
-    setNodes(nds => nds.filter(n => n.id !== stepId))
-    setEdges(eds => eds.filter(e => e.source !== stepId && e.target !== stepId))
-    setIsDirty(true)
-  }, [procedure.id, deleteStep, setNodes, setEdges])
+    // We do NOT set isDirty(false) here because if we are just re-syncing from DB, we are already clean.
+  }, [procedure.id, procedure.steps, parsedProc.edges, setNodes, setEdges, handleDeleteStepNode, isDirty])
 
   const onNodesChange = useCallback((changes: NodeChange<Node>[]) => {
     onNodesChangeCore(changes)
@@ -145,7 +147,11 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
     const newStepTitle = prompt('Nome do novo passo:')
     if (!newStepTitle) return
 
-    const parsedDesc = { text: '', column_id: 'col-todo', position: { x: 100, y: 100 } }
+    const parsedDesc = { 
+      text: '', 
+      column_id: 'col-todo', 
+      position: { x: 100 + Math.random() * 50, y: 100 + Math.random() * 50 } 
+    }
     const newStep: ProcedureStep = {
       id: crypto.randomUUID(),
       title: newStepTitle.trim(),
@@ -160,7 +166,7 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
     setNodes(nds => [...nds, {
       id: newStep.id,
       type: 'stepNode',
-      position: { x: 100, y: 100 },
+      position: parsedDesc.position,
       data: { label: newStep.title, step: newStep, onDelete: handleDeleteStepNode }
     }])
   }
