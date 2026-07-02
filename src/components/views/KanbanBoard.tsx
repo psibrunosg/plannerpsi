@@ -139,7 +139,7 @@ function KanbanCard({ task, onDragStart }: KanbanCardProps) {
               overdue ? 'text-danger' : 'text-text-muted',
             )}>
               <Calendar className="h-3 w-3" />
-              {dueLabel}
+              {dueLabel}{task.due_time ? ` ${task.due_time}` : ''}
             </span>
           )}
           {task.estimated_minutes && (

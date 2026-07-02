@@ -76,10 +76,14 @@ function MorningRitual() {
     if (!note) return
     const timer = setTimeout(() => {
       // Check if anything changed
+      const prevRev = note.yesterday_review ?? ''
+      const prevMood = note.mood ?? null
+      const prevPriorities = note.today_priorities ?? []
+      
       if (
-        note.yesterday_review !== yesterdayReview ||
-        JSON.stringify(note.today_priorities) !== JSON.stringify(priorities) ||
-        note.mood !== mood
+        prevRev !== yesterdayReview ||
+        JSON.stringify(prevPriorities) !== JSON.stringify(priorities) ||
+        prevMood !== mood
       ) {
         updateNote(note.id, {
           yesterday_review: yesterdayReview.trim() || null,
@@ -377,7 +381,8 @@ function DailyNotes() {
   useEffect(() => {
     if (!note) return
     const timer = setTimeout(() => {
-      if (note.notes !== noteText) {
+      const prevNotes = note.notes ?? ''
+      if (prevNotes !== noteText) {
         updateNote(note.id, { notes: noteText.trim() || null })
       }
     }, 1500)

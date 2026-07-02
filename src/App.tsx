@@ -21,6 +21,7 @@ import { usePlanningStore } from '@/stores/planningStore'
 import { useFocusStore } from '@/stores/focusStore'
 import { useProcedureStore } from '@/stores/procedureStore'
 import { useRadioStore } from '@/stores/radioStore'
+import { requestNotificationPermission, checkAndNotifyTasks } from '@/lib/notificationManager'
 
 export default function App() {
 
@@ -55,6 +56,17 @@ export default function App() {
         setIsMigrating(false)
       }
       initData()
+
+      requestNotificationPermission()
+      
+      const interval = setInterval(() => {
+        const tasks = useTaskStore.getState().tasks
+        if (tasks.length > 0) {
+          checkAndNotifyTasks(tasks)
+        }
+      }, 60 * 1000) // check every 1 minute
+      
+      return () => clearInterval(interval)
     }
   }, [session])
 

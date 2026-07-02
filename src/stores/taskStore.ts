@@ -13,6 +13,8 @@ function sanitizeTask(t: any): Task {
     status: t.status ?? 'todo',
     priority: t.priority ?? 'p3',
     due_date: t.due_date ?? null,
+    due_time: t.due_time ?? null,
+    reminder_minutes: t.reminder_minutes ?? null,
     estimated_minutes: t.estimated_minutes ?? null,
     actual_minutes: t.actual_minutes ?? null,
     parent_id: t.parent_id ?? null,

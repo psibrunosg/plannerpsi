@@ -29,6 +29,8 @@ export function TaskForm() {
   const [priority, setPriority] = useState<TaskPriority>('p3')
   const [_status] = useState<TaskStatus>('todo')
   const [dueDate, setDueDate] = useState('')
+  const [dueTime, setDueTime] = useState('')
+  const [reminderMinutes, setReminderMinutes] = useState<number | ''>('')
   const [estimatedMinutes, setEstimatedMinutes] = useState('')
   const [tagInput, setTagInput] = useState('')
   const [tags, setTags] = useState<string[]>([])
@@ -40,6 +42,8 @@ export function TaskForm() {
     setDescription('')
     setPriority('p3')
     setDueDate('')
+    setDueTime('')
+    setReminderMinutes('')
     setEstimatedMinutes('')
     setTagInput('')
     setTags([])
@@ -62,6 +66,8 @@ export function TaskForm() {
         setDescription(task.description || '')
         setPriority(task.priority)
         setDueDate(task.due_date ? task.due_date.split('T')[0] : '')
+        setDueTime(task.due_time || '')
+        setReminderMinutes(task.reminder_minutes ?? '')
         setEstimatedMinutes(task.estimated_minutes?.toString() || '')
         setTags(task.tags || [])
         setCompletionPercentage(task.completion_percentage || 0)
@@ -95,6 +101,8 @@ export function TaskForm() {
       description: description.trim() || null,
       priority,
       due_date: dueDate ? new Date(dueDate + 'T12:00:00').toISOString() : null,
+      due_time: dueTime || null,
+      reminder_minutes: reminderMinutes === '' ? null : Number(reminderMinutes),
       estimated_minutes: estimatedMinutes ? parseInt(estimatedMinutes) : null,
       tags,
       completion_percentage: completionPercentage,
@@ -233,6 +241,26 @@ export function TaskForm() {
                   <Calendar className="h-4 w-4 shrink-0 text-text-muted" />
                   <input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); setSelectedDateTag(null) }}
                     className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent" />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 shrink-0 text-text-muted" />
+                  <input type="time" value={dueTime} onChange={(e) => setDueTime(e.target.value)}
+                    className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent" />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 shrink-0 text-text-muted" />
+                  <select value={reminderMinutes === '' ? '' : reminderMinutes} onChange={(e) => setReminderMinutes(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent">
+                    <option value="">Sem lembrete</option>
+                    <option value="0">Na hora</option>
+                    <option value="5">5 min antes</option>
+                    <option value="15">15 min antes</option>
+                    <option value="30">30 min antes</option>
+                    <option value="60">1 hora antes</option>
+                    <option value="1440">1 dia antes</option>
+                  </select>
                 </div>
 
                 <div className="flex items-center gap-2">

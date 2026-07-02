@@ -11,6 +11,8 @@ export interface Task {
   status: TaskStatus
   priority: TaskPriority
   due_date: string | null
+  due_time: string | null
+  reminder_minutes: number | null
   estimated_minutes: number | null
   actual_minutes: number | null
   parent_id: string | null
