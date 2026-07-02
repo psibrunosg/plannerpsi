@@ -11,11 +11,15 @@ import {
   Handle,
   Position,
   Panel,
+  BaseEdge,
+  EdgeLabelRenderer,
+  getBezierPath,
   type Connection,
   type Edge,
   type Node,
   type NodeChange,
-  type EdgeChange
+  type EdgeChange,
+  type EdgeProps
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { ArrowLeft, Plus, Save, Trash2, GripVertical, Pencil, X } from 'lucide-react'
@@ -61,8 +65,62 @@ function StepNode({ data }: { data: { label: string; step: ProcedureStep; onDele
   )
 }
 
+// Custom Edge Component
+function DeletableEdge({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  style,
+  markerEnd,
+  data
+}: EdgeProps) {
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  });
+
+  return (
+    <>
+      <BaseEdge id={id} path={edgePath} style={style} markerEnd={markerEnd} />
+      <EdgeLabelRenderer>
+        <div
+          style={{
+            position: 'absolute',
+            transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+            pointerEvents: 'all',
+          }}
+          className="nodrag nopan"
+        >
+          <button
+            className="flex h-5 w-5 items-center justify-center rounded-full bg-surface border border-border-subtle text-text-muted opacity-60 hover:bg-danger hover:text-white hover:border-danger hover:opacity-100 shadow-sm transition-all"
+            onClick={(e) => {
+              e.stopPropagation()
+              const onDelete = data?.onDelete as ((id: string) => void) | undefined
+              if (onDelete) onDelete(id)
+            }}
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      </EdgeLabelRenderer>
+    </>
+  );
+}
+
 const nodeTypes = {
   stepNode: StepNode,
+}
+
+const edgeTypes = {
+  deletableEdge: DeletableEdge,
 }
 
 interface ProcedureFlowProps {
@@ -93,6 +151,11 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
     setEditingStep(step)
   }, [])
 
+  const handleDeleteEdge = useCallback((edgeId: string) => {
+    setEdges(eds => eds.filter(e => e.id !== edgeId))
+    setIsDirty(true)
+  }, [setEdges])
+
   // Initialize nodes and edges from procedure
   useEffect(() => {
     // Only initialize once on mount or when procedure id changes to avoid overriding un-saved local dragging
@@ -114,14 +177,16 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
       id: e.id,
       source: e.source,
       target: e.target,
+      type: 'deletableEdge',
       animated: true,
-      style: { stroke: 'var(--color-accent)', strokeWidth: 2 }
+      style: { stroke: 'var(--color-accent)', strokeWidth: 2 },
+      data: { onDelete: handleDeleteEdge }
     }))
 
     setNodes(initialNodes)
     setEdges(initialEdges)
     // We do NOT set isDirty(false) here because if we are just re-syncing from DB, we are already clean.
-  }, [procedure.id, procedure.steps, parsedProc.edges, setNodes, setEdges, handleDeleteStepNode, handleEditStepNode, isDirty])
+  }, [procedure.id, procedure.steps, parsedProc.edges, setNodes, setEdges, handleDeleteStepNode, handleEditStepNode, handleDeleteEdge, isDirty])
 
   const onNodesChange = useCallback((changes: NodeChange<Node>[]) => {
     onNodesChangeCore(changes)
@@ -135,9 +200,15 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
   }, [onEdgesChangeCore])
 
   const onConnect = useCallback((params: Connection) => {
-    setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: 'var(--color-accent)', strokeWidth: 2 } }, eds))
+    setEdges((eds) => addEdge({ 
+      ...params, 
+      type: 'deletableEdge',
+      animated: true, 
+      style: { stroke: 'var(--color-accent)', strokeWidth: 2 },
+      data: { onDelete: handleDeleteEdge }
+    }, eds))
     setIsDirty(true)
-  }, [setEdges])
+  }, [setEdges, handleDeleteEdge])
 
   const handleSaveFlow = async () => {
     // Save all node positions to steps
@@ -208,6 +279,7 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         className="bg-surface-hover/20"
       >
