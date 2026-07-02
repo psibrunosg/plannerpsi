@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sunrise, ListChecks, CalendarDays, Smile, Meh, Frown, Heart,
   Plus, X, Save, TrendingUp, CheckCircle, Clock, Target,
+  ChevronDown, ChevronUp, ClipboardList
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { pageTransition, staggerContainer, staggerItem } from '@/lib/motion'
@@ -19,6 +20,7 @@ const MOOD_OPTIONS: { value: Mood; icon: React.ElementType; label: string; color
   { value: 'bad', icon: Frown, label: 'Difícil', color: 'text-red-400' },
 ]
 
+import { getLocalTodayStr } from '@/lib/dateUtils'
 function MorningRitual() {
   const tasks = useTaskStore((s) => s.tasks)
   const notes = usePlanningStore((s) => s.notes)
@@ -26,7 +28,7 @@ function MorningRitual() {
   const updateNote = usePlanningStore((s) => s.updateNote)
   const addToast = useToastStore((s) => s.addToast)
 
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = getLocalTodayStr()
   const note = notes.find((n) => n.note_date === todayStr)
 
   useEffect(() => {
@@ -66,6 +68,26 @@ function MorningRitual() {
     setPriorities(newPriorities)
     updateNote(note.id, { today_priorities: newPriorities })
   }
+
+  // Auto-save debounced
+  useEffect(() => {
+    if (!note) return
+    const timer = setTimeout(() => {
+      // Check if anything changed
+      if (
+        note.yesterday_review !== yesterdayReview ||
+        JSON.stringify(note.today_priorities) !== JSON.stringify(priorities) ||
+        note.mood !== mood
+      ) {
+        updateNote(note.id, {
+          yesterday_review: yesterdayReview.trim() || null,
+          today_priorities: priorities,
+          mood,
+        })
+      }
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [yesterdayReview, priorities, mood, note, updateNote])
 
   const handleSave = () => {
     updateNote(note.id, {
@@ -330,7 +352,7 @@ function DailyNotes() {
   const updateNote = usePlanningStore((s) => s.updateNote)
   const addToast = useToastStore((s) => s.addToast)
   
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = getLocalTodayStr()
   const note = notes.find((n) => n.note_date === todayStr)
 
   useEffect(() => {
@@ -346,6 +368,17 @@ function DailyNotes() {
   }, [note])
 
   if (!note) return <div className="glass-card col-span-full p-6 min-h-[200px] animate-pulse" />
+
+  // Auto-save debounced
+  useEffect(() => {
+    if (!note) return
+    const timer = setTimeout(() => {
+      if (note.notes !== noteText) {
+        updateNote(note.id, { notes: noteText.trim() || null })
+      }
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [noteText, note, updateNote])
 
   const handleSave = () => {
     updateNote(note.id, { notes: noteText.trim() || null })
@@ -401,6 +434,99 @@ function DailyNotes() {
   )
 }
 
+function NotesHistory() {
+  const notes = usePlanningStore((s) => s.notes)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const todayStr = getLocalTodayStr()
+  // Filter out today's note and only show notes that have some content
+  const pastNotes = notes.filter(n => n.note_date !== todayStr && (n.notes || n.yesterday_review || n.today_priorities?.length))
+  
+  if (pastNotes.length === 0) return null
+
+  return (
+    <motion.div variants={staggerItem} className="glass-card col-span-full p-6 mt-6">
+      <div className="mb-5 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] bg-surface-hover">
+          <ClipboardList className="h-5 w-5 text-text-muted" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-text-primary">Histórico de Planejamento</h3>
+          <p className="text-xs text-text-muted">Anotações e rituais de dias anteriores</p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {pastNotes.slice(0, 10).map((n) => {
+          const isExpanded = expandedId === n.id
+          const dateObj = new Date(n.note_date + 'T12:00:00Z') // prevent timezone shift
+          const dateStr = dateObj.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' })
+          
+          return (
+            <div key={n.id} className="rounded-[var(--radius-sm)] border border-border-subtle bg-surface-hover/30 overflow-hidden">
+              <button 
+                onClick={() => setExpandedId(isExpanded ? null : n.id)}
+                className="flex w-full items-center justify-between p-4 text-left hover:bg-surface-hover/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-medium text-sm text-text-primary capitalize">{dateStr}</span>
+                  {n.mood && (() => {
+                    const moodOpt = MOOD_OPTIONS.find(m => m.value === n.mood)
+                    if (!moodOpt) return null
+                    const Icon = moodOpt.icon
+                    return (
+                      <span className="flex items-center text-xs text-text-muted">
+                        <Icon className="h-3.5 w-3.5 mr-1" />
+                      </span>
+                    )
+                  })()}
+                </div>
+                {isExpanded ? <ChevronUp className="h-4 w-4 text-text-muted" /> : <ChevronDown className="h-4 w-4 text-text-muted" />}
+              </button>
+              
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden border-t border-border-subtle"
+                  >
+                    <div className="p-4 space-y-4">
+                      {n.yesterday_review && (
+                        <div>
+                          <p className="text-xs font-semibold text-text-muted uppercase mb-1">Como foi o dia anterior</p>
+                          <p className="text-sm text-text-secondary">{n.yesterday_review}</p>
+                        </div>
+                      )}
+                      
+                      {n.today_priorities && n.today_priorities.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-text-muted uppercase mb-1">Prioridades</p>
+                          <ul className="list-inside list-disc text-sm text-text-secondary">
+                            {n.today_priorities.map((p, i) => <li key={i}>{p}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {n.notes && (
+                        <div>
+                          <p className="text-xs font-semibold text-text-muted uppercase mb-1">Notas do Dia</p>
+                          <p className="text-sm text-text-secondary whitespace-pre-wrap">{n.notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )
+        })}
+      </div>
+    </motion.div>
+  )
+}
+
 export default function Planning() {
   return (
     <motion.div variants={pageTransition} initial="hidden" animate="visible" exit="exit">
@@ -415,6 +541,7 @@ export default function Planning() {
         <MoodRetrospective />
         <DailyNotes />
       </motion.div>
+      <NotesHistory />
     </motion.div>
   )
 }

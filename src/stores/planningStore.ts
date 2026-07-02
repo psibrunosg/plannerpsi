@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
+import { getLocalTodayStr } from '@/lib/dateUtils'
 import type { DailyNote } from '@/types'
 
 interface PlanningState {
@@ -75,7 +76,7 @@ export const usePlanningStore = create<PlanningState>()(
       },
 
       ensureTodayNote: async () => {
-        const today = new Date().toISOString().split('T')[0]
+        const today = getLocalTodayStr()
         const existing = get().notes.find((n) => n.note_date === today)
         if (existing) return
 
