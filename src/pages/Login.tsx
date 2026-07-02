@@ -5,7 +5,7 @@ import { useToastStore } from '@/stores/toastStore'
 import { Mail, Lock, Loader2, ArrowLeft } from 'lucide-react'
 
 export default function Login() {
-  const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login')
+  const [mode, setMode] = useState<'login' | 'forgot'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -27,18 +27,6 @@ export default function Login() {
         })
         if (error) throw error
         addToast('Login realizado com sucesso!', 'success')
-      } else if (mode === 'register') {
-        if (!password) return
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin + import.meta.env.BASE_URL,
-          },
-        })
-        if (error) throw error
-        addToast('Conta criada! Verifique seu email se necessário, ou faça login.', 'success')
-        setMode('login')
       } else if (mode === 'forgot') {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: window.location.origin + import.meta.env.BASE_URL + '?type=recovery',
@@ -67,7 +55,6 @@ export default function Login() {
           </h1>
           <p className="mt-2 text-text-secondary">
             {mode === 'login' && 'Faça login na sua conta'}
-            {mode === 'register' && 'Crie sua conta gratuitamente'}
             {mode === 'forgot' && 'Recuperar senha'}
           </p>
         </div>
@@ -123,13 +110,12 @@ export default function Login() {
           >
             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
             {mode === 'login' && 'Entrar'}
-            {mode === 'register' && 'Criar Conta'}
             {mode === 'forgot' && 'Enviar Email'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          {mode === 'forgot' ? (
+          {mode === 'forgot' && (
             <button
               type="button"
               onClick={() => setMode('login')}
@@ -137,14 +123,6 @@ export default function Login() {
             >
               <ArrowLeft className="h-4 w-4" />
               Voltar para o Login
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-              className="text-sm text-text-muted hover:text-accent"
-            >
-              {mode === 'login' ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Faça login'}
             </button>
           )}
         </div>
