@@ -25,6 +25,7 @@ function MorningRitual() {
   const tasks = useTaskStore((s) => s.tasks)
   const notes = usePlanningStore((s) => s.notes)
   const ensureTodayNote = usePlanningStore((s) => s.ensureTodayNote)
+  const loading = usePlanningStore((s) => s.loading)
   const updateNote = usePlanningStore((s) => s.updateNote)
   const addToast = useToastStore((s) => s.addToast)
 
@@ -32,8 +33,10 @@ function MorningRitual() {
   const note = notes.find((n) => n.note_date === todayStr)
 
   useEffect(() => {
-    ensureTodayNote()
-  }, [ensureTodayNote])
+    if (!note && !loading) {
+      ensureTodayNote()
+    }
+  }, [note, loading, ensureTodayNote])
 
   const [yesterdayReview, setYesterdayReview] = useState('')
   const [priorityInput, setPriorityInput] = useState('')
@@ -355,6 +358,7 @@ function MoodRetrospective() {
 function DailyNotes() {
   const notes = usePlanningStore((s) => s.notes)
   const ensureTodayNote = usePlanningStore((s) => s.ensureTodayNote)
+  const loading = usePlanningStore((s) => s.loading)
   const updateNote = usePlanningStore((s) => s.updateNote)
   const addToast = useToastStore((s) => s.addToast)
   
@@ -362,8 +366,10 @@ function DailyNotes() {
   const note = notes.find((n) => n.note_date === todayStr)
 
   useEffect(() => {
-    ensureTodayNote()
-  }, [ensureTodayNote])
+    if (!note && !loading) {
+      ensureTodayNote()
+    }
+  }, [note, loading, ensureTodayNote])
 
   const [noteText, setNoteText] = useState('')
   const initialized = useRef<string | null>(null)
