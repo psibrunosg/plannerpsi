@@ -10,6 +10,7 @@ interface UIState {
   taskDetailId: string | null
   weatherCity: string | null
   calendarIcsUrl: string | null
+  notificationsEnabled: boolean
   toggleSidebar: () => void
   setSidebarExpanded: (expanded: boolean) => void
   toggleCommandPalette: () => void
@@ -21,6 +22,7 @@ interface UIState {
   setTaskDetailId: (id: string | null) => void
   setWeatherCity: (city: string | null) => void
   setCalendarIcsUrl: (url: string | null) => void
+  setNotificationsEnabled: (enabled: boolean) => void
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -32,6 +34,7 @@ export const useUIStore = create<UIState>((set) => ({
   taskDetailId: null,
   weatherCity: localStorage.getItem('planner-weather-city') || 'Porto Alegre',
   calendarIcsUrl: localStorage.getItem('planner-calendar-ics') || null,
+  notificationsEnabled: localStorage.getItem('planner-notifications') !== 'false',
 
   toggleSidebar: () => set((s) => ({ sidebarExpanded: !s.sidebarExpanded })),
   setSidebarExpanded: (expanded) => set({ sidebarExpanded: expanded }),
@@ -63,5 +66,9 @@ export const useUIStore = create<UIState>((set) => ({
     if (url) localStorage.setItem('planner-calendar-ics', url)
     else localStorage.removeItem('planner-calendar-ics')
     set({ calendarIcsUrl: url })
+  },
+  setNotificationsEnabled: (enabled) => {
+    localStorage.setItem('planner-notifications', enabled ? 'true' : 'false')
+    set({ notificationsEnabled: enabled })
   },
 }))

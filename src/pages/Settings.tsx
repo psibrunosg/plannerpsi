@@ -24,6 +24,8 @@ export default function Settings() {
   } = useRadioStore()
   const weatherCity = useUIStore((s) => s.weatherCity)
   const calendarIcsUrl = useUIStore((s) => s.calendarIcsUrl)
+  const notificationsEnabled = useUIStore((s) => s.notificationsEnabled)
+  const setNotificationsEnabled = useUIStore((s) => s.setNotificationsEnabled)
 
   useEffect(() => {
     initStations()
@@ -62,6 +64,24 @@ export default function Settings() {
               className={cn('relative h-8 w-14 rounded-full transition-colors', theme === 'dark' ? 'bg-accent' : 'bg-border')}>
               <motion.div className="absolute top-1 h-6 w-6 rounded-full bg-white shadow"
                 animate={{ left: theme === 'dark' ? 28 : 4 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }} />
+            </motion.button>
+          </div>
+        </motion.div>
+
+        <motion.div variants={staggerItem} className="glass-card p-6">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-primary">
+            <Timer className="h-5 w-5" /> Notificações
+          </h3>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-text-primary">Alertas de Atraso e Lembretes</p>
+              <p className="text-xs text-text-muted">Receba notificações do Windows quando uma tarefa atrasar ou atingir o horário do lembrete</p>
+            </div>
+            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+              className={cn('relative h-8 w-14 rounded-full transition-colors', notificationsEnabled ? 'bg-accent' : 'bg-border')}>
+              <motion.div className="absolute top-1 h-6 w-6 rounded-full bg-white shadow"
+                animate={{ left: notificationsEnabled ? 28 : 4 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }} />
             </motion.button>
           </div>
