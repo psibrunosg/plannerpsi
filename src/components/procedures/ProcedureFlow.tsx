@@ -26,6 +26,7 @@ import { ArrowLeft, Plus, Save, Trash2, GripVertical, Pencil, X } from 'lucide-r
 import { modalOverlay, modalContent } from '@/lib/motion'
 
 import { useProcedureStore } from '@/stores/procedureStore'
+import { useUIStore } from '@/stores/uiStore'
 import { parseProcedureDesc, parseStepDesc, stringifyProcedureDesc, stringifyStepDesc } from '@/lib/procedureParser'
 import type { Procedure, ProcedureStep } from '@/types'
 import { cn } from '@/lib/cn'
@@ -130,6 +131,7 @@ interface ProcedureFlowProps {
 
 export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
   const { updateProcedure, addStep, updateStep, deleteStep } = useProcedureStore()
+  const theme = useUIStore(s => s.theme)
   
   const parsedProc = useMemo(() => parseProcedureDesc(procedure.description), [procedure.description])
   
@@ -281,6 +283,7 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
+        colorMode={theme}
         className="bg-surface-hover/20"
       >
         <Controls className="!bg-surface !border-border-subtle !fill-text-primary" />
