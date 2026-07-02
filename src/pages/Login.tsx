@@ -49,9 +49,16 @@ export default function Login() {
         animate={{ opacity: 1, y: 0 }}
         className="glass-card w-full max-w-md p-8 relative overflow-hidden"
       >
-        <div className="mb-8 text-center">
+        <div className="mb-8 text-center flex flex-col items-center">
+          <div className="mb-4 h-20 w-20 overflow-hidden rounded-[var(--radius-md)] border-2 border-border-subtle bg-surface shadow-lg">
+            <img 
+              src={`${import.meta.env.BASE_URL}logo.png`} 
+              alt="BS planner logo" 
+              className="h-full w-full object-cover"
+            />
+          </div>
           <h1 className="text-3xl font-bold">
-            <span className="gradient-text">Planner PSI</span>
+            <span className="gradient-text">BS planner</span>
           </h1>
           <p className="mt-2 text-text-secondary">
             {mode === 'login' && 'Faça login na sua conta'}

@@ -9,7 +9,6 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeft,
-  Sparkles,
   BookOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -40,8 +39,12 @@ export function Sidebar() {
       initial={false}
     >
       <div className="flex h-16 items-center gap-3 border-b border-border-subtle px-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-accent/20">
-          <Sparkles className="h-5 w-5 text-accent" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-sm)]">
+          <img 
+            src={`${import.meta.env.BASE_URL}logo.png`} 
+            alt="BS planner logo" 
+            className="h-full w-full object-cover"
+          />
         </div>
         {sidebarExpanded && (
           <motion.span
@@ -50,7 +53,7 @@ export function Sidebar() {
             exit={{ opacity: 0, x: -8 }}
             className="gradient-text text-lg font-bold tracking-tight"
           >
-            Planner PSI
+            BS planner
           </motion.span>
         )}
       </div>

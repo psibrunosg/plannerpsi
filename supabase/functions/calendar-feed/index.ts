@@ -5,11 +5,11 @@ function generateICal(tasks: any[]): string {
   let ical = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Planner PSI//EN',
+    'PRODID:-//BS planner//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    'X-WR-CALNAME:Planner PSI',
-    'X-WR-CALDESC:Tarefas do Planner PSI'
+    'X-WR-CALNAME:BS planner',
+    'X-WR-CALDESC:Tarefas do BS planner'
   ]
 
   for (const task of tasks) {
