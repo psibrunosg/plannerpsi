@@ -5,6 +5,7 @@ import { pageTransition, staggerContainer, staggerItem } from '@/lib/motion'
 import { useTaskStore } from '@/stores/taskStore'
 import { useFocusStore } from '@/stores/focusStore'
 import { WeatherWidget } from '@/components/dashboard/WeatherWidget'
+import { AgendaWidget } from '@/components/dashboard/AgendaWidget'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -67,17 +68,32 @@ export default function Dashboard() {
         ))}
       </motion.div>
 
-      {tasks.length === 0 && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mt-12 text-center">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-accent/10">
-            <Target className="h-10 w-10 text-accent" />
-          </div>
-          <h3 className="text-xl font-semibold text-text-primary">Comece adicionando tarefas</h3>
-          <p className="mt-2 text-text-secondary">
-            Use <kbd className="rounded bg-surface-hover px-1.5 py-0.5 text-xs font-mono">Ctrl+K</kbd> para criar sua primeira tarefa
-          </p>
-        </motion.div>
-      )}
+      {/* Agenda and Tasks container */}
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <AgendaWidget className="h-[400px]" maxEvents={10} />
+        
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border-subtle p-8 text-center bg-surface-hover/30">
+          {tasks.length === 0 ? (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10">
+                <Target className="h-8 w-8 text-accent" />
+              </div>
+              <h3 className="text-lg font-semibold text-text-primary">Comece adicionando tarefas</h3>
+              <p className="mt-2 text-sm text-text-secondary">
+                Use <kbd className="rounded bg-surface-hover px-1.5 py-0.5 text-xs font-mono">Ctrl+K</kbd> para criar sua primeira tarefa
+              </p>
+            </motion.div>
+          ) : (
+             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
+                <CheckCircle className="h-8 w-8 text-success" />
+              </div>
+              <h3 className="text-lg font-semibold text-text-primary">{todayTasks.length} tarefas para hoje</h3>
+              <p className="mt-2 text-sm text-text-secondary">Mantenha o foco e termine tudo o que planejou.</p>
+             </motion.div>
+          )}
+        </div>
+      </div>
     </motion.div>
   )
 }

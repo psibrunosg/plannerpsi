@@ -63,6 +63,37 @@ export interface Procedure {
   updated_at: string
 }
 
+export interface ProcedureColumn {
+  id: string
+  title: string
+  order: number
+}
+
+export interface FlowEdge {
+  id: string
+  source: string
+  target: string
+}
+
+export interface FlowPosition {
+  x: number
+  y: number
+}
+
+// These are internal parsed structures stored inside description fields
+export interface ParsedProcedureDesc {
+  text: string
+  columns: ProcedureColumn[]
+  edges: FlowEdge[]
+  viewport?: { x: number, y: number, zoom: number }
+}
+
+export interface ParsedStepDesc {
+  text: string
+  column_id: string
+  position: FlowPosition
+}
+
 export interface TaskFilter {
   status?: TaskStatus[]
   priority?: TaskPriority[]

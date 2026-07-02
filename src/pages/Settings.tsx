@@ -88,7 +88,43 @@ export default function Settings() {
 
         <motion.div variants={staggerItem} className="glass-card p-6">
           <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-primary">
-            <Calendar className="h-5 w-5" /> Integração de Calendário (iCal)
+            <Sun className="h-5 w-5" /> Localização do Clima
+          </h3>
+          <p className="mb-4 text-sm text-text-secondary">
+            Digite sua cidade para exibir a previsão do tempo no Dashboard sem precisar de GPS.
+          </p>
+          <div className="flex items-center gap-2">
+            <input 
+              type="text" 
+              value={useUIStore((s) => s.weatherCity) || ''}
+              onChange={(e) => useUIStore.getState().setWeatherCity(e.target.value)}
+              placeholder="Ex: Porto Alegre" 
+              className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-4 py-2 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent" 
+            />
+          </div>
+        </motion.div>
+
+        <motion.div variants={staggerItem} className="glass-card p-6">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-primary">
+            <Calendar className="h-5 w-5" /> Importar Calendário ICS (Outlook, etc)
+          </h3>
+          <p className="mb-4 text-sm text-text-secondary">
+            Cole a URL pública do seu calendário (.ics) para visualizar seus eventos dentro do Planner.
+          </p>
+          <div className="flex items-center gap-2">
+            <input 
+              type="text" 
+              value={useUIStore((s) => s.calendarIcsUrl) || ''}
+              onChange={(e) => useUIStore.getState().setCalendarIcsUrl(e.target.value)}
+              placeholder="https://outlook.office365.com/.../calendar.ics" 
+              className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-4 py-2 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent font-mono" 
+            />
+          </div>
+        </motion.div>
+
+        <motion.div variants={staggerItem} className="glass-card p-6">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-primary">
+            <Calendar className="h-5 w-5" /> Exportar Tarefas (iCal)
           </h3>
           <p className="mb-4 text-sm text-text-secondary">
             Use este link exclusivo para sincronizar suas tarefas com <b>Apple Calendar</b>, <b>Google Calendar</b> ou <b>Outlook</b>.

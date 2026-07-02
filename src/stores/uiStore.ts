@@ -8,6 +8,8 @@ interface UIState {
   viewMode: ViewMode
   taskFormOpen: boolean
   taskDetailId: string | null
+  weatherCity: string | null
+  calendarIcsUrl: string | null
   toggleSidebar: () => void
   setSidebarExpanded: (expanded: boolean) => void
   toggleCommandPalette: () => void
@@ -17,6 +19,8 @@ interface UIState {
   setViewMode: (mode: ViewMode) => void
   setTaskFormOpen: (open: boolean) => void
   setTaskDetailId: (id: string | null) => void
+  setWeatherCity: (city: string | null) => void
+  setCalendarIcsUrl: (url: string | null) => void
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -26,6 +30,8 @@ export const useUIStore = create<UIState>((set) => ({
   viewMode: (localStorage.getItem('planner-view') as ViewMode) ?? 'list',
   taskFormOpen: false,
   taskDetailId: null,
+  weatherCity: localStorage.getItem('planner-weather-city') || 'Porto Alegre',
+  calendarIcsUrl: localStorage.getItem('planner-calendar-ics') || null,
 
   toggleSidebar: () => set((s) => ({ sidebarExpanded: !s.sidebarExpanded })),
   setSidebarExpanded: (expanded) => set({ sidebarExpanded: expanded }),
@@ -48,4 +54,14 @@ export const useUIStore = create<UIState>((set) => ({
   },
   setTaskFormOpen: (open) => set({ taskFormOpen: open }),
   setTaskDetailId: (id) => set({ taskDetailId: id }),
+  setWeatherCity: (city) => {
+    if (city) localStorage.setItem('planner-weather-city', city)
+    else localStorage.removeItem('planner-weather-city')
+    set({ weatherCity: city })
+  },
+  setCalendarIcsUrl: (url) => {
+    if (url) localStorage.setItem('planner-calendar-ics', url)
+    else localStorage.removeItem('planner-calendar-ics')
+    set({ calendarIcsUrl: url })
+  },
 }))

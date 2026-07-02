@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Search, Sun, Moon, Plus, Command, RefreshCw } from 'lucide-react'
 import { useUIStore } from '@/stores/uiStore'
 import { RadioControls } from './RadioControls'
+import { StudyControls } from './StudyControls'
 
 export function Header({ isSyncing = false }: { isSyncing?: boolean }) {
   const theme = useUIStore((s) => s.theme)
@@ -46,6 +47,7 @@ export function Header({ isSyncing = false }: { isSyncing?: boolean }) {
 
         <div className="mx-1 h-6 w-px bg-border-subtle hidden md:block"></div>
 
+        <StudyControls />
         <RadioControls />
 
         <motion.button

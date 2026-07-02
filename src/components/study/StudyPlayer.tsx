@@ -1,50 +1,50 @@
 import { useEffect, useRef, useState } from 'react'
 import { Headphones, Video, PictureInPicture2, AlertCircle, CheckCircle } from 'lucide-react'
 import { useStudyStore } from '@/stores/studyStore'
-import { getDriveStreamUrl } from '@/lib/drive'
+import { studyMedia } from '@/lib/studyMedia'
 import { cn } from '@/lib/cn'
 
 export function StudyPlayer() {
   const { activeLesson, isAudioMode, setIsAudioMode, completedLessons, toggleLessonCompleted } = useStudyStore()
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const audioRef = useRef<HTMLAudioElement>(null)
+  const audioContainerRef = useRef<HTMLDivElement>(null)
+  const videoContainerRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [useIframeFallback, setUseIframeFallback] = useState(false)
-
-  const savedTimeRef = useRef<number>(0)
-  const savedPlayingRef = useRef<boolean>(false)
 
   // Reset states when lesson changes
   useEffect(() => {
     setError(null)
     setUseIframeFallback(false)
-    savedTimeRef.current = 0
-    savedPlayingRef.current = false
   }, [activeLesson])
-
-  // Restore playback state after switching modes
-  useEffect(() => {
-    const targetMedia = isAudioMode ? audioRef.current : videoRef.current
-    if (targetMedia && savedTimeRef.current > 0 && !useIframeFallback) {
-      targetMedia.currentTime = savedTimeRef.current
-      if (savedPlayingRef.current) {
-        targetMedia.play().catch(e => console.error("Playback falhou:", e))
-      }
-    }
-  }, [isAudioMode, useIframeFallback]) // Trigger when mode changes or fallback changes
 
   // Reset error when toggling mode
   useEffect(() => {
     setError(null)
   }, [isAudioMode])
 
+  // Mount/Unmount global media elements
+  useEffect(() => {
+    if (!activeLesson) return
+
+    if (isAudioMode && audioContainerRef.current) {
+      audioContainerRef.current.appendChild(studyMedia.audio)
+      studyMedia.audio.style.display = 'block'
+    } else if (!isAudioMode && videoContainerRef.current && !useIframeFallback) {
+      videoContainerRef.current.appendChild(studyMedia.video)
+      studyMedia.video.style.display = 'block'
+    }
+
+    return () => {
+      studyMedia.hideAndDock()
+    }
+  }, [activeLesson, isAudioMode, useIframeFallback])
+
   const togglePiP = async () => {
-    if (!videoRef.current) return
     try {
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture()
       } else {
-        await videoRef.current.requestPictureInPicture()
+        await studyMedia.video.requestPictureInPicture()
       }
     } catch (err) {
       console.error('Falha ao usar Picture-in-Picture:', err)
@@ -53,14 +53,11 @@ export function StudyPlayer() {
 
   // Handle syncing playback time when switching between audio and video
   const toggleMode = () => {
-    const currentMedia = isAudioMode ? audioRef.current : videoRef.current
-    
-    // Save current state before unmounting
-    if (currentMedia && !useIframeFallback) {
-      savedTimeRef.current = currentMedia.currentTime
-      savedPlayingRef.current = !currentMedia.paused
+    if (isAudioMode) {
+      studyMedia.video.currentTime = studyMedia.audio.currentTime
+    } else {
+      studyMedia.audio.currentTime = studyMedia.video.currentTime
     }
-    
     setIsAudioMode(!isAudioMode)
   }
 
@@ -82,6 +79,14 @@ export function StudyPlayer() {
     setUseIframeFallback(true)
   }
 
+  // Add error listener to global media to trigger fallback
+  useEffect(() => {
+    if (!isAudioMode) {
+      studyMedia.video.addEventListener('error', handleVideoError)
+      return () => studyMedia.video.removeEventListener('error', handleVideoError)
+    }
+  }, [isAudioMode])
+
   const renderMedia = () => {
     if (isAudioMode) {
       if (!hasAudio) return <div className="p-8 text-center text-text-muted">Áudio não disponível para esta aula.</div>
@@ -89,14 +94,7 @@ export function StudyPlayer() {
         <div className="flex h-full w-full flex-col items-center justify-center bg-surface p-8">
           <Headphones className="mb-6 h-16 w-16 text-accent animate-pulse opacity-80" />
           <p className="mb-6 text-center font-medium text-text-primary max-w-sm truncate">{activeLesson.baseName}</p>
-          <audio 
-            ref={audioRef}
-            src={getDriveStreamUrl(activeLesson.audioFile!.id)}
-            controls 
-            className="w-full max-w-md accent-accent"
-            autoPlay
-            onError={() => setError('Erro ao carregar áudio. O arquivo pode estar bloqueado pelo Drive.')}
-          />
+          <div ref={audioContainerRef} className="w-full flex justify-center max-w-md" />
         </div>
       )
     } else {
@@ -114,14 +112,7 @@ export function StudyPlayer() {
       }
 
       return (
-        <video
-          ref={videoRef}
-          src={getDriveStreamUrl(activeLesson.videoFile!.id)}
-          controls
-          autoPlay
-          className="h-full w-full object-contain bg-black"
-          onError={handleVideoError}
-        />
+        <div ref={videoContainerRef} className="h-full w-full bg-black flex items-center justify-center" />
       )
     }
   }

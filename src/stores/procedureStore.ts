@@ -134,9 +134,9 @@ export const useProcedureStore = create<ProcedureState>()(
         }))
         const user = useAuthStore.getState().user
         if (user) {
-          // Update orders in DB
+          // Update orders and descriptions in DB
           for (const step of steps) {
-            await supabase.from('procedure_steps').update({ order: step.order }).eq('id', step.id)
+            await supabase.from('procedure_steps').update({ order: step.order, description: step.description }).eq('id', step.id)
           }
         }
       },

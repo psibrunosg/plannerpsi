@@ -15,6 +15,7 @@ interface StudyState {
   error: string | null
   isAudioMode: boolean
   completedLessons: string[]
+  isPlaying: boolean
   
   // Actions
   selectCourse: (courseId: string) => Promise<void>
@@ -24,6 +25,8 @@ interface StudyState {
   setIsAudioMode: (isAudio: boolean) => void
   toggleLessonCompleted: (lessonId: string) => Promise<void>
   loadCompletedLessonsFromDB: () => Promise<void>
+  setIsPlaying: (isPlaying: boolean) => void
+  playNextLesson: () => Promise<void>
 }
 
 export const useStudyStore = create<StudyState>()(
@@ -38,6 +41,59 @@ export const useStudyStore = create<StudyState>()(
       error: null,
       isAudioMode: false,
       completedLessons: [],
+      isPlaying: false,
+
+      setIsPlaying: (isPlaying: boolean) => set({ isPlaying }),
+
+      playNextLesson: async () => {
+        const { modules, activeModuleId, activeLesson, selectModule, selectLesson } = get()
+        if (!activeModuleId || !activeLesson) return
+        
+        const modIndex = modules.findIndex(m => m.id === activeModuleId)
+        if (modIndex === -1) return
+        
+        const mod = modules[modIndex]
+        
+        // Find current topic and lesson index
+        let currentTopicIndex = -1
+        let currentLessonIndex = -1
+        
+        for (let t = 0; t < mod.topics.length; t++) {
+          const lIdx = mod.topics[t].lessons.findIndex(l => l.baseName === activeLesson.baseName)
+          if (lIdx !== -1) {
+            currentTopicIndex = t
+            currentLessonIndex = lIdx
+            break
+          }
+        }
+        
+        if (currentTopicIndex !== -1) {
+          const topic = mod.topics[currentTopicIndex]
+          if (currentLessonIndex < topic.lessons.length - 1) {
+            // Next lesson in same topic
+            selectLesson(topic.lessons[currentLessonIndex + 1])
+            return
+          } else if (currentTopicIndex < mod.topics.length - 1) {
+            // First lesson in next topic
+            const nextTopic = mod.topics[currentTopicIndex + 1]
+            if (nextTopic.lessons.length > 0) {
+              selectLesson(nextTopic.lessons[0])
+              return
+            }
+          }
+        }
+        
+        // If we get here, it's the last lesson in the module, so we try the next module
+        if (modIndex < modules.length - 1) {
+          const nextMod = modules[modIndex + 1]
+          await selectModule(nextMod.id)
+          const updatedMods = get().modules
+          const updatedNextMod = updatedMods.find(m => m.id === nextMod.id)
+          if (updatedNextMod && updatedNextMod.topics.length > 0 && updatedNextMod.topics[0].lessons.length > 0) {
+             selectLesson(updatedNextMod.topics[0].lessons[0])
+          }
+        }
+      },
 
       loadCompletedLessonsFromDB: async () => {
         const user = useAuthStore.getState().user

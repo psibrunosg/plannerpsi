@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { RadioPlayer } from '@/components/ui/RadioPlayer'
+import { GlobalStudyMedia } from '@/components/study/GlobalStudyMedia'
 import { useUIStore } from '@/stores/uiStore'
 import { spring } from '@/lib/motion'
 
@@ -28,6 +29,7 @@ export function AppShell({ children, isSyncing = false }: AppShellProps) {
         </main>
       </motion.div>
       <RadioPlayer />
+      <GlobalStudyMedia />
     </div>
   )
 }
