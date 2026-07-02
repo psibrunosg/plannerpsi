@@ -265,7 +265,7 @@ function MoodRetrospective() {
   
   const startDate = new Date(now)
   startDate.setDate(now.getDate() - daysMap[period])
-  const startDateStr = startDate.toISOString().split('T')[0]
+  const startDateStr = getLocalTodayStr(startDate)
 
   const relevantNotes = notes.filter(n => n.note_date >= startDateStr && n.mood)
   const total = relevantNotes.length
@@ -532,6 +532,12 @@ function NotesHistory() {
 }
 
 export default function Planning() {
+  const fetchNotes = usePlanningStore((s) => s.fetchNotes)
+
+  useEffect(() => {
+    fetchNotes()
+  }, [fetchNotes])
+
   return (
     <motion.div variants={pageTransition} initial="hidden" animate="visible" exit="exit">
       <div className="mb-8">
