@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   ReactFlow,
   MiniMap,
@@ -18,7 +18,8 @@ import {
   type EdgeChange
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { ArrowLeft, Plus, Save, Trash2, GripVertical } from 'lucide-react'
+import { ArrowLeft, Plus, Save, Trash2, GripVertical, Pencil, X } from 'lucide-react'
+import { modalOverlay, modalContent } from '@/lib/motion'
 
 import { useProcedureStore } from '@/stores/procedureStore'
 import { parseProcedureDesc, parseStepDesc, stringifyProcedureDesc, stringifyStepDesc } from '@/lib/procedureParser'
@@ -26,7 +27,7 @@ import type { Procedure, ProcedureStep } from '@/types'
 import { cn } from '@/lib/cn'
 
 // Custom Node Component
-function StepNode({ data }: { data: { label: string; step: ProcedureStep; onDelete: (id: string) => void } }) {
+function StepNode({ data }: { data: { label: string; step: ProcedureStep; onDelete: (id: string) => void; onEdit: (step: ProcedureStep) => void } }) {
   return (
     <div className="group relative rounded-xl border border-border-subtle bg-surface px-4 py-3 shadow-lg hover:border-accent transition-colors min-w-[150px]">
       <Handle type="target" position={Position.Top} className="!bg-accent !w-3 !h-3" />
@@ -39,12 +40,22 @@ function StepNode({ data }: { data: { label: string; step: ProcedureStep; onDele
           {parseStepDesc(data.step.description).text}
         </div>
       )}
-      <button 
-        onClick={(e) => { e.stopPropagation(); data.onDelete(data.step.id) }} 
-        className="absolute -top-3 -right-3 rounded-full bg-danger text-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 shadow-md"
-      >
-        <Trash2 className="h-3 w-3" />
-      </button>
+      
+      <div className="absolute -top-3 -right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button 
+          onClick={(e) => { e.stopPropagation(); data.onEdit(data.step) }} 
+          className="rounded-full bg-accent text-white p-1.5 hover:scale-110 shadow-md transition-transform"
+        >
+          <Pencil className="h-3 w-3" />
+        </button>
+        <button 
+          onClick={(e) => { e.stopPropagation(); data.onDelete(data.step.id) }} 
+          className="rounded-full bg-danger text-white p-1.5 hover:scale-110 shadow-md transition-transform"
+        >
+          <Trash2 className="h-3 w-3" />
+        </button>
+      </div>
+
       <Handle type="source" position={Position.Bottom} className="!bg-accent !w-3 !h-3" />
     </div>
   )
@@ -68,6 +79,8 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
   const [nodes, setNodes, onNodesChangeCore] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChangeCore] = useEdgesState<Edge>([])
   const [isDirty, setIsDirty] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [editingStep, setEditingStep] = useState<ProcedureStep | null>(null)
 
   const handleDeleteStepNode = useCallback((stepId: string) => {
     deleteStep(procedure.id, stepId)
@@ -75,6 +88,10 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
     setEdges(eds => eds.filter(e => e.source !== stepId && e.target !== stepId))
     setIsDirty(true)
   }, [procedure.id, deleteStep, setNodes, setEdges])
+
+  const handleEditStepNode = useCallback((step: ProcedureStep) => {
+    setEditingStep(step)
+  }, [])
 
   // Initialize nodes and edges from procedure
   useEffect(() => {
@@ -89,7 +106,7 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
         position: (parsed.position && (parsed.position.x !== 0 || parsed.position.y !== 0)) 
           ? parsed.position 
           : { x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 },
-        data: { label: step.title, step, onDelete: handleDeleteStepNode }
+        data: { label: step.title, step, onDelete: handleDeleteStepNode, onEdit: handleEditStepNode }
       }
     })
 
@@ -104,7 +121,7 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
     setNodes(initialNodes)
     setEdges(initialEdges)
     // We do NOT set isDirty(false) here because if we are just re-syncing from DB, we are already clean.
-  }, [procedure.id, procedure.steps, parsedProc.edges, setNodes, setEdges, handleDeleteStepNode, isDirty])
+  }, [procedure.id, procedure.steps, parsedProc.edges, setNodes, setEdges, handleDeleteStepNode, handleEditStepNode, isDirty])
 
   const onNodesChange = useCallback((changes: NodeChange<Node>[]) => {
     onNodesChangeCore(changes)
@@ -143,32 +160,43 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
     setIsDirty(false)
   }
 
-  const handleAddNode = async () => {
-    const newStepTitle = prompt('Nome do novo passo:')
-    if (!newStepTitle) return
-
+  const handleSaveNewNode = async (title: string, desc: string) => {
     const parsedDesc = { 
-      text: '', 
+      text: desc, 
       column_id: 'col-todo', 
       position: { x: 100 + Math.random() * 50, y: 100 + Math.random() * 50 } 
     }
     const newStep: ProcedureStep = {
       id: crypto.randomUUID(),
-      title: newStepTitle.trim(),
+      title: title,
       description: stringifyStepDesc(parsedDesc),
       order: procedure.steps.length
     }
     
-    // We add it to DB first
     await addStep(procedure.id, newStep)
-
-    // Then update local UI
     setNodes(nds => [...nds, {
       id: newStep.id,
       type: 'stepNode',
       position: parsedDesc.position,
-      data: { label: newStep.title, step: newStep, onDelete: handleDeleteStepNode }
+      data: { label: newStep.title, step: newStep, onDelete: handleDeleteStepNode, onEdit: handleEditStepNode }
     }])
+    setIsCreating(false)
+  }
+
+  const handleSaveEditNode = async (title: string, desc: string) => {
+    if (!editingStep) return
+    const parsed = parseStepDesc(editingStep.description)
+    parsed.text = desc
+    const updatedStep = { ...editingStep, title, description: stringifyStepDesc(parsed) }
+    
+    await updateStep(procedure.id, editingStep.id, { title, description: stringifyStepDesc(parsed) })
+    
+    setNodes(nds => nds.map(n => n.id === editingStep.id ? {
+      ...n,
+      data: { ...n.data, label: title, step: updatedStep }
+    } : n))
+    
+    setEditingStep(null)
   }
 
   return (
@@ -214,7 +242,7 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
             <motion.button 
               whileHover={{ scale: 1.05 }} 
               whileTap={{ scale: 0.95 }}
-              onClick={handleAddNode}
+              onClick={() => setIsCreating(true)}
               className="flex items-center gap-2 rounded-lg bg-surface-hover px-4 py-2.5 text-sm font-medium text-text-primary hover:bg-surface-active shadow-md border border-border-subtle"
             >
               <Plus className="h-4 w-4" />
@@ -238,6 +266,77 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
           </div>
         </Panel>
       </ReactFlow>
+
+      <AnimatePresence>
+        {(isCreating || editingStep) && (
+          <BlockModal
+            initialTitle={editingStep ? editingStep.title : ''}
+            initialDesc={editingStep ? parseStepDesc(editingStep.description).text : ''}
+            onClose={() => {
+              setIsCreating(false)
+              setEditingStep(null)
+            }}
+            onSave={(title, desc) => {
+              if (isCreating) handleSaveNewNode(title, desc)
+              else if (editingStep) handleSaveEditNode(title, desc)
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
+  )
+}
+
+function BlockModal({ 
+  initialTitle = '', 
+  initialDesc = '', 
+  onClose, 
+  onSave 
+}: { 
+  initialTitle?: string, 
+  initialDesc?: string, 
+  onClose: () => void, 
+  onSave: (title: string, desc: string) => void 
+}) {
+  const [title, setTitle] = useState(initialTitle)
+  const [desc, setDesc] = useState(initialDesc)
+
+  return (
+    <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <motion.div className="glass relative w-full max-w-md overflow-hidden rounded-[var(--radius-lg)] shadow-2xl" variants={modalContent} initial="hidden" animate="visible" exit="exit">
+        <div className="flex items-center justify-between border-b border-border-subtle px-6 py-4">
+          <h2 className="text-lg font-semibold text-text-primary">{initialTitle ? 'Editar Bloco' : 'Novo Bloco'}</h2>
+          <button onClick={onClose} className="text-text-muted hover:text-text-secondary"><X className="h-5 w-5" /></button>
+        </div>
+        <div className="p-6 space-y-4">
+          <input 
+            autoFocus 
+            type="text" 
+            placeholder="Nome do bloco..." 
+            value={title} 
+            onChange={(e) => setTitle(e.target.value)} 
+            className="w-full bg-transparent text-lg font-medium text-text-primary placeholder:text-text-muted outline-none border-b border-border-subtle pb-2 focus:border-accent transition-colors" 
+          />
+          <textarea 
+            placeholder="Descrição detalhada (opcional)..." 
+            value={desc} 
+            onChange={(e) => setDesc(e.target.value)} 
+            rows={3} 
+            className="w-full resize-none rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent" 
+          />
+          <div className="flex justify-end gap-2 pt-2">
+            <button onClick={onClose} className="rounded-[var(--radius-sm)] px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Cancelar</button>
+            <button 
+              onClick={() => onSave(title.trim(), desc.trim())} 
+              disabled={!title.trim()} 
+              className={cn('rounded-[var(--radius-sm)] px-4 py-2 text-sm font-medium text-white transition-colors', title.trim() ? 'bg-accent hover:bg-accent-hover' : 'bg-accent/40 cursor-not-allowed')}
+            >
+              Salvar
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   )
 }
