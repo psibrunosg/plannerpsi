@@ -119,17 +119,17 @@ export default function Procedures() {
 
   if (activeBoard) {
     return (
-      <motion.div variants={pageTransition} initial="hidden" animate="visible" exit="exit" className="h-full">
-        <div className="absolute top-6 right-6 z-10 flex bg-surface border border-border-subtle rounded-lg p-1 shadow-sm">
+      <motion.div variants={pageTransition} initial="hidden" animate="visible" exit="exit" className="h-full relative">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex bg-surface border border-border-subtle rounded-lg p-1 shadow-md">
           <button 
             onClick={() => setViewMode('kanban')}
-            className={cn("px-3 py-1.5 text-xs font-medium rounded-md transition-colors", viewMode === 'kanban' ? "bg-accent text-white" : "text-text-muted hover:text-text-primary")}
+            className={cn("px-4 py-1.5 text-xs font-medium rounded-md transition-colors", viewMode === 'kanban' ? "bg-accent text-white" : "text-text-muted hover:text-text-primary")}
           >
             Kanban
           </button>
           <button 
             onClick={() => setViewMode('flow')}
-            className={cn("px-3 py-1.5 text-xs font-medium rounded-md transition-colors", viewMode === 'flow' ? "bg-accent text-white" : "text-text-muted hover:text-text-primary")}
+            className={cn("px-4 py-1.5 text-xs font-medium rounded-md transition-colors", viewMode === 'flow' ? "bg-accent text-white" : "text-text-muted hover:text-text-primary")}
           >
             Fluxo (n8n)
           </button>

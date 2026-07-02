@@ -22,6 +22,8 @@ export default function Settings() {
     stations, initStations,
     favorites, toggleFavorite, currentStation, setCurrentStation, isPlaying, setIsPlaying
   } = useRadioStore()
+  const weatherCity = useUIStore((s) => s.weatherCity)
+  const calendarIcsUrl = useUIStore((s) => s.calendarIcsUrl)
 
   useEffect(() => {
     initStations()
@@ -96,7 +98,7 @@ export default function Settings() {
           <div className="flex items-center gap-2">
             <input 
               type="text" 
-              value={useUIStore((s) => s.weatherCity) || ''}
+              value={weatherCity || ''}
               onChange={(e) => useUIStore.getState().setWeatherCity(e.target.value)}
               placeholder="Ex: Porto Alegre" 
               className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-4 py-2 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent" 
@@ -114,7 +116,7 @@ export default function Settings() {
           <div className="flex items-center gap-2">
             <input 
               type="text" 
-              value={useUIStore((s) => s.calendarIcsUrl) || ''}
+              value={calendarIcsUrl || ''}
               onChange={(e) => useUIStore.getState().setCalendarIcsUrl(e.target.value)}
               placeholder="https://outlook.office365.com/.../calendar.ics" 
               className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-4 py-2 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent font-mono" 
