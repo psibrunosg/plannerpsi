@@ -48,6 +48,7 @@ interface TaskState {
   setLoading: (loading: boolean) => void
   filteredTasks: () => Task[]
   archivedTasks: () => Task[]
+  getAllTags: () => string[]
 }
 
 export const useTaskStore = create<TaskState>()(
@@ -195,6 +196,11 @@ export const useTaskStore = create<TaskState>()(
         return (get().tasks || []).filter((t) => t.status === 'archived').sort((a, b) => {
           return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
         })
+      },
+
+      getAllTags: () => {
+        const all = (get().tasks || []).flatMap((t) => t.tags || [])
+        return [...new Set(all)].sort()
       },
     }),
     {

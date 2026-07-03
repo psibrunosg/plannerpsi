@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
-import { List, Kanban, Calendar, GanttChart, Plus, Filter, Archive } from 'lucide-react'
+import { useMemo, useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { List, Kanban, Calendar, GanttChart, Plus, Filter, Archive, Search, Tag, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { pageTransition } from '@/lib/motion'
 import { useUIStore } from '@/stores/uiStore'
@@ -154,11 +154,37 @@ export default function Tasks() {
   const filter = useTaskStore((s) => s.filter)
   
   const [showArchived, setShowArchived] = useState(false)
-  const [activeDateTag, setActiveDateTag] = useState<DateTagId>('all')
   
-  const filteredTasks = useMemo(() => 
-    showArchived ? useTaskStore.getState().archivedTasks() : useTaskStore.getState().filteredTasks(), 
-  [tasks, filter, showArchived])
+  // Persistent filter state
+  const [activeDateTag, setActiveDateTag] = useState<DateTagId>(() => {
+    return (localStorage.getItem('tasks-date-tag') as DateTagId) || 'all'
+  })
+  const [selectedTags, setSelectedTags] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('tasks-tag-filter') || '[]') } catch { return [] }
+  })
+  const [searchQuery, setSearchQuery] = useState(() => localStorage.getItem('tasks-search') || '')
+
+  // Persist filter state changes
+  useEffect(() => { localStorage.setItem('tasks-date-tag', activeDateTag) }, [activeDateTag])
+  useEffect(() => { localStorage.setItem('tasks-tag-filter', JSON.stringify(selectedTags)) }, [selectedTags])
+  useEffect(() => { localStorage.setItem('tasks-search', searchQuery) }, [searchQuery])
+  
+  const filteredTasks = useMemo(() => {
+    if (showArchived) return useTaskStore.getState().archivedTasks()
+    let result = useTaskStore.getState().filteredTasks()
+    // Apply text search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter((t) =>
+        t.title.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q)
+      )
+    }
+    // Apply tag filter
+    if (selectedTags.length > 0) {
+      result = result.filter((t) => selectedTags.every((tag) => t.tags?.includes(tag)))
+    }
+    return result
+  }, [tasks, filter, showArchived, searchQuery, selectedTags])
 
   const archiveCompletedTasks = useTaskStore(s => s.archiveCompletedTasks)
   const addToast = useToastStore(s => s.addToast)
@@ -177,9 +203,18 @@ export default function Tasks() {
     return result
   }, [filteredTasks])
 
-  const ActiveView = showArchived ? ListView : VIEW_COMPONENTS[viewMode]
+  const ActiveView = VIEW_COMPONENTS[viewMode]
   
   const hasCompletedTasks = tasks.some(t => t.status === 'done')
+  
+  // All available tags across all non-archived tasks
+  const allAvailableTags = useMemo(() => useTaskStore.getState().getAllTags(), [tasks])
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    )
+  }
 
   const handleArchive = async () => {
     if (confirm("Tem certeza que deseja arquivar TODAS as tarefas concluídas? Elas sumirão desta lista.")) {
@@ -198,6 +233,8 @@ export default function Tasks() {
               ? `${filteredTasks.length} tarefa${filteredTasks.length !== 1 ? 's' : ''}`
               : `${dateFilteredTasks.length} de ${filteredTasks.length} tarefas`
             }
+            {selectedTags.length > 0 && <span className="ml-1 text-accent">· {selectedTags.length} tag{selectedTags.length > 1 ? 's' : ''}</span>}
+            {searchQuery.trim() && <span className="ml-1 text-accent">· buscando</span>}
           </p>
         </div>
 
@@ -250,42 +287,102 @@ export default function Tasks() {
       </div>
 
       {!showArchived && (
-        <div className="mb-5 flex items-center gap-1 overflow-x-auto rounded-[var(--radius-md)] bg-surface-elevated/60 p-1.5">
-          {DATE_FILTER_TABS.map((tab) => (
-            <motion.button
-              key={tab.id}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setActiveDateTag(tab.id)}
-              className={cn(
-                'relative flex items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-sm)] px-3.5 py-2 text-xs font-medium transition-all',
-                activeDateTag === tab.id
-                  ? cn('bg-surface-active', tab.color)
-                  : 'text-text-muted hover:text-text-secondary hover:bg-surface-hover/50',
+        <>
+          {/* Date filter tabs */}
+          <div className="mb-3 flex items-center gap-1 overflow-x-auto rounded-[var(--radius-md)] bg-surface-elevated/60 p-1.5">
+            {DATE_FILTER_TABS.map((tab) => (
+              <motion.button
+                key={tab.id}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setActiveDateTag(tab.id)}
+                className={cn(
+                  'relative flex items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-sm)] px-3.5 py-2 text-xs font-medium transition-all',
+                  activeDateTag === tab.id
+                    ? cn('bg-surface-active', tab.color)
+                    : 'text-text-muted hover:text-text-secondary hover:bg-surface-hover/50',
+                )}
+              >
+                {tab.label}
+                {counts[tab.id] > 0 && (
+                  <span className={cn(
+                    'ml-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none',
+                    activeDateTag === tab.id ? 'bg-white/10' : 'bg-surface-hover',
+                    tab.id === 'overdue' && counts[tab.id] > 0 && 'bg-red-500/20 text-red-400',
+                  )}>
+                    {counts[tab.id]}
+                  </span>
+                )}
+                {activeDateTag === tab.id && (
+                  <motion.div
+                    layoutId="date-tab-indicator"
+                    className="absolute inset-0 rounded-[var(--radius-sm)] border border-border/50"
+                    transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                  />
+                )}
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Search bar + Tag filters row */}
+          <div className="mb-5 flex flex-col gap-2">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Buscar tarefas..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-[var(--radius-md)] border border-border-subtle bg-surface-elevated/60 py-2 pl-9 pr-9 text-sm text-text-primary placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent transition-all"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary">
+                  <X className="h-4 w-4" />
+                </button>
               )}
-            >
-              {tab.label}
-              {counts[tab.id] > 0 && (
-                <span className={cn(
-                  'ml-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none',
-                  activeDateTag === tab.id ? 'bg-white/10' : 'bg-surface-hover',
-                  tab.id === 'overdue' && counts[tab.id] > 0 && 'bg-red-500/20 text-red-400',
-                )}>
-                  {counts[tab.id]}
+            </div>
+
+            {/* Tag filter chips */}
+            {allAvailableTags.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="flex items-center gap-1 text-xs text-text-muted">
+                  <Tag className="h-3 w-3" />
                 </span>
-              )}
-              {activeDateTag === tab.id && (
-                <motion.div
-                  layoutId="date-tab-indicator"
-                  className="absolute inset-0 rounded-[var(--radius-sm)] border border-border/50"
-                  transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-                />
-              )}
-            </motion.button>
-          ))}
-        </div>
+                {allAvailableTags.map((tag) => (
+                  <motion.button
+                    key={tag}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => toggleTag(tag)}
+                    className={cn(
+                      'flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-all',
+                      selectedTags.includes(tag)
+                        ? 'bg-accent/20 text-accent ring-1 ring-accent/40'
+                        : 'bg-surface-elevated/80 text-text-muted hover:text-text-secondary hover:bg-surface-hover border border-border-subtle/60',
+                    )}
+                  >
+                    <span className="opacity-60">#</span>{tag}
+                    {selectedTags.includes(tag) && <X className="h-2.5 w-2.5 ml-0.5" />}
+                  </motion.button>
+                ))}
+                {selectedTags.length > 0 && (
+                  <button
+                    onClick={() => setSelectedTags([])}
+                    className="text-xs text-text-muted hover:text-accent transition-colors ml-1"
+                  >
+                    Limpar
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </>
       )}
 
-      <ActiveView tasks={showArchived ? filteredTasks : dateFilteredTasks} />
+      <AnimatePresence mode="wait">
+        <motion.div key={`${viewMode}-${showArchived}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+          <ActiveView tasks={showArchived ? filteredTasks : dateFilteredTasks} />
+        </motion.div>
+      </AnimatePresence>
     </motion.div>
   )
 }

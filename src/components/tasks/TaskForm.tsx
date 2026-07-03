@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Calendar, Tag, Flag, Clock, AlignLeft, Percent } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -34,6 +34,9 @@ export function TaskForm() {
   const [estimatedMinutes, setEstimatedMinutes] = useState('')
   const [tagInput, setTagInput] = useState('')
   const [tags, setTags] = useState<string[]>([])
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const tagInputRef = useRef<HTMLInputElement>(null)
   const [completionPercentage, setCompletionPercentage] = useState(0)
   const [selectedDateTag, setSelectedDateTag] = useState<string | null>(null)
 
@@ -47,6 +50,8 @@ export function TaskForm() {
     setEstimatedMinutes('')
     setTagInput('')
     setTags([])
+    setTagSuggestions([])
+    setShowSuggestions(false)
     setCompletionPercentage(0)
     setSelectedDateTag(null)
   }
@@ -154,11 +159,30 @@ export function TaskForm() {
     }
   }
 
-  const handleAddTag = () => {
-    const t = tagInput.trim()
+  const handleAddTag = (value?: string) => {
+    const t = (value ?? tagInput).trim().toLowerCase()
     if (t && !tags.includes(t)) {
       setTags([...tags, t])
-      setTagInput('')
+    }
+    setTagInput('')
+    setShowSuggestions(false)
+    tagInputRef.current?.focus()
+  }
+
+  const handleTagInputChange = (val: string) => {
+    setTagInput(val)
+    if (val.trim().length > 0) {
+      const allTags = useTaskStore.getState().getAllTags()
+      const filtered = allTags.filter(
+        (t) => t.toLowerCase().includes(val.toLowerCase()) && !tags.includes(t)
+      )
+      setTagSuggestions(filtered)
+      setShowSuggestions(filtered.length > 0)
+    } else {
+      // Show all available tags when input is focused and empty
+      const allTags = useTaskStore.getState().getAllTags().filter((t) => !tags.includes(t))
+      setTagSuggestions(allTags)
+      setShowSuggestions(allTags.length > 0)
     }
   }
 
@@ -269,11 +293,38 @@ export function TaskForm() {
                     className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent" />
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 relative">
                   <Tag className="h-4 w-4 shrink-0 text-text-muted" />
-                  <input type="text" placeholder="Tag + Enter" value={tagInput} onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTag() } }}
-                    className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent" />
+                  <div className="relative flex-1">
+                    <input
+                      ref={tagInputRef}
+                      type="text"
+                      placeholder="Tag + Enter"
+                      value={tagInput}
+                      onChange={(e) => handleTagInputChange(e.target.value)}
+                      onFocus={() => handleTagInputChange(tagInput)}
+                      onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') { e.preventDefault(); handleAddTag() }
+                        if (e.key === 'Escape') setShowSuggestions(false)
+                      }}
+                      className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent"
+                    />
+                    {showSuggestions && (
+                      <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-[var(--radius-sm)] border border-border-subtle bg-surface shadow-xl max-h-40 overflow-y-auto">
+                        {tagSuggestions.map((suggestion) => (
+                          <button
+                            key={suggestion}
+                            type="button"
+                            onMouseDown={(e) => { e.preventDefault(); handleAddTag(suggestion) }}
+                            className="w-full px-3 py-1.5 text-left text-xs text-text-secondary hover:bg-accent/10 hover:text-accent transition-colors"
+                          >
+                            <span className="mr-1.5 opacity-50">#</span>{suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
