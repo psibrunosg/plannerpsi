@@ -1,0 +1,157 @@
+{
+  "total_count": 2,
+  "jobs": [
+    {
+      "id": 84853401340,
+      "run_id": 28614074663,
+      "workflow_name": "Deploy to GitHub Pages",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/psibrunosg/plannerpsi/actions/runs/28614074663",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOTD5r0s8AAAATwagm_A",
+      "head_sha": "776328ad7a729873ef03796d123c506267b1bf22",
+      "url": "https://api.github.com/repos/psibrunosg/plannerpsi/actions/jobs/84853401340",
+      "html_url": "https://github.com/psibrunosg/plannerpsi/actions/runs/28614074663/job/84853401340",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-07-02T18:51:05Z",
+      "started_at": "2026-07-02T18:51:08Z",
+      "completed_at": "2026-07-02T18:51:33Z",
+      "name": "build",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-07-02T18:51:08Z",
+          "completed_at": "2026-07-02T18:51:10Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-07-02T18:51:10Z",
+          "completed_at": "2026-07-02T18:51:10Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-07-02T18:51:10Z",
+          "completed_at": "2026-07-02T18:51:13Z"
+        },
+        {
+          "name": "Run npm ci",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-07-02T18:51:13Z",
+          "completed_at": "2026-07-02T18:51:22Z"
+        },
+        {
+          "name": "Run npm run build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-07-02T18:51:22Z",
+          "completed_at": "2026-07-02T18:51:29Z"
+        },
+        {
+          "name": "Run actions/upload-pages-artifact@v3",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-07-02T18:51:29Z",
+          "completed_at": "2026-07-02T18:51:31Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-07-02T18:51:31Z",
+          "completed_at": "2026-07-02T18:51:31Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-07-02T18:51:31Z",
+          "completed_at": "2026-07-02T18:51:31Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-07-02T18:51:31Z",
+          "completed_at": "2026-07-02T18:51:31Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/psibrunosg/plannerpsi/check-runs/84853401340",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000003926,
+      "runner_name": "GitHub Actions 1000003926",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 84853494260,
+      "run_id": 28614074663,
+      "workflow_name": "Deploy to GitHub Pages",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/psibrunosg/plannerpsi/actions/runs/28614074663",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOTD5r0s8AAAATwamR9A",
+      "head_sha": "776328ad7a729873ef03796d123c506267b1bf22",
+      "url": "https://api.github.com/repos/psibrunosg/plannerpsi/actions/jobs/84853494260",
+      "html_url": "https://github.com/psibrunosg/plannerpsi/actions/runs/28614074663/job/84853494260",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-07-02T18:51:34Z",
+      "started_at": "2026-07-02T18:51:37Z",
+      "completed_at": "2026-07-02T18:51:47Z",
+      "name": "deploy",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-07-02T18:51:37Z",
+          "completed_at": "2026-07-02T18:51:39Z"
+        },
+        {
+          "name": "Run actions/deploy-pages@v4",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 2,
+          "started_at": "2026-07-02T18:51:39Z",
+          "completed_at": "2026-07-02T18:51:46Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-07-02T18:51:46Z",
+          "completed_at": "2026-07-02T18:51:46Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/psibrunosg/plannerpsi/check-runs/84853494260",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000003927,
+      "runner_name": "GitHub Actions 1000003927",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}

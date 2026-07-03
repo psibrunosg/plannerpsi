@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import {
@@ -15,7 +15,6 @@ import {
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/cn'
-import { useTaskStore } from '@/stores/taskStore'
 import { useUIStore } from '@/stores/uiStore'
 import { PRIORITY_CONFIG } from '@/types'
 import type { Task } from '@/types'
@@ -135,10 +134,7 @@ function DayPopover({ date, tasks, onClose }: DayPopoverProps) {
   )
 }
 
-export function CalendarView() {
-  const allTasks = useTaskStore((s) => s.tasks)
-  const filter = useTaskStore((s) => s.filter)
-  const tasks = useMemo(() => useTaskStore.getState().filteredTasks(), [allTasks, filter])
+export function CalendarView({ tasks }: { tasks: Task[] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState<Date | null>(null)
 

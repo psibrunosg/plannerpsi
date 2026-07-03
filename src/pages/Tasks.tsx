@@ -93,11 +93,7 @@ function CompletionBar({ percentage }: { percentage: number }) {
   )
 }
 
-function ListView() {
-  const tasks = useTaskStore((s) => s.tasks)
-  const filter = useTaskStore((s) => s.filter)
-  const filteredTasks = useMemo(() => useTaskStore.getState().filteredTasks(), [tasks, filter])
-
+function ListView({ tasks: filteredTasks }: { tasks: Task[] }) {
   if (filteredTasks.length === 0) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 text-center">
@@ -145,7 +141,7 @@ function ListView() {
   )
 }
 
-const VIEW_COMPONENTS: Record<ViewMode, React.FC> = {
+const VIEW_COMPONENTS: Record<ViewMode, React.FC<{ tasks: Task[] }>> = {
   list: ListView,
   kanban: KanbanBoard,
   calendar: CalendarView,
@@ -289,11 +285,7 @@ export default function Tasks() {
         </div>
       )}
 
-      {showArchived ? (
-        <ListView />
-      ) : (
-        <ActiveView />
-      )}
+      <ActiveView tasks={showArchived ? filteredTasks : dateFilteredTasks} />
     </motion.div>
   )
 }

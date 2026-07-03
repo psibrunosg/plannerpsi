@@ -12,7 +12,6 @@ import {
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/cn'
-import { useTaskStore } from '@/stores/taskStore'
 import { useUIStore } from '@/stores/uiStore'
 import { PRIORITY_CONFIG, STATUS_CONFIG } from '@/types'
 import type { Task, TaskStatus } from '@/types'
@@ -151,10 +150,7 @@ function StatusGroup({ status, tasks, startDate, dayWidth, defaultOpen = true }:
   )
 }
 
-export function TimelineView() {
-  const allTasks = useTaskStore((s) => s.tasks)
-  const filter = useTaskStore((s) => s.filter)
-  const tasks = useMemo(() => useTaskStore.getState().filteredTasks(), [allTasks, filter])
+export function TimelineView({ tasks }: { tasks: Task[] }) {
   const [startDate, setStartDate] = useState(() => startOfDay(new Date()))
   const dayWidth = 72
 

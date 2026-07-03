@@ -204,8 +204,14 @@ export const useStudyStore = create<StudyState>()(
         activeCourseId: state.activeCourseId,
         activeModuleId: state.activeModuleId,
         isAudioMode: state.isAudioMode,
-        completedLessons: state.completedLessons
-      }), // Persist user preferences but not the modules cache itself to keep it fresh
+        completedLessons: state.completedLessons || []
+      }),
+      merge: (persistedState: any, currentState) => ({
+        ...currentState,
+        ...persistedState,
+        completedLessons: persistedState?.completedLessons || currentState.completedLessons || [],
+        activeCourseId: COURSES.find(c => c.id === persistedState?.activeCourseId) ? persistedState.activeCourseId : COURSES[0].id
+      })
     }
   )
 )

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GripVertical, Calendar, Clock, Plus } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -154,10 +154,7 @@ function KanbanCard({ task, onDragStart }: KanbanCardProps) {
   )
 }
 
-export function KanbanBoard() {
-  const allTasks = useTaskStore((s) => s.tasks)
-  const filter = useTaskStore((s) => s.filter)
-  const tasks = useMemo(() => useTaskStore.getState().filteredTasks(), [allTasks, filter])
+export function KanbanBoard({ tasks }: { tasks: Task[] }) {
   const moveTask = useTaskStore((s) => s.moveTask)
   const setTaskFormOpen = useUIStore((s) => s.setTaskFormOpen)
   const [dragOverColumn, setDragOverColumn] = useState<TaskStatus | null>(null)
