@@ -42,11 +42,32 @@ export const checkAndNotifyTasks = async (tasks: Task[]) => {
 
   for (const task of tasks) {
     if (task.status === 'done' || task.status === 'archived') continue
-    if (!task.due_date || !task.due_time) continue
+    if (!task.due_date) continue
 
     const taskDate = task.due_date.split('T')[0]
+
+    // Tasks without a time: overdue once the due date has fully passed (end of day).
+    // Re-notify every 60 minutes via the same sentLog mechanism used below.
+    if (!task.due_time) {
+      const endOfDueDay = new Date(`${taskDate}T23:59:59`)
+      if (now > endOfDueDay) {
+        const notifKey = `overdue_${task.id}`
+        const lastSent = sentLog[notifKey]
+        if (!lastSent || now.getTime() - lastSent >= 60 * 60 * 1000) {
+          const [y, m, d] = taskDate.split('-')
+          new Notification(`Tarefa Atrasada: ${task.title}`, {
+            body: `Esta tarefa venceu em ${d}/${m}/${y} e continua pendente.`,
+            icon: '/plannerpsi/favicon.svg',
+          })
+          sentLog[notifKey] = now.getTime()
+          logChanged = true
+        }
+      }
+      continue
+    }
+
     const [hours, minutes] = task.due_time.split(':').map(Number)
-    
+
     const taskDateTime = new Date(`${taskDate}T00:00:00`)
     taskDateTime.setHours(hours, minutes, 0, 0)
 

@@ -7,7 +7,8 @@ import { useFocusStore } from '@/stores/focusStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
 import { useRadioStore } from '@/stores/radioStore'
-import { Calendar, Link as LinkIcon, Copy, Radio, Star, Play, Pause } from 'lucide-react'
+import { supabaseUrl } from '@/lib/supabase'
+import { Calendar, Link as LinkIcon, Copy, Radio, Star, Play, Pause, Download } from 'lucide-react'
 import { useEffect } from 'react'
 
 export default function Settings() {
@@ -31,10 +32,12 @@ export default function Settings() {
     initStations()
   }, [initStations])
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
   const baseCalendarUrl = user ? `${supabaseUrl}/functions/v1/calendar-feed/${user.id}.ics` : ''
-  const webcalUrl = baseCalendarUrl.replace('https://', 'webcal://').replace('http://', 'webcal://')
-  const outlookWebUrl = baseCalendarUrl ? `https://outlook.office.com/calendar/0/addfromweb?url=${encodeURIComponent(baseCalendarUrl)}&name=Planner%20PSI` : ''
+  const webcalUrl = baseCalendarUrl.replace('https://', 'webcal://')
+  const calendarName = encodeURIComponent('Planner PSI')
+  const outlookPersonalUrl = baseCalendarUrl ? `https://outlook.live.com/calendar/0/addfromweb?url=${encodeURIComponent(webcalUrl)}&name=${calendarName}` : ''
+  const outlookWorkUrl = baseCalendarUrl ? `https://outlook.office.com/calendar/addfromweb?url=${encodeURIComponent(webcalUrl)}&name=${calendarName}` : ''
+  const googleCalendarUrl = baseCalendarUrl ? `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcalUrl)}` : ''
 
   const copyToClipboard = () => {
     if (!baseCalendarUrl) return
@@ -171,27 +174,52 @@ export default function Settings() {
               </motion.button>
             </div>
 
-            <div className="flex gap-2 mt-2">
-              <a 
-                href={outlookWebUrl}
-                target="_blank" 
+            <div className="flex flex-wrap gap-2 mt-2">
+              <a
+                href={outlookPersonalUrl}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded bg-[#0078D4]/10 px-4 py-2 text-sm font-medium text-[#0078D4] hover:bg-[#0078D4]/20 border border-[#0078D4]/20 transition-colors"
               >
                 <Calendar className="h-4 w-4" />
-                Adicionar ao Outlook Web
+                Outlook (pessoal)
               </a>
-              <a 
+              <a
+                href={outlookWorkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded bg-[#0078D4]/10 px-4 py-2 text-sm font-medium text-[#0078D4] hover:bg-[#0078D4]/20 border border-[#0078D4]/20 transition-colors"
+              >
+                <Calendar className="h-4 w-4" />
+                Outlook (corporativo)
+              </a>
+              <a
+                href={googleCalendarUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded bg-[#34A853]/10 px-4 py-2 text-sm font-medium text-[#34A853] hover:bg-[#34A853]/20 border border-[#34A853]/20 transition-colors"
+              >
+                <Calendar className="h-4 w-4" />
+                Google Calendar
+              </a>
+              <a
                 href={webcalUrl}
                 className="flex items-center gap-2 rounded bg-surface-hover px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-active border border-border-subtle transition-colors"
               >
                 <LinkIcon className="h-4 w-4" />
-                Abrir App Padrão (Apple, etc)
+                Apple / App Padrão
+              </a>
+              <a
+                href={baseCalendarUrl}
+                className="flex items-center gap-2 rounded bg-surface-hover px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-active border border-border-subtle transition-colors"
+              >
+                <Download className="h-4 w-4" />
+                Baixar .ics
               </a>
             </div>
-            
+
             <div className="text-xs text-text-muted space-y-1">
-              <p><b>Google Calendar:</b> Copie a URL (.ics) acima &gt; Configurações &gt; Adicionar calendário &gt; Do URL.</p>
+              <p>Os botões acima assinam o calendário (atualiza sozinho). O download .ics é uma importação única.</p>
               <p><b>Outlook Desktop:</b> Copie a URL (.ics) &gt; Adicionar Calendário &gt; Assinar da Web.</p>
             </div>
           </div>

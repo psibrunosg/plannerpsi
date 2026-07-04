@@ -9,7 +9,17 @@ function generateICal(tasks: any[]): string {
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'X-WR-CALNAME:BS planner',
-    'X-WR-CALDESC:Tarefas do BS planner'
+    'X-WR-CALDESC:Tarefas do BS planner',
+    // VTIMEZONE required by Outlook for TZID references. Brazil has no DST since 2019: fixed UTC-3.
+    'BEGIN:VTIMEZONE',
+    'TZID:America/Sao_Paulo',
+    'BEGIN:STANDARD',
+    'DTSTART:19700101T000000',
+    'TZOFFSETFROM:-0300',
+    'TZOFFSETTO:-0300',
+    'TZNAME:-03',
+    'END:STANDARD',
+    'END:VTIMEZONE'
   ]
 
   for (const task of tasks) {
@@ -17,22 +27,12 @@ function generateICal(tasks: any[]): string {
 
     const uid = `${task.id}@plannerpsi`
     const dtstamp = new Date(task.updated_at || task.created_at || new Date()).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
-    
-    // Parse due_date for all-day event
+
     const dueDateObj = new Date(task.due_date)
-    // iCal requires YYYYMMDD for VALUE=DATE
     const year = dueDateObj.getUTCFullYear()
     const month = String(dueDateObj.getUTCMonth() + 1).padStart(2, '0')
     const day = String(dueDateObj.getUTCDate()).padStart(2, '0')
-    const dtstart = `${year}${month}${day}`
-    
-    // For all day event, end date is next day (exclusive)
-    const nextDayObj = new Date(dueDateObj)
-    nextDayObj.setUTCDate(nextDayObj.getUTCDate() + 1)
-    const endYear = nextDayObj.getUTCFullYear()
-    const endMonth = String(nextDayObj.getUTCMonth() + 1).padStart(2, '0')
-    const endDay = String(nextDayObj.getUTCDate()).padStart(2, '0')
-    const dtend = `${endYear}${endMonth}${endDay}`
+    const dateStr = `${year}${month}${day}`
 
     const summary = task.title.replace(/(\r\n|\n|\r)/gm, " ")
     const description = (task.description || '').replace(/(\r\n|\n|\r)/gm, "\\n")
@@ -41,8 +41,29 @@ function generateICal(tasks: any[]): string {
     ical.push('BEGIN:VEVENT')
     ical.push(`UID:${uid}`)
     ical.push(`DTSTAMP:${dtstamp}`)
-    ical.push(`DTSTART;VALUE=DATE:${dtstart}`)
-    ical.push(`DTEND;VALUE=DATE:${dtend}`)
+
+    if (task.due_time && /^\d{2}:\d{2}/.test(task.due_time)) {
+      // Timed event: 1-hour block at the task's local time (America/Sao_Paulo)
+      const [hh, mm] = task.due_time.split(':')
+      const startLocal = `${dateStr}T${hh}${mm}00`
+      const endHour = String((parseInt(hh, 10) + 1) % 24).padStart(2, '0')
+      // If the hour wraps past midnight, keep DTEND on the same day at 23:59 to avoid date rollover complexity
+      const endLocal = parseInt(hh, 10) === 23
+        ? `${dateStr}T235900`
+        : `${dateStr}T${endHour}${mm}00`
+      ical.push(`DTSTART;TZID=America/Sao_Paulo:${startLocal}`)
+      ical.push(`DTEND;TZID=America/Sao_Paulo:${endLocal}`)
+    } else {
+      // All-day event: end date is next day (exclusive)
+      const nextDayObj = new Date(dueDateObj)
+      nextDayObj.setUTCDate(nextDayObj.getUTCDate() + 1)
+      const endYear = nextDayObj.getUTCFullYear()
+      const endMonth = String(nextDayObj.getUTCMonth() + 1).padStart(2, '0')
+      const endDay = String(nextDayObj.getUTCDate()).padStart(2, '0')
+      ical.push(`DTSTART;VALUE=DATE:${dateStr}`)
+      ical.push(`DTEND;VALUE=DATE:${endYear}${endMonth}${endDay}`)
+    }
+
     ical.push(`SUMMARY:${summary}${task.status === 'done' ? ' (Concluído)' : ''}`)
     if (description) {
       ical.push(`DESCRIPTION:${description}`)
@@ -86,7 +107,7 @@ serve(async (req) => {
 
     const { data: tasks, error } = await supabase
       .from('tasks')
-      .select('id, title, description, status, due_date, created_at, updated_at')
+      .select('id, title, description, status, due_date, due_time, created_at, updated_at')
       .eq('user_id', userId)
       .neq('status', 'archived') // Don't show archived tasks in calendar
 
