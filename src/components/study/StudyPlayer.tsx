@@ -25,20 +25,45 @@ export function StudyPlayer() {
     setError(null)
   }, [isAudioMode])
 
-  // Mount/Unmount global media elements
+  // Overlay the (permanently mounted, never reparented) video/audio element on top of
+  // the placeholder div via fixed positioning, instead of moving the DOM node. This is
+  // what keeps playback going uninterrupted when navigating away or switching mode —
+  // the element is only repositioned, never detached from the document.
   useEffect(() => {
-    if (!activeLesson) return
-
-    if (isAudioMode && audioContainerRef.current) {
-      audioContainerRef.current.appendChild(studyMedia.audio)
-      studyMedia.audio.style.display = 'block'
-    } else if (!isAudioMode && videoContainerRef.current && !useIframeFallback) {
-      videoContainerRef.current.appendChild(studyMedia.video)
-      studyMedia.video.style.display = 'block'
+    if (!activeLesson) {
+      studyMedia.hideAll()
+      return
     }
 
+    const activeEl = isAudioMode ? studyMedia.audio : studyMedia.video
+    const inactiveEl = isAudioMode ? studyMedia.video : studyMedia.audio
+    const containerRef = isAudioMode ? audioContainerRef : videoContainerRef
+
+    studyMedia.dock(inactiveEl, null)
+
+    if (!isAudioMode && useIframeFallback) {
+      studyMedia.dock(studyMedia.video, null)
+      return
+    }
+
+    const updatePosition = () => {
+      if (containerRef.current) {
+        studyMedia.dock(activeEl, containerRef.current.getBoundingClientRect())
+      }
+    }
+
+    updatePosition()
+
+    const resizeObserver = new ResizeObserver(updatePosition)
+    if (containerRef.current) resizeObserver.observe(containerRef.current)
+    window.addEventListener('scroll', updatePosition, true)
+    window.addEventListener('resize', updatePosition)
+
     return () => {
-      studyMedia.hideAndDock()
+      resizeObserver.disconnect()
+      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updatePosition)
+      studyMedia.dock(activeEl, null)
     }
   }, [activeLesson, isAudioMode, useIframeFallback])
 
@@ -104,7 +129,7 @@ export function StudyPlayer() {
         <div className="flex h-full w-full flex-col items-center justify-center bg-surface p-8">
           <Headphones className="mb-6 h-16 w-16 text-accent animate-pulse opacity-80" />
           <p className="mb-6 text-center font-medium text-text-primary max-w-sm truncate">{activeLesson.baseName}</p>
-          <div ref={audioContainerRef} className="w-full flex justify-center max-w-md" />
+          <div ref={audioContainerRef} className="h-14 w-full flex justify-center max-w-md" />
         </div>
       )
     } else {
