@@ -3,6 +3,7 @@ import { Search, Sun, Moon, Plus, Command, RefreshCw } from 'lucide-react'
 import { useUIStore } from '@/stores/uiStore'
 import { RadioControls } from './RadioControls'
 import { StudyControls } from './StudyControls'
+import { SpotifyControls } from './SpotifyControls'
 
 export function Header({ isSyncing = false }: { isSyncing?: boolean }) {
   const theme = useUIStore((s) => s.theme)
@@ -49,6 +50,7 @@ export function Header({ isSyncing = false }: { isSyncing?: boolean }) {
 
         <StudyControls />
         <RadioControls />
+        <SpotifyControls />
 
         <motion.button
           whileHover={{ scale: 1.1, rotate: 15 }}

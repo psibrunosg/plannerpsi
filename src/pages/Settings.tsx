@@ -8,9 +8,11 @@ import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
 import { useRadioStore } from '@/stores/radioStore'
 import { supabaseUrl } from '@/lib/supabase'
-import { Calendar, Link as LinkIcon, Copy, Radio, Star, Play, Pause, Download, BellRing } from 'lucide-react'
+import { Calendar, Link as LinkIcon, Copy, Radio, Star, Play, Pause, Download, BellRing, Music } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from '@/lib/pushManager'
+import { useSpotifyStore } from '@/stores/spotifyStore'
+import { beginLogin } from '@/lib/spotifyAuth'
 
 export default function Settings() {
   const theme = useUIStore((s) => s.theme)
@@ -30,6 +32,13 @@ export default function Settings() {
   const setNotificationsEnabled = useUIStore((s) => s.setNotificationsEnabled)
 
   const [pushStatus, setPushStatus] = useState<'unsupported' | 'subscribed' | 'unsubscribed' | 'loading'>('loading')
+  const spotifyConnected = useSpotifyStore((s) => s.isConnected())
+  const disconnectSpotify = useSpotifyStore((s) => s.disconnect)
+
+  const handleDisconnectSpotify = () => {
+    disconnectSpotify()
+    addToast('Spotify desconectado', 'info')
+  }
 
   useEffect(() => {
     initStations()
@@ -274,6 +283,39 @@ export default function Settings() {
               <p><b>Outlook Desktop:</b> Copie a URL (.ics) &gt; Adicionar Calendário &gt; Assinar da Web.</p>
             </div>
           </div>
+        </motion.div>
+
+        <motion.div variants={staggerItem} className="glass-card p-6">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-primary">
+            <Music className="h-5 w-5" /> Spotify
+          </h3>
+          {spotifyConnected ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-text-primary">Conectado</p>
+                <p className="text-xs text-text-muted">Controle sua reprodução direto pelo ícone no topo da página.</p>
+              </div>
+              <button
+                onClick={handleDisconnectSpotify}
+                className="rounded-[var(--radius-sm)] border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary hover:bg-surface-hover transition-colors"
+              >
+                Desconectar
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-text-secondary max-w-sm">
+                Conecte sua conta Spotify para ver o que está tocando e controlar play/pause/pular direto no planner. Requer Premium para controle completo.
+              </p>
+              <button
+                onClick={() => beginLogin()}
+                className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-success/15 px-3 py-2 text-xs font-medium text-success hover:bg-success/25 transition-colors shrink-0"
+              >
+                <Music className="h-3.5 w-3.5" />
+                Conectar com Spotify
+              </button>
+            </div>
+          )}
         </motion.div>
 
         <motion.div variants={staggerItem} className="glass-card p-6">

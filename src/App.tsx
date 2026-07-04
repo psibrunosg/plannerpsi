@@ -22,6 +22,7 @@ import { useFocusStore } from '@/stores/focusStore'
 import { useProcedureStore } from '@/stores/procedureStore'
 import { useRadioStore } from '@/stores/radioStore'
 import { requestNotificationPermission, checkAndNotifyTasks } from '@/lib/notificationManager'
+import { handleCallbackIfPresent } from '@/lib/spotifyAuth'
 
 export default function App() {
 
@@ -34,6 +35,7 @@ export default function App() {
 
   useEffect(() => {
     initialize()
+    handleCallbackIfPresent()
   }, [initialize])
 
   useEffect(() => {
