@@ -16,7 +16,9 @@ interface StudyState {
   isAudioMode: boolean
   completedLessons: string[]
   isPlaying: boolean
-  
+  playbackRate: number
+  lessonPositions: Record<string, number>
+
   // Actions
   selectCourse: (courseId: string) => Promise<void>
   loadModules: () => Promise<void>
@@ -27,6 +29,9 @@ interface StudyState {
   loadCompletedLessonsFromDB: () => Promise<void>
   setIsPlaying: (isPlaying: boolean) => void
   playNextLesson: () => Promise<void>
+  setPlaybackRate: (rate: number) => void
+  saveLessonPosition: (baseName: string, time: number) => void
+  getLessonPosition: (baseName: string) => number
 }
 
 export const useStudyStore = create<StudyState>()(
@@ -42,8 +47,17 @@ export const useStudyStore = create<StudyState>()(
       isAudioMode: false,
       completedLessons: [],
       isPlaying: false,
+      playbackRate: 1,
+      lessonPositions: {},
 
       setIsPlaying: (isPlaying: boolean) => set({ isPlaying }),
+
+      setPlaybackRate: (rate: number) => set({ playbackRate: rate }),
+
+      saveLessonPosition: (baseName: string, time: number) =>
+        set((s) => ({ lessonPositions: { ...s.lessonPositions, [baseName]: time } })),
+
+      getLessonPosition: (baseName: string) => get().lessonPositions[baseName] ?? 0,
 
       playNextLesson: async () => {
         const { modules, activeModuleId, activeLesson, selectModule, selectLesson } = get()
@@ -200,16 +214,20 @@ export const useStudyStore = create<StudyState>()(
     }),
     {
       name: 'plannerpsi-study-storage',
-      partialize: (state) => ({ 
+      partialize: (state) => ({
         activeCourseId: state.activeCourseId,
         activeModuleId: state.activeModuleId,
         isAudioMode: state.isAudioMode,
-        completedLessons: state.completedLessons || []
+        completedLessons: state.completedLessons || [],
+        playbackRate: state.playbackRate,
+        lessonPositions: state.lessonPositions || {}
       }),
       merge: (persistedState: any, currentState) => ({
         ...currentState,
         ...persistedState,
         completedLessons: persistedState?.completedLessons || currentState.completedLessons || [],
+        lessonPositions: persistedState?.lessonPositions || currentState.lessonPositions || {},
+        playbackRate: persistedState?.playbackRate || currentState.playbackRate || 1,
         activeCourseId: COURSES.find(c => c.id === persistedState?.activeCourseId) ? persistedState.activeCourseId : COURSES[0].id
       })
     }

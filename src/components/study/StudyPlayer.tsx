@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { Headphones, Video, PictureInPicture2, AlertCircle, CheckCircle } from 'lucide-react'
+import { Headphones, Video, PictureInPicture2, AlertCircle, CheckCircle, Gauge } from 'lucide-react'
 import { useStudyStore } from '@/stores/studyStore'
 import { studyMedia } from '@/lib/studyMedia'
 import { cn } from '@/lib/cn'
 
+const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 1.75, 2]
+
 export function StudyPlayer() {
-  const { activeLesson, isAudioMode, setIsAudioMode, completedLessons, toggleLessonCompleted } = useStudyStore()
+  const { activeLesson, isAudioMode, setIsAudioMode, completedLessons, toggleLessonCompleted, playbackRate, setPlaybackRate } = useStudyStore()
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false)
   const audioContainerRef = useRef<HTMLDivElement>(null)
   const videoContainerRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState<string | null>(null)
@@ -59,6 +62,13 @@ export function StudyPlayer() {
       studyMedia.audio.currentTime = studyMedia.video.currentTime
     }
     setIsAudioMode(!isAudioMode)
+  }
+
+  const changeRate = (rate: number) => {
+    studyMedia.video.playbackRate = rate
+    studyMedia.audio.playbackRate = rate
+    setPlaybackRate(rate)
+    setShowSpeedMenu(false)
   }
 
   // Add error listener to global media to trigger fallback
@@ -173,6 +183,34 @@ export function StudyPlayer() {
               <PictureInPicture2 className="h-4 w-4" />
             </button>
           )}
+
+          <div className="relative">
+            <button
+              onClick={() => setShowSpeedMenu((v) => !v)}
+              title="Velocidade de reprodução"
+              className="flex items-center gap-1.5 rounded-full border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-accent"
+            >
+              <Gauge className="h-4 w-4" />
+              <span>{playbackRate}x</span>
+            </button>
+
+            {showSpeedMenu && (
+              <div className="absolute bottom-full right-0 mb-2 flex flex-col gap-0.5 rounded-lg border border-border-subtle bg-surface p-1 shadow-lg z-10">
+                {PLAYBACK_RATES.map((rate) => (
+                  <button
+                    key={rate}
+                    onClick={() => changeRate(rate)}
+                    className={cn(
+                      "rounded px-4 py-1 text-left text-xs font-medium transition-colors hover:bg-surface-hover",
+                      rate === playbackRate ? "text-accent" : "text-text-secondary"
+                    )}
+                  >
+                    {rate}x
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

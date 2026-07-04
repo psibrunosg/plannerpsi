@@ -7,7 +7,31 @@ import type { DriveTopic, LessonGroup } from '@/lib/drive'
 
 // ... TopicNode definition ...
 
-function TopicNode({ 
+function countLessons(topic: DriveTopic, completedLessons: string[]): { total: number; done: number } {
+  let total = topic.lessons.length
+  let done = topic.lessons.filter(l => completedLessons.includes(l.baseName)).length
+  for (const sub of topic.subtopics) {
+    const subCount = countLessons(sub, completedLessons)
+    total += subCount.total
+    done += subCount.done
+  }
+  return { total, done }
+}
+
+function ProgressBadge({ total, done }: { total: number; done: number }) {
+  if (total === 0) return null
+  const pct = Math.round((done / total) * 100)
+  return (
+    <div className="flex items-center gap-1.5 shrink-0">
+      <div className="h-1 w-8 overflow-hidden rounded-full bg-surface">
+        <div className="h-full bg-accent" style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-[10px] tabular-nums text-text-muted">{done}/{total}</span>
+    </div>
+  )
+}
+
+function TopicNode({
   topic, 
   depth = 0, 
   activeLesson, 
@@ -22,6 +46,7 @@ function TopicNode({
 }) {
   const [isOpen, setIsOpen] = useState(depth === 0) // root level topics are open by default
   const hasChildren = topic.subtopics.length > 0 || topic.lessons.length > 0
+  const { total, done } = countLessons(topic, completedLessons)
   
   // If it's the pseudo root topic created for module direct files, just render lessons directly without folder UI
   if (topic.id.endsWith('-root')) {
@@ -60,9 +85,12 @@ function TopicNode({
           {isOpen ? <FolderOpen className="h-3.5 w-3.5 text-accent shrink-0" /> : <Folder className="h-3.5 w-3.5 text-accent opacity-70 shrink-0" />}
           <span className="truncate">{topic.name}</span>
         </div>
-        {hasChildren && (
-          isOpen ? <ChevronDown className="h-3 w-3 shrink-0 opacity-50" /> : <ChevronRight className="h-3 w-3 shrink-0 opacity-50" />
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          <ProgressBadge total={total} done={done} />
+          {hasChildren && (
+            isOpen ? <ChevronDown className="h-3 w-3 shrink-0 opacity-50" /> : <ChevronRight className="h-3 w-3 shrink-0 opacity-50" />
+          )}
+        </div>
       </button>
 
       {isOpen && hasChildren && (
@@ -160,7 +188,11 @@ export function StudySidebar() {
         ) : (
           modules.map(mod => {
             const isActiveMod = activeModuleId === mod.id
-            
+            const modCount = mod.topics.reduce((acc, t) => {
+              const c = countLessons(t, completedLessons)
+              return { total: acc.total + c.total, done: acc.done + c.done }
+            }, { total: 0, done: 0 })
+
             return (
               <div key={mod.id} className="space-y-1">
                 <button
@@ -171,8 +203,11 @@ export function StudySidebar() {
                   )}
                 >
                   <span className="truncate">{mod.name}</span>
-                  {!isActiveMod && mod.topics?.length > 0 && <ChevronRight className="h-4 w-4 shrink-0 opacity-50" />}
-                  {isActiveMod && <ChevronDown className="h-4 w-4 shrink-0" />}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <ProgressBadge total={modCount.total} done={modCount.done} />
+                    {!isActiveMod && mod.topics?.length > 0 && <ChevronRight className="h-4 w-4 shrink-0 opacity-50" />}
+                    {isActiveMod && <ChevronDown className="h-4 w-4 shrink-0" />}
+                  </div>
                 </button>
                 
                 {isActiveMod && (

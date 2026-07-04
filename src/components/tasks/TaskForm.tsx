@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Calendar, Tag, Flag, Clock, AlignLeft, Percent } from 'lucide-react'
+import { X, Calendar, Tag, Flag, Clock, AlignLeft, Percent, Repeat } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { modalOverlay, modalContent } from '@/lib/motion'
 import { useUIStore } from '@/stores/uiStore'
 import { useTaskStore } from '@/stores/taskStore'
 import { useToastStore } from '@/stores/toastStore'
-import type { TaskPriority, TaskStatus } from '@/types'
-import { PRIORITY_CONFIG, SMART_DATE_TAGS } from '@/types'
+import type { TaskPriority, TaskStatus, RecurrenceFreq } from '@/types'
+import { PRIORITY_CONFIG, SMART_DATE_TAGS, RECURRENCE_FREQ_CONFIG } from '@/types'
 
 export function TaskForm() {
   const taskFormOpen = useUIStore((s) => s.taskFormOpen)
@@ -39,6 +39,9 @@ export function TaskForm() {
   const tagInputRef = useRef<HTMLInputElement>(null)
   const [completionPercentage, setCompletionPercentage] = useState(0)
   const [selectedDateTag, setSelectedDateTag] = useState<string | null>(null)
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [recurrenceFreq, setRecurrenceFreq] = useState<RecurrenceFreq>('weekly')
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1)
 
   const reset = () => {
     setTitle('')
@@ -54,6 +57,9 @@ export function TaskForm() {
     setShowSuggestions(false)
     setCompletionPercentage(0)
     setSelectedDateTag(null)
+    setIsRecurring(false)
+    setRecurrenceFreq('weekly')
+    setRecurrenceInterval(1)
   }
 
   const closeForm = () => {
@@ -77,6 +83,9 @@ export function TaskForm() {
         setTags(task.tags || [])
         setCompletionPercentage(task.completion_percentage || 0)
         setSelectedDateTag(null)
+        setIsRecurring(task.is_recurring)
+        setRecurrenceFreq(task.recurrence_rule?.freq ?? 'weekly')
+        setRecurrenceInterval(task.recurrence_rule?.interval ?? 1)
       }
     } else if (taskFormOpen) {
       reset()
@@ -111,6 +120,8 @@ export function TaskForm() {
       estimated_minutes: estimatedMinutes ? parseInt(estimatedMinutes) : null,
       tags,
       completion_percentage: completionPercentage,
+      is_recurring: isRecurring,
+      recurrence_rule: isRecurring ? { freq: recurrenceFreq, interval: recurrenceInterval } : null,
     }
 
     // Defer the heavy store update to allow the modal exit animation to be fluid
@@ -132,8 +143,6 @@ export function TaskForm() {
           status: _status,
           actual_minutes: null,
           parent_id: null,
-          is_recurring: false,
-          recurrence_rule: null,
           completed_at: null,
           position: 0,
           kanban_column: _status,
@@ -326,6 +335,41 @@ export function TaskForm() {
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Recurrence */}
+              <div>
+                <label className="mb-1.5 flex items-center gap-2 text-xs font-medium text-text-muted">
+                  <input
+                    type="checkbox"
+                    checked={isRecurring}
+                    onChange={(e) => setIsRecurring(e.target.checked)}
+                    className="h-3.5 w-3.5 rounded accent-accent"
+                  />
+                  <Repeat className="h-3.5 w-3.5" />
+                  Repetir tarefa
+                </label>
+                {isRecurring && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-xs text-text-muted">A cada</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={recurrenceInterval}
+                      onChange={(e) => setRecurrenceInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-16 rounded-[var(--radius-sm)] bg-surface-hover px-2 py-1.5 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent"
+                    />
+                    <select
+                      value={recurrenceFreq}
+                      onChange={(e) => setRecurrenceFreq(e.target.value as RecurrenceFreq)}
+                      className="flex-1 rounded-[var(--radius-sm)] bg-surface-hover px-3 py-1.5 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent"
+                    >
+                      {(Object.entries(RECURRENCE_FREQ_CONFIG) as [RecurrenceFreq, typeof RECURRENCE_FREQ_CONFIG.daily][]).map(([k, v]) => (
+                        <option key={k} value={k}>{v.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               {/* Completion % slider */}

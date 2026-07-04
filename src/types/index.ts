@@ -3,6 +3,12 @@ export type TaskPriority = 'p1' | 'p2' | 'p3' | 'p4'
 export type SessionType = 'pomodoro' | 'deep_work' | 'break'
 export type Mood = 'great' | 'good' | 'okay' | 'bad'
 export type DateTagId = 'overdue' | 'today' | 'tomorrow' | 'this_week' | 'next_week' | 'future' | 'all'
+export type RecurrenceFreq = 'daily' | 'weekly' | 'monthly'
+
+export interface RecurrenceRule {
+  freq: RecurrenceFreq
+  interval: number
+}
 
 export interface Task {
   id: string
@@ -18,7 +24,7 @@ export interface Task {
   parent_id: string | null
   tags: string[]
   is_recurring: boolean
-  recurrence_rule: Record<string, unknown> | null
+  recurrence_rule: RecurrenceRule | null
   completed_at: string | null
   position: number
   kanban_column: string
@@ -47,6 +53,7 @@ export interface DailyNote {
   notes: string | null
   mood: Mood | null
   created_at: string
+  updated_at?: string
 }
 
 export interface ProcedureStep {
@@ -121,6 +128,12 @@ export const PRIORITY_CONFIG: Record<TaskPriority, { label: string; color: strin
   p2: { label: 'Alta', color: 'text-orange-400', bg: 'bg-orange-500/20' },
   p3: { label: 'Média', color: 'text-blue-400', bg: 'bg-blue-500/20' },
   p4: { label: 'Baixa', color: 'text-gray-400', bg: 'bg-gray-500/20' },
+}
+
+export const RECURRENCE_FREQ_CONFIG: Record<RecurrenceFreq, { label: string }> = {
+  daily: { label: 'Dia(s)' },
+  weekly: { label: 'Semana(s)' },
+  monthly: { label: 'Mês(es)' },
 }
 
 export const STATUS_CONFIG: Record<TaskStatus, { label: string; color: string }> = {

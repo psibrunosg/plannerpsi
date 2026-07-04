@@ -4,6 +4,24 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import type { Task, TaskFilter, TaskStatus, TaskPriority } from '@/types'
 
+function getNextDueDate(dueDateISO: string, rule: Task['recurrence_rule']): string {
+  const next = new Date(dueDateISO)
+  if (!rule) return next.toISOString()
+
+  switch (rule.freq) {
+    case 'daily':
+      next.setDate(next.getDate() + rule.interval)
+      break
+    case 'weekly':
+      next.setDate(next.getDate() + rule.interval * 7)
+      break
+    case 'monthly':
+      next.setMonth(next.getMonth() + rule.interval)
+      break
+  }
+  return next.toISOString()
+}
+
 // Helper: ensure a task loaded from localStorage has all required fields
 function sanitizeTask(t: any): Task {
   return {
@@ -112,7 +130,7 @@ export const useTaskStore = create<TaskState>()(
       completeTask: async (id) => {
         const task = get().tasks.find((t) => t.id === id)
         if (!task) return
-        
+
         const isCompleting = task.status !== 'done'
         const updates: Partial<Task> = {
           status: isCompleting ? 'done' : 'todo',
@@ -120,8 +138,22 @@ export const useTaskStore = create<TaskState>()(
           completed_at: isCompleting ? new Date().toISOString() : null,
           completion_percentage: isCompleting ? 100 : 0,
         }
-        
+
         await get().updateTask(id, updates)
+
+        if (isCompleting && task.is_recurring && task.recurrence_rule) {
+          await get().addTask({
+            ...task,
+            id: crypto.randomUUID(),
+            due_date: getNextDueDate(task.due_date ?? new Date().toISOString(), task.recurrence_rule),
+            status: 'todo',
+            kanban_column: 'todo',
+            completed_at: null,
+            completion_percentage: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+        }
       },
 
       archiveCompletedTasks: async () => {
@@ -156,6 +188,20 @@ export const useTaskStore = create<TaskState>()(
         }
 
         await get().updateTask(id, updates)
+
+        if (isCompleting && task.is_recurring && task.recurrence_rule) {
+          await get().addTask({
+            ...task,
+            id: crypto.randomUUID(),
+            due_date: getNextDueDate(task.due_date ?? new Date().toISOString(), task.recurrence_rule),
+            status: 'todo',
+            kanban_column: 'todo',
+            completed_at: null,
+            completion_percentage: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+        }
       },
 
       setFilter: (filter) => set((s) => ({ filter: { ...s.filter, ...filter } })),

@@ -1,16 +1,34 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Target, CheckCircle, Clock, TrendingUp, Calendar, Flame } from 'lucide-react'
+import { Target, CheckCircle, Clock, TrendingUp, Calendar, Flame, BookOpen } from 'lucide-react'
 import { pageTransition, staggerContainer, staggerItem } from '@/lib/motion'
 import { useTaskStore } from '@/stores/taskStore'
 import { useFocusStore } from '@/stores/focusStore'
+import { useStudyStore } from '@/stores/studyStore'
 import { WeatherWidget } from '@/components/dashboard/WeatherWidget'
 import { AgendaWidget } from '@/components/dashboard/AgendaWidget'
+import { ExamCountdownWidget } from '@/components/dashboard/ExamCountdownWidget'
+
+function computeStudyStreak(sessions: { started_at: string }[]): number {
+  const activeDays = new Set(sessions.map((s) => s.started_at.split('T')[0]))
+  let streak = 0
+  const cursor = new Date()
+  // Allow streak to still count if today has no session yet, as long as yesterday does
+  if (!activeDays.has(cursor.toISOString().split('T')[0])) {
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  while (activeDays.has(cursor.toISOString().split('T')[0])) {
+    streak++
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  return streak
+}
 
 export default function Dashboard() {
   const navigate = useNavigate()
   const tasks = useTaskStore((s) => s.tasks)
   const sessions = useFocusStore((s) => s.sessions)
+  const completedLessons = useStudyStore((s) => s.completedLessons)
 
   const todayStr = new Date().toISOString().split('T')[0]
 
@@ -24,6 +42,15 @@ export default function Dashboard() {
     .filter((s) => s.started_at.startsWith(todayStr))
     .reduce((acc, s) => acc + (s.duration_minutes ?? 0), 0)
 
+  const weekAgo = new Date()
+  weekAgo.setDate(weekAgo.getDate() - 7)
+  const weekFocusMinutes = sessions
+    .filter((s) => new Date(s.started_at) >= weekAgo)
+    .reduce((acc, s) => acc + (s.duration_minutes ?? 0), 0)
+  const weekFocusHours = (weekFocusMinutes / 60).toFixed(1)
+
+  const studyStreak = computeStudyStreak(sessions)
+
   const widgets = [
     { title: 'Tarefas Hoje', value: todayTasks.length, subtitle: `${completedToday.length} concluídas`, icon: Target, color: 'text-accent', bg: 'bg-accent/10', path: '/tasks' },
     { title: 'Concluídas', value: doneTasks, subtitle: `de ${totalTasks} total`, icon: CheckCircle, color: 'text-success', bg: 'bg-success/10', path: '/tasks' },
@@ -31,6 +58,9 @@ export default function Dashboard() {
     { title: 'Tempo Focado', value: `${todayFocusMinutes}m`, subtitle: 'hoje', icon: Flame, color: 'text-danger', bg: 'bg-danger/10', path: '/focus' },
     { title: 'Produtividade', value: totalTasks > 0 ? `${Math.round((doneTasks / totalTasks) * 100)}%` : '0%', subtitle: 'taxa de conclusão', icon: TrendingUp, color: 'text-info', bg: 'bg-info/10', path: '/tasks' },
     { title: 'Próximas', value: tasks.filter((t) => t.due_date && t.status !== 'done' && t.status !== 'archived').length, subtitle: 'com prazo', icon: Calendar, color: 'text-accent-hover', bg: 'bg-accent/10', path: '/tasks' },
+    { title: 'Sequência de Estudo', value: `${studyStreak}d`, subtitle: 'dias seguidos focando', icon: Flame, color: 'text-orange-400', bg: 'bg-orange-500/10', path: '/focus' },
+    { title: 'Horas na Semana', value: `${weekFocusHours}h`, subtitle: 'últimos 7 dias', icon: Clock, color: 'text-purple-400', bg: 'bg-purple-500/10', path: '/focus' },
+    { title: 'Aulas Concluídas', value: completedLessons.length, subtitle: 'total no curso', icon: BookOpen, color: 'text-cyan-400', bg: 'bg-cyan-500/10', path: '/study' },
   ]
 
   return (
@@ -44,6 +74,8 @@ export default function Dashboard() {
           <WeatherWidget />
         </div>
       </div>
+
+      <ExamCountdownWidget className="mb-6" />
 
       <motion.div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" variants={staggerContainer} initial="hidden" animate="visible">
         {widgets.map((w) => (
