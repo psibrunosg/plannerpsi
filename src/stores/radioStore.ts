@@ -329,6 +329,38 @@ const CURATED_STATIONS: RadioStation[] = [
   }
 ]
 
+// Radio Browser API mirrors — tried in order, remembering the last one that worked
+const API_MIRRORS = [
+  'https://de1.api.radio-browser.info',
+  'https://nl1.api.radio-browser.info',
+  'https://at1.api.radio-browser.info',
+]
+let preferredMirror = 0
+
+const SEARCH_CACHE_TTL = 10 * 60 * 1000
+const searchCache = new Map<string, { results: RadioStation[]; ts: number }>()
+
+async function fetchFromRadioBrowser(path: string): Promise<any> {
+  let lastError: unknown = null
+  for (let i = 0; i < API_MIRRORS.length; i++) {
+    const idx = (preferredMirror + i) % API_MIRRORS.length
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 5000)
+    try {
+      const res = await fetch(`${API_MIRRORS[idx]}${path}`, { signal: controller.signal })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json()
+      preferredMirror = idx
+      return data
+    } catch (err) {
+      lastError = err
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+  throw lastError
+}
+
 interface RadioState {
   isPlaying: boolean
   volume: number
@@ -417,17 +449,23 @@ export const useRadioStore = create<RadioState>()(
       },
 
       searchStations: async (query) => {
-        if (!query.trim()) {
+        const normalized = query.trim().toLowerCase()
+        if (!normalized) {
           set({ stations: CURATED_STATIONS })
+          return
+        }
+
+        const cached = searchCache.get(normalized)
+        if (cached && Date.now() - cached.ts < SEARCH_CACHE_TTL) {
+          set({ stations: cached.results })
           return
         }
 
         set({ isLoading: true })
         try {
           // Removes countrycode limits so it searches anywhere in the world
-          const res = await fetch(`https://de1.api.radio-browser.info/json/stations/search?name=${encodeURIComponent(query)}&limit=15&hidebroken=true&order=clickcount&reverse=true`)
-          const data = await res.json()
-          
+          const data = await fetchFromRadioBrowser(`/json/stations/search?name=${encodeURIComponent(normalized)}&limit=15&hidebroken=true&order=clickcount&reverse=true`)
+
           const results: RadioStation[] = data.map((s: any) => ({
             id: s.stationuuid,
             name: s.name,
@@ -436,10 +474,13 @@ export const useRadioStore = create<RadioState>()(
             countrycode: s.countrycode,
             tags: s.tags
           }))
-          
+
+          searchCache.set(normalized, { results, ts: Date.now() })
           set({ stations: results.length > 0 ? results : [] })
         } catch (error) {
           console.error('Failed to search stations:', error)
+          const { useToastStore } = await import('@/stores/toastStore')
+          useToastStore.getState().addToast('Busca de rádios indisponível no momento', 'error')
           set({ stations: CURATED_STATIONS })
         } finally {
           set({ isLoading: false })
