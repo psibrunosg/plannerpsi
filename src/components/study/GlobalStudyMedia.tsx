@@ -9,8 +9,8 @@ const RESUME_END_GUARD_SEC = 10
 
 export function GlobalStudyMedia() {
   const {
-    activeLesson, isAudioMode, toggleLessonCompleted, playNextLesson, setIsPlaying,
-    playbackRate, saveLessonPosition, getLessonPosition,
+    activeLesson, isAudioMode, toggleLessonCompleted, playNextLesson, playPreviousLesson, setIsPlaying,
+    playbackRate, volume, saveLessonPosition, getLessonPosition,
   } = useStudyStore()
 
   useEffect(() => {
@@ -57,11 +57,31 @@ export function GlobalStudyMedia() {
     }
 
     media.playbackRate = playbackRate
+    media.volume = volume
 
     // Only set src if it's different to avoid reloading
     if (media.src !== expectedSrc) {
       media.src = expectedSrc
       media.play().catch(console.error)
+    }
+
+    // Media Session: gives OS-level controls (Windows overlay, keyboard media keys)
+    // so playback can be controlled and keeps going while the app is minimized/unfocused.
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: activeLesson.baseName,
+        artist: 'PlannerPSI',
+      })
+      navigator.mediaSession.setActionHandler('play', () => media.play().catch(console.error))
+      navigator.mediaSession.setActionHandler('pause', () => media.pause())
+      navigator.mediaSession.setActionHandler('previoustrack', () => { playPreviousLesson() })
+      navigator.mediaSession.setActionHandler('nexttrack', () => { playNextLesson() })
+      navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+        media.currentTime = Math.max(0, media.currentTime - (details.seekOffset || 10))
+      })
+      navigator.mediaSession.setActionHandler('seekforward', (details) => {
+        media.currentTime = Math.min(media.duration || Infinity, media.currentTime + (details.seekOffset || 10))
+      })
     }
 
     // Attach events to BOTH media just in case they switch
@@ -95,7 +115,7 @@ export function GlobalStudyMedia() {
       studyMedia.video.removeEventListener('timeupdate', handleTimeUpdate)
       studyMedia.video.removeEventListener('loadedmetadata', handleLoadedMetadata)
     }
-  }, [activeLesson, isAudioMode, toggleLessonCompleted, playNextLesson, setIsPlaying, playbackRate, saveLessonPosition, getLessonPosition])
+  }, [activeLesson, isAudioMode, toggleLessonCompleted, playNextLesson, playPreviousLesson, setIsPlaying, playbackRate, volume, saveLessonPosition, getLessonPosition])
 
   return null // This component only manages global side-effects and events
 }
