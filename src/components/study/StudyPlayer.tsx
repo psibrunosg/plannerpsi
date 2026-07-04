@@ -61,6 +61,19 @@ export function StudyPlayer() {
     setIsAudioMode(!isAudioMode)
   }
 
+  // Add error listener to global media to trigger fallback
+  useEffect(() => {
+    const handleVideoError = () => {
+      // If native video fails, fallback to Google Drive iframe player
+      setUseIframeFallback(true)
+    }
+
+    if (!isAudioMode) {
+      studyMedia.video.addEventListener('error', handleVideoError)
+      return () => studyMedia.video.removeEventListener('error', handleVideoError)
+    }
+  }, [isAudioMode])
+
   if (!activeLesson) {
     return (
       <div className="flex aspect-video w-full flex-col items-center justify-center rounded-xl bg-surface-hover border border-border-subtle shadow-sm">
@@ -73,19 +86,6 @@ export function StudyPlayer() {
   const hasVideo = !!activeLesson.videoFile
   const hasAudio = !!activeLesson.audioFile
   const isCompleted = completedLessons.includes(activeLesson.baseName)
-
-  const handleVideoError = () => {
-    // If native video fails, fallback to Google Drive iframe player
-    setUseIframeFallback(true)
-  }
-
-  // Add error listener to global media to trigger fallback
-  useEffect(() => {
-    if (!isAudioMode) {
-      studyMedia.video.addEventListener('error', handleVideoError)
-      return () => studyMedia.video.removeEventListener('error', handleVideoError)
-    }
-  }, [isAudioMode])
 
   const renderMedia = () => {
     if (isAudioMode) {
