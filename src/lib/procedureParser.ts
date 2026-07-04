@@ -39,7 +39,9 @@ export function parseStepDesc(description: string | null, fallbackColumnId: stri
       return {
         text: parsed.text || '',
         column_id: parsed.column_id || fallbackColumnId,
-        position: parsed.position || fallbackPosition
+        position: parsed.position || fallbackPosition,
+        color: parsed.color || undefined,
+        completed: !!parsed.completed
       }
     }
   } catch (e) {

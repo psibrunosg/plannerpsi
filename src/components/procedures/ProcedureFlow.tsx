@@ -22,40 +22,78 @@ import {
   type EdgeProps
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { ArrowLeft, Plus, Save, Trash2, GripVertical, Pencil, X } from 'lucide-react'
+import { ArrowLeft, Plus, Save, Trash2, GripVertical, Pencil, X, CheckCircle, Copy, LayoutGrid } from 'lucide-react'
 import { modalOverlay, modalContent } from '@/lib/motion'
 import { useScrollLock } from '@/lib/useScrollLock'
 
 import { useProcedureStore } from '@/stores/procedureStore'
 import { useUIStore } from '@/stores/uiStore'
 import { parseProcedureDesc, parseStepDesc, stringifyProcedureDesc, stringifyStepDesc } from '@/lib/procedureParser'
+import { layoutNodes } from '@/lib/flowLayout'
 import type { Procedure, ProcedureStep } from '@/types'
 import { cn } from '@/lib/cn'
 
+export const NODE_COLOR_PALETTE = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7']
+
 // Custom Node Component
-function StepNode({ data }: { data: { label: string; step: ProcedureStep; onDelete: (id: string) => void; onEdit: (step: ProcedureStep) => void } }) {
+function StepNode({ data }: {
+  data: {
+    label: string
+    step: ProcedureStep
+    onDelete: (id: string) => void
+    onEdit: (step: ProcedureStep) => void
+    onToggleComplete: (step: ProcedureStep) => void
+    onDuplicate: (step: ProcedureStep) => void
+  }
+}) {
+  const parsed = parseStepDesc(data.step.description)
+  const isCompleted = !!parsed.completed
+
   return (
-    <div className="group relative rounded-xl border border-border-subtle bg-surface px-4 py-3 shadow-lg hover:border-accent transition-colors min-w-[150px]">
+    <div
+      className={cn(
+        "group relative rounded-xl border bg-surface px-4 py-3 shadow-lg transition-colors min-w-[150px]",
+        isCompleted ? "opacity-60 border-success/40" : "border-border-subtle hover:border-accent"
+      )}
+      style={parsed.color ? { borderLeftWidth: 4, borderLeftColor: parsed.color } : undefined}
+    >
       <Handle type="target" position={Position.Top} className="!bg-accent !w-3 !h-3" />
       <div className="flex items-center gap-2">
         <GripVertical className="h-4 w-4 shrink-0 text-text-muted opacity-50 cursor-grab active:cursor-grabbing" />
-        <div className="font-medium text-sm text-text-primary">{data.label}</div>
+        <div className={cn("font-medium text-sm text-text-primary", isCompleted && "line-through")}>{data.label}</div>
       </div>
-      {data.step.description && parseStepDesc(data.step.description).text && (
-        <div className="mt-1 text-xs text-text-secondary line-clamp-2 pl-6">
-          {parseStepDesc(data.step.description).text}
+      {parsed.text && (
+        <div className={cn("mt-1 text-xs text-text-secondary line-clamp-2 pl-6", isCompleted && "line-through")}>
+          {parsed.text}
         </div>
       )}
-      
+
       <div className="absolute -top-3 -right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button 
-          onClick={(e) => { e.stopPropagation(); data.onEdit(data.step) }} 
+        <button
+          onClick={(e) => { e.stopPropagation(); data.onToggleComplete(data.step) }}
+          title={isCompleted ? 'Marcar como pendente' : 'Marcar como concluído'}
+          className={cn(
+            "rounded-full p-1.5 hover:scale-110 shadow-md transition-transform",
+            isCompleted ? "bg-success text-white" : "bg-surface border border-border-subtle text-text-muted"
+          )}
+        >
+          <CheckCircle className="h-3 w-3" />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); data.onDuplicate(data.step) }}
+          title="Duplicar bloco"
+          className="rounded-full bg-surface border border-border-subtle text-text-muted p-1.5 hover:scale-110 shadow-md transition-transform"
+        >
+          <Copy className="h-3 w-3" />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); data.onEdit(data.step) }}
           className="rounded-full bg-accent text-white p-1.5 hover:scale-110 shadow-md transition-transform"
         >
           <Pencil className="h-3 w-3" />
         </button>
-        <button 
-          onClick={(e) => { e.stopPropagation(); data.onDelete(data.step.id) }} 
+        <button
+          onClick={(e) => { e.stopPropagation(); data.onDelete(data.step.id) }}
           className="rounded-full bg-danger text-white p-1.5 hover:scale-110 shadow-md transition-transform"
         >
           <Trash2 className="h-3 w-3" />
@@ -155,6 +193,35 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
     setEditingStep(step)
   }, [])
 
+  const handleToggleComplete = useCallback(async (step: ProcedureStep) => {
+    const parsed = parseStepDesc(step.description)
+    parsed.completed = !parsed.completed
+    const description = stringifyStepDesc(parsed)
+    await updateStep(procedure.id, step.id, { description })
+    setNodes(nds => nds.map(n => n.id === step.id
+      ? { ...n, data: { ...n.data, step: { ...step, description } } }
+      : n
+    ))
+  }, [procedure.id, updateStep, setNodes])
+
+  const handleDuplicateNode = useCallback(async (step: ProcedureStep) => {
+    const parsed = parseStepDesc(step.description)
+    const newStep: ProcedureStep = {
+      id: crypto.randomUUID(),
+      title: step.title,
+      description: stringifyStepDesc({ ...parsed, position: { x: parsed.position.x + 30, y: parsed.position.y + 30 } }),
+      order: procedure.steps.length
+    }
+    await addStep(procedure.id, newStep)
+    setNodes(nds => [...nds, {
+      id: newStep.id,
+      type: 'stepNode',
+      position: { x: parsed.position.x + 30, y: parsed.position.y + 30 },
+      data: { label: newStep.title, step: newStep, onDelete: handleDeleteStepNode, onEdit: handleEditStepNode, onToggleComplete: handleToggleComplete, onDuplicate: handleDuplicateNode },
+      className: "!bg-transparent !border-none !shadow-none !p-0"
+    }])
+  }, [procedure.id, procedure.steps.length, addStep, setNodes, handleDeleteStepNode, handleEditStepNode, handleToggleComplete])
+
   const handleDeleteEdge = useCallback((edgeId: string) => {
     setEdges(eds => eds.filter(e => e.id !== edgeId))
     setIsDirty(true)
@@ -173,7 +240,7 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
         position: (parsed.position && (parsed.position.x !== 0 || parsed.position.y !== 0)) 
           ? parsed.position 
           : { x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 },
-        data: { label: step.title, step, onDelete: handleDeleteStepNode, onEdit: handleEditStepNode },
+        data: { label: step.title, step, onDelete: handleDeleteStepNode, onEdit: handleEditStepNode, onToggleComplete: handleToggleComplete, onDuplicate: handleDuplicateNode },
         className: "!bg-transparent !border-none !shadow-none !p-0"
       }
     })
@@ -191,7 +258,7 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
     setNodes(initialNodes)
     setEdges(initialEdges)
     // We do NOT set isDirty(false) here because if we are just re-syncing from DB, we are already clean.
-  }, [procedure.id, procedure.steps, parsedProc.edges, setNodes, setEdges, handleDeleteStepNode, handleEditStepNode, handleDeleteEdge, isDirty])
+  }, [procedure.id, procedure.steps, parsedProc.edges, setNodes, setEdges, handleDeleteStepNode, handleEditStepNode, handleToggleComplete, handleDuplicateNode, handleDeleteEdge, isDirty])
 
   const onNodesChange = useCallback((changes: NodeChange<Node>[]) => {
     onNodesChangeCore(changes)
@@ -236,11 +303,12 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
     setIsDirty(false)
   }
 
-  const handleSaveNewNode = async (title: string, desc: string) => {
-    const parsedDesc = { 
-      text: desc, 
-      column_id: 'col-todo', 
-      position: { x: 100 + Math.random() * 50, y: 100 + Math.random() * 50 } 
+  const handleSaveNewNode = async (title: string, desc: string, color?: string) => {
+    const parsedDesc = {
+      text: desc,
+      column_id: 'col-todo',
+      position: { x: 100 + Math.random() * 50, y: 100 + Math.random() * 50 },
+      color
     }
     const newStep: ProcedureStep = {
       id: crypto.randomUUID(),
@@ -248,32 +316,38 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
       description: stringifyStepDesc(parsedDesc),
       order: procedure.steps.length
     }
-    
+
     await addStep(procedure.id, newStep)
     setNodes(nds => [...nds, {
       id: newStep.id,
       type: 'stepNode',
       position: parsedDesc.position,
-      data: { label: newStep.title, step: newStep, onDelete: handleDeleteStepNode, onEdit: handleEditStepNode },
+      data: { label: newStep.title, step: newStep, onDelete: handleDeleteStepNode, onEdit: handleEditStepNode, onToggleComplete: handleToggleComplete, onDuplicate: handleDuplicateNode },
       className: "!bg-transparent !border-none !shadow-none !p-0"
     }])
     setIsCreating(false)
   }
 
-  const handleSaveEditNode = async (title: string, desc: string) => {
+  const handleSaveEditNode = async (title: string, desc: string, color?: string) => {
     if (!editingStep) return
     const parsed = parseStepDesc(editingStep.description)
     parsed.text = desc
+    parsed.color = color
     const updatedStep = { ...editingStep, title, description: stringifyStepDesc(parsed) }
-    
+
     await updateStep(procedure.id, editingStep.id, { title, description: stringifyStepDesc(parsed) })
-    
+
     setNodes(nds => nds.map(n => n.id === editingStep.id ? {
       ...n,
       data: { ...n.data, label: title, step: updatedStep }
     } : n))
-    
+
     setEditingStep(null)
+  }
+
+  const handleAutoLayout = () => {
+    setNodes(nds => layoutNodes(nds, edges))
+    setIsDirty(true)
   }
 
   return (
@@ -320,8 +394,18 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
 
         <Panel position="top-right" className="m-4">
           <div className="flex items-center gap-2">
-            <motion.button 
-              whileHover={{ scale: 1.05 }} 
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleAutoLayout}
+              title="Organizar blocos automaticamente"
+              className="flex items-center gap-2 rounded-lg bg-surface-hover px-4 py-2.5 text-sm font-medium text-text-primary hover:bg-surface-active shadow-md border border-border-subtle"
+            >
+              <LayoutGrid className="h-4 w-4" />
+              Organizar
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsCreating(true)}
               className="flex items-center gap-2 rounded-lg bg-surface-hover px-4 py-2.5 text-sm font-medium text-text-primary hover:bg-surface-active shadow-md border border-border-subtle"
@@ -329,7 +413,7 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
               <Plus className="h-4 w-4" />
               Novo Bloco
             </motion.button>
-            <motion.button 
+            <motion.button
               whileHover={{ scale: 1.05 }} 
               whileTap={{ scale: 0.95 }}
               onClick={handleSaveFlow}
@@ -353,13 +437,14 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
           <BlockModal
             initialTitle={editingStep ? editingStep.title : ''}
             initialDesc={editingStep ? parseStepDesc(editingStep.description).text : ''}
+            initialColor={editingStep ? parseStepDesc(editingStep.description).color : undefined}
             onClose={() => {
               setIsCreating(false)
               setEditingStep(null)
             }}
-            onSave={(title, desc) => {
-              if (isCreating) handleSaveNewNode(title, desc)
-              else if (editingStep) handleSaveEditNode(title, desc)
+            onSave={(title, desc, color) => {
+              if (isCreating) handleSaveNewNode(title, desc, color)
+              else if (editingStep) handleSaveEditNode(title, desc, color)
             }}
           />
         )}
@@ -368,19 +453,22 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
   )
 }
 
-function BlockModal({ 
-  initialTitle = '', 
-  initialDesc = '', 
-  onClose, 
-  onSave 
-}: { 
-  initialTitle?: string, 
-  initialDesc?: string, 
-  onClose: () => void, 
-  onSave: (title: string, desc: string) => void 
+function BlockModal({
+  initialTitle = '',
+  initialDesc = '',
+  initialColor,
+  onClose,
+  onSave
+}: {
+  initialTitle?: string,
+  initialDesc?: string,
+  initialColor?: string,
+  onClose: () => void,
+  onSave: (title: string, desc: string, color?: string) => void
 }) {
   const [title, setTitle] = useState(initialTitle)
   const [desc, setDesc] = useState(initialDesc)
+  const [color, setColor] = useState<string | undefined>(initialColor)
 
   return (
     <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4" variants={modalOverlay} initial="hidden" animate="visible" exit="exit">
@@ -391,26 +479,43 @@ function BlockModal({
           <button onClick={onClose} className="text-text-muted hover:text-text-secondary"><X className="h-5 w-5" /></button>
         </div>
         <div className="p-6 space-y-4">
-          <input 
-            autoFocus 
-            type="text" 
-            placeholder="Nome do bloco..." 
-            value={title} 
-            onChange={(e) => setTitle(e.target.value)} 
-            className="w-full bg-transparent text-lg font-medium text-text-primary placeholder:text-text-muted outline-none border-b border-border-subtle pb-2 focus:border-accent transition-colors" 
+          <input
+            autoFocus
+            type="text"
+            placeholder="Nome do bloco..."
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full bg-transparent text-lg font-medium text-text-primary placeholder:text-text-muted outline-none border-b border-border-subtle pb-2 focus:border-accent transition-colors"
           />
-          <textarea 
-            placeholder="Descrição detalhada (opcional)..." 
-            value={desc} 
-            onChange={(e) => setDesc(e.target.value)} 
-            rows={3} 
-            className="w-full resize-none rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent" 
+          <textarea
+            placeholder="Descrição detalhada (opcional)..."
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            rows={3}
+            className="w-full resize-none rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent"
           />
+          <div>
+            <p className="mb-2 text-xs font-medium text-text-muted">Cor do bloco</p>
+            <div className="flex items-center gap-2">
+              {NODE_COLOR_PALETTE.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(color === c ? undefined : c)}
+                  className={cn(
+                    "h-6 w-6 rounded-full border-2 transition-transform",
+                    color === c ? "border-text-primary scale-110" : "border-transparent hover:scale-105"
+                  )}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+            </div>
+          </div>
           <div className="flex justify-end gap-2 pt-2">
             <button onClick={onClose} className="rounded-[var(--radius-sm)] px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover">Cancelar</button>
-            <button 
-              onClick={() => onSave(title.trim(), desc.trim())} 
-              disabled={!title.trim()} 
+            <button
+              onClick={() => onSave(title.trim(), desc.trim(), color)}
+              disabled={!title.trim()}
               className={cn('rounded-[var(--radius-sm)] px-4 py-2 text-sm font-medium text-white transition-colors', title.trim() ? 'bg-accent hover:bg-accent-hover' : 'bg-accent/40 cursor-not-allowed')}
             >
               Salvar

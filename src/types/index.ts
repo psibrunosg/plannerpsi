@@ -82,6 +82,7 @@ export interface FlowEdge {
   id: string
   source: string
   target: string
+  label?: string
 }
 
 export interface FlowPosition {
@@ -101,6 +102,8 @@ export interface ParsedStepDesc {
   text: string
   column_id: string
   position: FlowPosition
+  color?: string
+  completed?: boolean
 }
 
 export interface TaskFilter {
