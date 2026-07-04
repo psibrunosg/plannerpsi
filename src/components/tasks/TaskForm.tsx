@@ -6,6 +6,7 @@ import { modalOverlay, modalContent } from '@/lib/motion'
 import { useUIStore } from '@/stores/uiStore'
 import { useTaskStore } from '@/stores/taskStore'
 import { useToastStore } from '@/stores/toastStore'
+import { useScrollLock } from '@/lib/useScrollLock'
 import type { TaskPriority, TaskStatus, RecurrenceFreq } from '@/types'
 import { PRIORITY_CONFIG, SMART_DATE_TAGS, RECURRENCE_FREQ_CONFIG } from '@/types'
 
@@ -14,7 +15,7 @@ export function TaskForm() {
   const setTaskFormOpen = useUIStore((s) => s.setTaskFormOpen)
   const taskDetailId = useUIStore((s) => s.taskDetailId)
   const setTaskDetailId = useUIStore((s) => s.setTaskDetailId)
-  
+
   // Get actions without subscribing to state changes
   const addTask = useTaskStore((s) => s.addTask)
   const updateTask = useTaskStore((s) => s.updateTask)
@@ -23,6 +24,7 @@ export function TaskForm() {
 
   const isOpen = taskFormOpen || !!taskDetailId
   const isEditing = !!taskDetailId
+  useScrollLock(isOpen)
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')

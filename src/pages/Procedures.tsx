@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { ProcedureBoard } from '@/components/procedures/ProcedureBoard'
 import { ProcedureFlow } from '@/components/procedures/ProcedureFlow'
 import { parseStepDesc } from '@/lib/procedureParser'
+import { useScrollLock } from '@/lib/useScrollLock'
 import type { Procedure } from '@/types'
 
 function ProcedureForm({ onClose }: { onClose: () => void }) {
@@ -18,6 +19,7 @@ function ProcedureForm({ onClose }: { onClose: () => void }) {
   const addToast = useToastStore((s) => s.addToast)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  useScrollLock(true)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

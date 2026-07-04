@@ -14,6 +14,7 @@ import { cn } from '@/lib/cn'
 import { modalOverlay, modalContent } from '@/lib/motion'
 import { useUIStore } from '@/stores/uiStore'
 import { useTaskStore } from '@/stores/taskStore'
+import { useScrollLock } from '@/lib/useScrollLock'
 
 interface CommandItem {
   id: string
@@ -32,6 +33,7 @@ export function CommandPalette() {
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  useScrollLock(commandPaletteOpen)
 
   const commands: CommandItem[] = [
     { id: 'new-task', label: 'Nova Tarefa', icon: Plus, action: () => { setTaskFormOpen(true); setCommandPaletteOpen(false) }, category: 'Ações' },

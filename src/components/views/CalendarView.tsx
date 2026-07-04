@@ -19,6 +19,7 @@ import { useUIStore } from '@/stores/uiStore'
 import { PRIORITY_CONFIG } from '@/types'
 import type { Task } from '@/types'
 import { fadeIn, scaleIn } from '@/lib/motion'
+import { useScrollLock } from '@/lib/useScrollLock'
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
@@ -55,6 +56,7 @@ interface DayPopoverProps {
 
 function DayPopover({ date, tasks, onClose }: DayPopoverProps) {
   const setTaskDetailId = useUIStore((s) => s.setTaskDetailId)
+  useScrollLock(true)
 
   return (
     <motion.div

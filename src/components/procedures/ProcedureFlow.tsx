@@ -24,6 +24,7 @@ import {
 import '@xyflow/react/dist/style.css'
 import { ArrowLeft, Plus, Save, Trash2, GripVertical, Pencil, X } from 'lucide-react'
 import { modalOverlay, modalContent } from '@/lib/motion'
+import { useScrollLock } from '@/lib/useScrollLock'
 
 import { useProcedureStore } from '@/stores/procedureStore'
 import { useUIStore } from '@/stores/uiStore'
@@ -141,6 +142,7 @@ export function ProcedureFlow({ procedure, onBack }: ProcedureFlowProps) {
   const [isDirty, setIsDirty] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [editingStep, setEditingStep] = useState<ProcedureStep | null>(null)
+  useScrollLock(!!editingStep)
 
   const handleDeleteStepNode = useCallback((stepId: string) => {
     deleteStep(procedure.id, stepId)
