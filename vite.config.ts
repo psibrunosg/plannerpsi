@@ -9,8 +9,14 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+      },
       manifest: {
         name: 'BS Planner PSI',
         short_name: 'PlannerPSI',
@@ -25,10 +31,6 @@ export default defineConfig({
           { src: 'pwa-512.png', sizes: '512x512', type: 'image/png' },
           { src: 'pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
-        navigateFallbackDenylist: [/^\/plannerpsi\/api\//],
       },
     }),
   ],

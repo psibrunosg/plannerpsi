@@ -8,8 +8,9 @@ import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
 import { useRadioStore } from '@/stores/radioStore'
 import { supabaseUrl } from '@/lib/supabase'
-import { Calendar, Link as LinkIcon, Copy, Radio, Star, Play, Pause, Download } from 'lucide-react'
-import { useEffect } from 'react'
+import { Calendar, Link as LinkIcon, Copy, Radio, Star, Play, Pause, Download, BellRing } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { getPushStatus, subscribeToPush, unsubscribeFromPush } from '@/lib/pushManager'
 
 export default function Settings() {
   const theme = useUIStore((s) => s.theme)
@@ -28,9 +29,34 @@ export default function Settings() {
   const notificationsEnabled = useUIStore((s) => s.notificationsEnabled)
   const setNotificationsEnabled = useUIStore((s) => s.setNotificationsEnabled)
 
+  const [pushStatus, setPushStatus] = useState<'unsupported' | 'subscribed' | 'unsubscribed' | 'loading'>('loading')
+
   useEffect(() => {
     initStations()
   }, [initStations])
+
+  useEffect(() => {
+    getPushStatus().then(setPushStatus)
+  }, [])
+
+  const handleTogglePush = async () => {
+    if (!user) return
+    try {
+      if (pushStatus === 'subscribed') {
+        await unsubscribeFromPush()
+        setPushStatus('unsubscribed')
+        addToast('Alertas de app fechado desativados', 'info')
+      } else {
+        setPushStatus('loading')
+        await subscribeToPush(user.id)
+        setPushStatus('subscribed')
+        addToast('Alertas de app fechado ativados!', 'success')
+      }
+    } catch (err: any) {
+      addToast(err.message || 'Não foi possível ativar os alertas', 'error')
+      setPushStatus(await getPushStatus())
+    }
+  }
 
   const baseCalendarUrl = user ? `${supabaseUrl}/functions/v1/calendar-feed/${user.id}.ics` : ''
   const webcalUrl = baseCalendarUrl.replace('https://', 'webcal://')
@@ -87,6 +113,31 @@ export default function Settings() {
                 animate={{ left: notificationsEnabled ? 28 : 4 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }} />
             </motion.button>
+          </div>
+
+          <div className="mt-4 flex items-center justify-between border-t border-border-subtle pt-4">
+            <div className="flex items-center gap-2">
+              <BellRing className="h-4 w-4 text-text-muted shrink-0" />
+              <div>
+                <p className="text-sm text-text-primary">Alertas com o app fechado (Push)</p>
+                <p className="text-xs text-text-muted">Recebe aviso de tarefas atrasadas todo hora, mesmo com o app fechado. Por dispositivo.</p>
+              </div>
+            </div>
+            {pushStatus === 'unsupported' ? (
+              <span className="text-xs text-text-muted shrink-0">Não suportado</span>
+            ) : (
+              <motion.button
+                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                onClick={handleTogglePush}
+                disabled={pushStatus === 'loading'}
+                className={cn(
+                  'shrink-0 rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50',
+                  pushStatus === 'subscribed' ? 'bg-success/10 text-success' : 'bg-accent/15 text-accent hover:bg-accent/25'
+                )}
+              >
+                {pushStatus === 'loading' ? '...' : pushStatus === 'subscribed' ? 'Ativado' : 'Ativar'}
+              </motion.button>
+            )}
           </div>
         </motion.div>
 
