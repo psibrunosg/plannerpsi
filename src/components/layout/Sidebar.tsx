@@ -58,7 +58,7 @@ export function Sidebar() {
             exit={{ opacity: 0, x: -8 }}
             className="gradient-text text-base font-heading font-semibold tracking-tight leading-tight"
           >
-            Clínica<br/>Bruno Souza
+            Clínica BS
           </motion.span>
         )}
       </div>
