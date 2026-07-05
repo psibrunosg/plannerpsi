@@ -14,6 +14,19 @@ interface AppShellProps {
 
 export function AppShell({ children, isSyncing = false }: AppShellProps) {
   const sidebarExpanded = useUIStore((s) => s.sidebarExpanded)
+  const zenMode = useUIStore((s) => s.zenMode)
+
+  if (zenMode) {
+    return (
+      <div className="flex min-h-screen">
+        <main className="flex-1">
+          {children}
+        </main>
+        <RadioPlayer />
+        <GlobalStudyMedia />
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen">

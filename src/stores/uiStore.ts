@@ -11,6 +11,7 @@ interface UIState {
   weatherCity: string | null
   calendarIcsUrl: string | null
   notificationsEnabled: boolean
+  zenMode: boolean
   toggleSidebar: () => void
   setSidebarExpanded: (expanded: boolean) => void
   toggleCommandPalette: () => void
@@ -23,6 +24,7 @@ interface UIState {
   setWeatherCity: (city: string | null) => void
   setCalendarIcsUrl: (url: string | null) => void
   setNotificationsEnabled: (enabled: boolean) => void
+  setZenMode: (zen: boolean) => void
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -35,6 +37,7 @@ export const useUIStore = create<UIState>((set) => ({
   weatherCity: localStorage.getItem('planner-weather-city') || 'Porto Alegre',
   calendarIcsUrl: localStorage.getItem('planner-calendar-ics') || null,
   notificationsEnabled: localStorage.getItem('planner-notifications') !== 'false',
+  zenMode: false,
 
   toggleSidebar: () => set((s) => ({ sidebarExpanded: !s.sidebarExpanded })),
   setSidebarExpanded: (expanded) => set({ sidebarExpanded: expanded }),
@@ -71,4 +74,5 @@ export const useUIStore = create<UIState>((set) => ({
     localStorage.setItem('planner-notifications', enabled ? 'true' : 'false')
     set({ notificationsEnabled: enabled })
   },
+  setZenMode: (zen) => set({ zenMode: zen }),
 }))
