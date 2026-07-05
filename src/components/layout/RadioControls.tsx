@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Radio, Play, Pause, Volume2, VolumeX, Trash2, Settings } from 'lucide-react'
 import { useRadioStore } from '@/stores/radioStore'
 import { cn } from '@/lib/cn'
+import { countryCodeToFlag } from '@/lib/countryFlag'
 import { Link } from 'react-router-dom'
 
 export function RadioControls() {
@@ -63,7 +64,7 @@ export function RadioControls() {
                   
                   <div className="flex-1 overflow-hidden">
                     <p className="truncate text-sm font-semibold text-text-primary">
-                      {currentStation ? currentStation.name : 'Nenhuma rádio selecionada'}
+                      {currentStation ? `${countryCodeToFlag(currentStation.countrycode)} ${currentStation.name}`.trim() : 'Nenhuma rádio selecionada'}
                     </p>
                     <p className="truncate text-xs text-text-muted">
                       {currentStation ? currentStation.tags.split(',')[0] || 'Ao vivo' : 'Escolha uma estação'}
@@ -113,7 +114,7 @@ export function RadioControls() {
                             )}
                             <div className="flex-1 overflow-hidden">
                               <p className={cn("truncate text-sm font-medium", currentStation?.id === station.id ? "text-accent" : "text-text-primary")}>
-                                {station.name}
+                                {countryCodeToFlag(station.countrycode)} {station.name}
                               </p>
                             </div>
                             {currentStation?.id === station.id && isPlaying && (
@@ -156,7 +157,7 @@ export function RadioControls() {
                               "truncate text-sm font-medium",
                               currentStation?.id === station.id ? "text-accent" : "text-text-primary"
                             )}>
-                              {station.name}
+                              {countryCodeToFlag(station.countrycode)} {station.name}
                             </p>
                             <p className="truncate text-xs text-text-muted">
                               {station.tags.split(',').slice(0, 2).join(', ')}

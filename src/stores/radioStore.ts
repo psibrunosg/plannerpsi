@@ -326,6 +326,80 @@ const CURATED_STATIONS: RadioStation[] = [
     favicon: 'https://delsol.uy/favicon.ico',
     countrycode: 'UY',
     tags: ''
+  },
+
+  // Adicionadas a partir do radiosaovivo.net (via Radio Browser API para stream verificado)
+  {
+    id: 'jovem-pan-sp-1009',
+    name: 'Jovem Pan 100.9 FM (São Paulo)',
+    url: 'https://stream.zeno.fm/c45wbq2us3buv',
+    favicon: 'https://img.radios.com.br/radio/lg/radio8829_1708517690.png',
+    countrycode: 'BR',
+    tags: 'entretenimento,jornalismo,música,esporte'
+  },
+  {
+    id: 'bandnews-fm-sp',
+    name: 'BandNews FM (São Paulo)',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/BANDNEWSFM_SPAAC_SC',
+    favicon: 'https://static.mytuner.mobi/media/tvos_radios/YjB73sNAHd.png',
+    countrycode: 'BR',
+    tags: 'notícias,esportes'
+  },
+  {
+    id: 'cbn-sp',
+    name: 'CBN São Paulo',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/CBN_SPAAC.aac',
+    favicon: '',
+    countrycode: 'BR',
+    tags: 'notícias,esportes'
+  },
+  {
+    id: 'novabrasil-fm-sp',
+    name: 'NovaBrasil FM (São Paulo)',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/NOVABRASIL_SPAAC.aac',
+    favicon: '',
+    countrycode: 'BR',
+    tags: 'mpb,música brasileira'
+  },
+  {
+    id: 'alpha-fm-sp-1017',
+    name: 'Alpha FM 101.7 (São Paulo)',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO_ALPHAFM_ADP.aac',
+    favicon: 'https://cdn-profiles.tunein.com/s8129/images/logod.jpg',
+    countrycode: 'BR',
+    tags: 'romântica,adulto contemporâneo'
+  },
+  {
+    id: 'kiss-fm-sp-925',
+    name: 'Kiss FM 92.5 (São Paulo)',
+    url: 'https://26673.live.streamtheworld.com/RADIO_KISSFMAAC.aac?1655609055880',
+    favicon: 'https://kissfm.com.br/wp-content/uploads/2024/05/KISSFMSP.svg',
+    countrycode: 'BR',
+    tags: 'rock,clássicos'
+  },
+  {
+    id: 'radio-disney-913',
+    name: 'Rádio Disney 91.3 (São Paulo)',
+    url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/DISNEY_BRA_SP.mp3',
+    favicon: '',
+    countrycode: 'BR',
+    tags: 'jovem,pop rock,sertanejo'
+  },
+  {
+    id: 'itatiaia-fm-957',
+    name: 'Rádio Itatiaia 95.7 (Minas Gerais)',
+    url: 'https://8903.brasilstream.com.br/stream',
+    favicon: 'https://img.radios.com.br/radio/lg/radio14_1646746883.jpeg',
+    countrycode: 'BR',
+    tags: 'notícias,esportes,futebol'
+  },
+  {
+    id: 'massa-fm-pontagrossa',
+    name: 'Massa FM 101.1 (Ponta Grossa - PR)',
+    url: 'https://live.virtualcast.com.br/massapontagrossa',
+    favicon: 'https://tudoradio.com/img/uploads/radios/radio_massafmpontagrossa.png',
+    countrycode: 'BR',
+    tags: 'pop,sertanejo'
   }
 ]
 

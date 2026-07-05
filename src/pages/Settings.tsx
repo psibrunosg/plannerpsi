@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react'
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from '@/lib/pushManager'
 import { useSpotifyStore } from '@/stores/spotifyStore'
 import { beginLogin } from '@/lib/spotifyAuth'
+import { countryCodeToFlag } from '@/lib/countryFlag'
 
 export default function Settings() {
   const theme = useUIStore((s) => s.theme)
@@ -417,7 +418,7 @@ export default function Settings() {
                                 "truncate text-sm font-medium",
                                 isCurrent ? "text-accent" : "text-text-primary"
                               )}>
-                                {station.name}
+                                {countryCodeToFlag(station.countrycode)} {station.name}
                               </p>
                               <p className="truncate text-xs text-text-muted">
                                 {station.tags.split(',').slice(0, 3).join(', ')}
