@@ -11,6 +11,7 @@ import Focus from '@/pages/Focus'
 import Planning from '@/pages/Planning'
 import Procedures from '@/pages/Procedures'
 import Study from '@/pages/Study'
+import Iptv from '@/pages/Iptv'
 import Settings from '@/pages/Settings'
 import Login from '@/pages/Login'
 import UpdatePassword from '@/pages/UpdatePassword'
@@ -105,6 +106,7 @@ export default function App() {
             <Route path="/planning" element={<Planning />} />
             <Route path="/procedures" element={<Procedures />} />
             <Route path="/study" element={<Study />} />
+            <Route path="/iptv" element={<Iptv />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </AnimatePresence>
