@@ -8,12 +8,13 @@ import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
 import { useRadioStore } from '@/stores/radioStore'
 import { supabaseUrl } from '@/lib/supabase'
-import { Calendar, Link as LinkIcon, Copy, Radio, Star, Play, Pause, Download, BellRing, Music } from 'lucide-react'
+import { Calendar, Link as LinkIcon, Copy, Radio, Star, Play, Pause, Download, BellRing, Music, Tv } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from '@/lib/pushManager'
 import { useSpotifyStore } from '@/stores/spotifyStore'
 import { beginLogin } from '@/lib/spotifyAuth'
 import { countryCodeToFlag } from '@/lib/countryFlag'
+import { useIptvStore } from '@/stores/iptvStore'
 
 export default function Settings() {
   const theme = useUIStore((s) => s.theme)
@@ -439,6 +440,72 @@ export default function Settings() {
                 ))
               })()
             )}
+          </div>
+        </motion.div>
+
+        <motion.div variants={staggerItem} className="glass-card p-6">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-primary">
+            <Tv className="h-5 w-5" /> Listas IPTV Personalizadas
+          </h3>
+          <p className="mb-4 text-sm text-text-secondary">
+            Adicione links diretos para listas de IPTV (.m3u, .m3u8) que serão carregadas automaticamente na aba IPTV.
+          </p>
+
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                id="iptv-url-input"
+                placeholder="https://exemplo.com/lista.m3u"
+                className="flex-1 rounded-[var(--radius-sm)] bg-surface-hover px-4 py-2 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const input = e.currentTarget
+                    const val = input.value.trim()
+                    if (val) {
+                      useIptvStore.getState().addCustomUrl(val)
+                      input.value = ''
+                      addToast('Lista adicionada com sucesso!', 'success')
+                    }
+                  }
+                }}
+              />
+              <button
+                onClick={() => {
+                  const input = document.getElementById('iptv-url-input') as HTMLInputElement
+                  const val = input?.value.trim()
+                  if (val) {
+                    useIptvStore.getState().addCustomUrl(val)
+                    input.value = ''
+                    addToast('Lista adicionada com sucesso!', 'success')
+                  }
+                }}
+                className="rounded-[var(--radius-sm)] bg-accent/10 px-4 py-2 text-sm font-medium text-accent hover:bg-accent/20 transition-colors"
+              >
+                Adicionar
+              </button>
+            </div>
+
+            <div className="space-y-2 mt-2">
+              {useIptvStore((s) => s.customUrls).length === 0 ? (
+                <p className="text-xs text-text-muted italic">Nenhuma lista personalizada adicionada.</p>
+              ) : (
+                useIptvStore((s) => s.customUrls).map((url, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-[var(--radius-sm)] bg-surface-hover p-2 border border-border-subtle">
+                    <div className="flex items-center gap-2 overflow-hidden mr-4">
+                      <LinkIcon className="h-4 w-4 text-text-muted shrink-0" />
+                      <span className="text-xs text-text-muted truncate">{url}</span>
+                    </div>
+                    <button
+                      onClick={() => useIptvStore.getState().removeCustomUrl(url)}
+                      className="p-1.5 text-danger/70 hover:text-danger hover:bg-danger/10 rounded-md transition-colors shrink-0"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </motion.div>
       </motion.div>
