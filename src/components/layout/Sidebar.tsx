@@ -10,7 +10,8 @@ import {
   PanelLeftClose,
   PanelLeft,
   BookOpen,
-  BarChart3
+  BarChart3,
+  Network
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { sidebarVariants } from '@/lib/motion'
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { path: '/planning', icon: CalendarDays, label: 'Planejamento' },
   { path: '/procedures', icon: ClipboardList, label: 'Procedimentos' },
   { path: '/study', icon: BookOpen, label: 'Estudos' },
+  { path: '/maps', icon: Network, label: 'Mapas' },
   { path: '/stats', icon: BarChart3, label: 'Estatísticas' },
   { path: '/settings', icon: Settings, label: 'Configurações' },
 ]
