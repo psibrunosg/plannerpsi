@@ -223,13 +223,19 @@ export function CalendarView({ tasks }: { tasks: Task[] }) {
           const hasTasks = dayTasks.length > 0
 
           return (
-            <motion.button
+            // div (not button): TaskPill renders <button> inside, and nested
+            // buttons are invalid HTML — the parser splits them and pills leak
+            // outside the cell, breaking the grid layout.
+            <motion.div
               key={day.toISOString()}
+              role="button"
+              tabIndex={0}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setSelectedDay(day)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedDay(day) } }}
               className={cn(
-                'group relative flex min-h-[100px] flex-col rounded-[var(--radius-sm)] border p-1.5 text-left transition-all',
+                'group relative flex h-[100px] cursor-pointer flex-col overflow-hidden rounded-[var(--radius-sm)] border p-1.5 text-left transition-all',
                 inMonth ? 'border-border-subtle/50' : 'border-transparent',
                 today && 'ring-2 ring-accent/40',
                 !inMonth && 'opacity-30',
@@ -245,14 +251,15 @@ export function CalendarView({ tasks }: { tasks: Task[] }) {
                 {format(day, 'd')}
               </span>
 
-              {/* Task pills */}
+              {/* Task pills: 3 fit exactly when there's no "+N" line; with more
+                  tasks, show 2 pills so the "+N mais" line still fits inside the cell */}
               <div className="flex-1 space-y-0.5 overflow-hidden">
-                {dayTasks.slice(0, 3).map((task) => (
+                {dayTasks.slice(0, dayTasks.length > 3 ? 2 : 3).map((task) => (
                   <TaskPill key={task.id} task={task} />
                 ))}
                 {dayTasks.length > 3 && (
                   <span className="block text-[9px] font-medium text-text-muted">
-                    +{dayTasks.length - 3} mais
+                    +{dayTasks.length - 2} mais
                   </span>
                 )}
               </div>
@@ -269,7 +276,7 @@ export function CalendarView({ tasks }: { tasks: Task[] }) {
                   )}
                 </div>
               )}
-            </motion.button>
+            </motion.div>
           )
         })}
       </div>
