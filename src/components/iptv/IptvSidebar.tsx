@@ -78,7 +78,7 @@ export function IptvSidebar() {
             <p className="text-sm text-text-primary">Erro ao carregar listas</p>
             <p className="text-xs text-text-muted mt-1">{error}</p>
             <button 
-              onClick={fetchPlaylists}
+              onClick={() => fetchPlaylists(true)}
               className="mt-4 px-3 py-1.5 bg-accent/10 text-accent rounded-md text-xs hover:bg-accent/20"
             >
               Tentar Novamente

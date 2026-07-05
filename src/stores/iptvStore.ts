@@ -17,7 +17,7 @@ interface IptvState {
   error: string | null
   customUrls: string[]
   
-  fetchPlaylists: () => Promise<void>
+  fetchPlaylists: (force?: boolean) => Promise<void>
   loadLocalPlaylists: (files: FileList) => Promise<void>
   setActiveChannel: (channel: Channel) => void
   addCustomUrl: (url: string) => void
@@ -35,24 +35,50 @@ const PLAYLIST_URLS = [
 ]
 
 function parseM3u(content: string, sourceIndex: number): Channel[] {
-  const lines = content.split('\n')
   const channels: Channel[] = []
   let currentChannel: Partial<Channel> = {}
   let channelIndex = 0
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim()
-    if (line.startsWith('#EXTINF:')) {
-      const nameMatch = line.match(/,(.*)$/)
-      const groupMatch = line.match(/group-title="([^"]*)"/)
-      const logoMatch = line.match(/tvg-logo="([^"]*)"/)
+  let startIndex = 0
+  while (startIndex < content.length) {
+    let endIndex = content.indexOf('\n', startIndex)
+    if (endIndex === -1) endIndex = content.length
+    
+    let line = content.substring(startIndex, endIndex).trim()
+    startIndex = endIndex + 1
 
-      currentChannel = {
-        name: nameMatch ? nameMatch[1].trim() : 'Desconhecido',
-        group: groupMatch ? groupMatch[1].trim() : 'Geral',
-        logo: logoMatch ? logoMatch[1].trim() : '',
+    if (!line) continue
+
+    if (line.startsWith('#EXTINF:')) {
+      let name = 'Desconhecido'
+      let group = 'Geral'
+      let logo = ''
+
+      const commaIndex = line.lastIndexOf(',')
+      if (commaIndex !== -1) {
+        name = line.substring(commaIndex + 1).trim()
       }
-    } else if (line.length > 0 && !line.startsWith('#')) {
+
+      const groupIndex = line.indexOf('group-title="')
+      if (groupIndex !== -1) {
+        const groupStart = groupIndex + 13
+        const groupEnd = line.indexOf('"', groupStart)
+        if (groupEnd !== -1) {
+          group = line.substring(groupStart, groupEnd).trim()
+        }
+      }
+
+      const logoIndex = line.indexOf('tvg-logo="')
+      if (logoIndex !== -1) {
+        const logoStart = logoIndex + 10
+        const logoEnd = line.indexOf('"', logoStart)
+        if (logoEnd !== -1) {
+          logo = line.substring(logoStart, logoEnd).trim()
+        }
+      }
+
+      currentChannel = { name, group, logo }
+    } else if (!line.startsWith('#')) {
       if (currentChannel.name) {
         currentChannel.url = line
         currentChannel.id = `ch-${sourceIndex}-${channelIndex++}`
@@ -87,7 +113,9 @@ export const useIptvStore = create<IptvState>()(
 
       setActiveChannel: (channel) => set({ activeChannel: channel }),
 
-      fetchPlaylists: async () => {
+      fetchPlaylists: async (force = false) => {
+        if (!force && get().channels.length > 0) return
+        
         set({ isLoading: true, error: null })
         try {
           let allChannels: Channel[] = []
