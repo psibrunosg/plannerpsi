@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Tv, PlayCircle, Loader2, AlertCircle, ChevronDown, ChevronRight } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
+import { Tv, PlayCircle, Loader2, AlertCircle, ChevronDown, ChevronRight, Upload } from 'lucide-react'
 import { useIptvStore } from '@/stores/iptvStore'
 import { cn } from '@/lib/cn'
 
@@ -11,10 +11,12 @@ export function IptvSidebar() {
     isLoading,
     error,
     fetchPlaylists,
+    loadLocalPlaylists,
     setActiveChannel
   } = useIptvStore()
 
   const [activeGroup, setActiveGroup] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchPlaylists()
@@ -27,6 +29,16 @@ export function IptvSidebar() {
     }
   }, [groups, activeGroup])
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      await loadLocalPlaylists(e.target.files)
+      // Clear the input so the same folder/files can be selected again if needed
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
   return (
     <div className="flex h-full w-72 flex-col glass-card border-r border-border-subtle overflow-hidden">
       <div className="p-4 border-b border-border-subtle bg-surface-hover/50 shrink-0 space-y-4">
@@ -34,6 +46,24 @@ export function IptvSidebar() {
           <h2 className="font-semibold text-text-primary flex items-center gap-2">
             <Tv className="h-4 w-4 text-accent" /> Canais IPTV
           </h2>
+          
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="p-1.5 text-text-muted hover:text-accent hover:bg-accent/10 rounded-md transition-colors"
+            title="Carregar pasta/arquivos locais (.m3u, .m3u8)"
+          >
+            <Upload className="h-4 w-4" />
+          </button>
+          
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            multiple 
+            accept=".m3u,.m3u8"
+            {...{ webkitdirectory: "true", directory: "true" } as any}
+            onChange={handleFileChange}
+          />
         </div>
       </div>
       

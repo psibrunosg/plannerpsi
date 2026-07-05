@@ -16,6 +16,7 @@ interface IptvState {
   error: string | null
   
   fetchPlaylists: () => Promise<void>
+  loadLocalPlaylists: (files: FileList) => Promise<void>
   setActiveChannel: (channel: Channel) => void
 }
 
@@ -88,6 +89,47 @@ export const useIptvStore = create<IptvState>((set) => ({
       const results = await Promise.all(fetchPromises)
       allChannels = results.flat()
 
+      const groupsSet = new Set<string>()
+      allChannels.forEach(c => {
+        if (c.group) groupsSet.add(c.group)
+      })
+      
+      const groups = Array.from(groupsSet).sort()
+
+      set({ 
+        channels: allChannels, 
+        groups, 
+        isLoading: false 
+      })
+    } catch (err: any) {
+      set({ error: err.message, isLoading: false })
+    }
+  },
+
+  loadLocalPlaylists: async (files: FileList) => {
+    set({ isLoading: true, error: null })
+    try {
+      const { channels: existingChannels } = useIptvStore.getState()
+      let newChannels: Channel[] = []
+
+      // Filter only m3u/m3u8 files
+      const validFiles = Array.from(files).filter(f => f.name.endsWith('.m3u') || f.name.endsWith('.m3u8'))
+
+      const fetchPromises = validFiles.map(async (file, index) => {
+        try {
+          const content = await file.text()
+          return parseM3u(content, 1000 + index) // Offset index to avoid collision
+        } catch (e) {
+          console.error('Failed to read local file', file.name, e)
+          return []
+        }
+      })
+
+      const results = await Promise.all(fetchPromises)
+      newChannels = results.flat()
+
+      const allChannels = [...existingChannels, ...newChannels]
+      
       const groupsSet = new Set<string>()
       allChannels.forEach(c => {
         if (c.group) groupsSet.add(c.group)
