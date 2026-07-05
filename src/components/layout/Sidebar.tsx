@@ -53,9 +53,9 @@ export function Sidebar() {
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -8 }}
-            className="gradient-text text-lg font-bold tracking-tight"
+            className="gradient-text text-base font-heading font-semibold tracking-tight leading-tight"
           >
-            BS planner
+            Clínica<br/>Bruno Souza
           </motion.span>
         )}
       </div>

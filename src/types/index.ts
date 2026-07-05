@@ -35,6 +35,17 @@ export interface Task {
   subtasks?: Task[]
 }
 
+export interface TaskProposal {
+  id: string
+  sender_id: string
+  sender_email: string
+  receiver_email: string
+  title: string
+  description: string | null
+  status: 'pending' | 'accepted' | 'rejected'
+  created_at: string
+}
+
 export interface FocusSession {
   id: string
   task_id: string | null

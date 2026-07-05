@@ -11,6 +11,9 @@ import { PRIORITY_CONFIG, STATUS_CONFIG, DATE_FILTER_TABS } from '@/types'
 import { KanbanBoard } from '@/components/views/KanbanBoard'
 import { CalendarView } from '@/components/views/CalendarView'
 import { TimelineView } from '@/components/views/TimelineView'
+import { useProposalStore } from '@/stores/proposalStore'
+import { TaskProposalModal } from '@/components/tasks/TaskProposalModal'
+import { Send, Check, X as XIcon } from 'lucide-react'
 
 const VIEW_OPTIONS: { id: ViewMode; icon: React.ElementType; label: string }[] = [
   { id: 'list', icon: List, label: 'Lista' },
@@ -168,6 +171,16 @@ export default function Tasks() {
   useEffect(() => { localStorage.setItem('tasks-date-tag', activeDateTag) }, [activeDateTag])
   useEffect(() => { localStorage.setItem('tasks-tag-filter', JSON.stringify(selectedTags)) }, [selectedTags])
   useEffect(() => { localStorage.setItem('tasks-search', searchQuery) }, [searchQuery])
+
+  const proposals = useProposalStore(s => s.proposals)
+  const fetchProposals = useProposalStore(s => s.fetchProposals)
+  const acceptProposal = useProposalStore(s => s.acceptProposal)
+  const rejectProposal = useProposalStore(s => s.rejectProposal)
+  const [isProposalModalOpen, setIsProposalModalOpen] = useState(false)
+
+  useEffect(() => {
+    fetchProposals()
+  }, [fetchProposals])
   
   const filteredTasks = useMemo(() => {
     if (showArchived) return useTaskStore.getState().archivedTasks()
@@ -278,13 +291,49 @@ export default function Tasks() {
             </motion.button>
           )}
 
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setIsProposalModalOpen(true)}
+            className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-surface-elevated border border-border-subtle px-3 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors">
+            <Send className="h-4 w-4 text-accent" />
+            Propor
+          </motion.button>
+          
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setTaskFormOpen(true)}
-            className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover">
+            className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover transition-colors">
             <Plus className="h-4 w-4" />
             Nova Tarefa
           </motion.button>
         </div>
       </div>
+
+      {/* Propostas Recebidas */}
+      {!showArchived && proposals.length > 0 && (
+        <div className="mb-6 space-y-3">
+          <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wider">Propostas Recebidas ({proposals.length})</h2>
+          {proposals.map(proposal => (
+            <div key={proposal.id} className="glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-l-4 border-l-accent">
+              <div>
+                <p className="text-sm font-medium text-text-primary">{proposal.title}</p>
+                {proposal.description && <p className="text-xs text-text-muted mt-1">{proposal.description}</p>}
+                <p className="text-xs text-accent mt-2">Enviado por: {proposal.sender_email}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => rejectProposal(proposal.id)}
+                  className="flex flex-1 sm:flex-none items-center justify-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors border border-danger/20"
+                >
+                  <XIcon className="h-3 w-3" /> Recusar
+                </button>
+                <button
+                  onClick={() => acceptProposal(proposal.id)}
+                  className="flex flex-1 sm:flex-none items-center justify-center gap-1 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-hover transition-colors"
+                >
+                  <Check className="h-3 w-3" /> Aceitar
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {!showArchived && (
         <>
@@ -383,6 +432,7 @@ export default function Tasks() {
           <ActiveView tasks={showArchived ? filteredTasks : dateFilteredTasks} />
         </motion.div>
       </AnimatePresence>
+      <TaskProposalModal isOpen={isProposalModalOpen} onClose={() => setIsProposalModalOpen(false)} />
     </motion.div>
   )
 }
