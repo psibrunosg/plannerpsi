@@ -23,6 +23,9 @@ export default function Settings() {
   const updateSettings = useFocusStore((s) => s.updateSettings)
   const user = useAuthStore((s) => s.user)
   const addToast = useToastStore((s) => s.addToast)
+  const groups = useIptvStore((s) => s.groups)
+  const hiddenGroups = useIptvStore((s) => s.hiddenGroups)
+  const customUrls = useIptvStore((s) => s.customUrls)
 
   const {
     stations, initStations,
@@ -487,10 +490,10 @@ export default function Settings() {
             </div>
 
             <div className="space-y-2 mt-2">
-              {useIptvStore((s) => s.customUrls).length === 0 ? (
+              {customUrls.length === 0 ? (
                 <p className="text-xs text-text-muted italic">Nenhuma lista personalizada adicionada.</p>
               ) : (
-                useIptvStore((s) => s.customUrls).map((url, i) => (
+                customUrls.map((url, i) => (
                   <div key={i} className="flex items-center justify-between rounded-[var(--radius-sm)] bg-surface-hover p-2 border border-border-subtle">
                     <div className="flex items-center gap-2 overflow-hidden mr-4">
                       <LinkIcon className="h-4 w-4 text-text-muted shrink-0" />
@@ -507,7 +510,7 @@ export default function Settings() {
               )}
             </div>
 
-            {useIptvStore((s) => s.groups).length > 0 && (
+            {groups.length > 0 && (
               <div className="mt-6 pt-6 border-t border-border-subtle">
                 <div className="mb-3 flex flex-col">
                   <h4 className="text-sm font-semibold text-text-primary">Filtro de Categorias</h4>
@@ -515,8 +518,8 @@ export default function Settings() {
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto custom-scrollbar p-2 bg-surface-hover/50 rounded-[var(--radius-sm)] border border-border-subtle">
-                  {useIptvStore((s) => s.groups).map(group => {
-                    const hidden = useIptvStore((s) => s.hiddenGroups).includes(group)
+                  {groups.map(group => {
+                    const hidden = hiddenGroups.includes(group)
                     return (
                       <label key={group} className="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-surface-active rounded-md transition-colors">
                         <input
