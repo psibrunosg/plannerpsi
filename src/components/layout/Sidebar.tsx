@@ -15,6 +15,7 @@ import {
 import { cn } from '@/lib/cn'
 import { sidebarVariants } from '@/lib/motion'
 import { useUIStore } from '@/stores/uiStore'
+import { SidebarXP } from '@/components/layout/SidebarXP'
 
 const NAV_ITEMS = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -98,6 +99,7 @@ export function Sidebar() {
         })}
       </nav>
 
+      <SidebarXP />
       <div className="border-t border-border-subtle p-3">
         <motion.button
           whileHover={{ scale: 1.05 }}

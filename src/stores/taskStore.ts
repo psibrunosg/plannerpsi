@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
+import { useGamificationStore } from '@/stores/gamificationStore'
 import type { Task, TaskFilter, TaskStatus, TaskPriority } from '@/types'
 
 function getNextDueDate(dueDateISO: string, rule: Task['recurrence_rule']): string {
@@ -141,6 +142,10 @@ export const useTaskStore = create<TaskState>()(
 
         await get().updateTask(id, updates)
 
+        if (isCompleting) {
+          useGamificationStore.getState().addXP(10, 'Tarefa concluída')
+        }
+
         if (isCompleting && task.is_recurring && task.recurrence_rule) {
           await get().addTask({
             ...task,
@@ -188,6 +193,10 @@ export const useTaskStore = create<TaskState>()(
         }
 
         await get().updateTask(id, updates)
+
+        if (isCompleting) {
+          useGamificationStore.getState().addXP(10, 'Tarefa concluída')
+        }
 
         if (isCompleting && task.is_recurring && task.recurrence_rule) {
           await get().addTask({

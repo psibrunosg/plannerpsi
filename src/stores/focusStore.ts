@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
+import { useGamificationStore } from '@/stores/gamificationStore'
 import type { FocusSession, SessionType } from '@/types'
 
 interface FocusState {
@@ -134,6 +135,11 @@ export const useFocusStore = create<FocusState>()(
           completedPomodoros: newCompletedPomodoros,
         }))
 
+        // Reward XP
+        const xpAmount = activeSession.type === 'pomodoro' ? 30 : 20
+        const xpReason = activeSession.type === 'pomodoro' ? 'Pomodoro concluído' : 'Sessão de foco concluída'
+        useGamificationStore.getState().addXP(xpAmount, xpReason)
+
         const user = useAuthStore.getState().user
         if (user) {
           // Save session
@@ -173,6 +179,8 @@ export const useFocusStore = create<FocusState>()(
         }
 
         set((s) => ({ sessions: [session, ...s.sessions] }))
+
+        useGamificationStore.getState().addXP(15, 'Sessão de estudo registrada')
 
         const user = useAuthStore.getState().user
         if (user) {

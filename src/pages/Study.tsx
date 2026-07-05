@@ -4,12 +4,34 @@ import { pageTransition } from '@/lib/motion'
 import { StudySidebar } from '@/components/study/StudySidebar'
 import { StudyPlayer } from '@/components/study/StudyPlayer'
 import { StudyTranscript } from '@/components/study/StudyTranscript'
+import { NotionEditor } from '@/components/study/NotionEditor'
 import { useStudyStore } from '@/stores/studyStore'
+import { useState, useEffect } from 'react'
+import { cn } from '@/lib/cn'
 import { COURSES } from '@/lib/drive'
 
 export default function Study() {
-  const { activeCourseId } = useStudyStore()
+  const { activeCourseId, activeLesson, getLessonNote, saveLessonNote } = useStudyStore()
   const activeCourse = COURSES.find(c => c.id === activeCourseId)
+  const [activeTab, setActiveTab] = useState<'transcript' | 'notes'>('transcript')
+  const [noteContent, setNoteContent] = useState('')
+
+  // Sync note content when lesson changes
+  useEffect(() => {
+    if (activeLesson) {
+      setNoteContent(getLessonNote(activeLesson.baseName))
+    } else {
+      setNoteContent('')
+    }
+  }, [activeLesson?.baseName])
+
+  // Auto save notes with debounce (or on change since it's local)
+  const handleNoteChange = (content: string) => {
+    setNoteContent(content)
+    if (activeLesson) {
+      saveLessonNote(activeLesson.baseName, content)
+    }
+  }
   
   return (
     <motion.div 
@@ -41,7 +63,44 @@ export default function Study() {
           
           <div className="w-full xl:max-w-4xl mx-auto flex flex-col gap-6 flex-1">
             <StudyPlayer />
-            <StudyTranscript />
+            
+            {/* Tabs */}
+            <div className="flex border-b border-border-subtle bg-surface-elevated/30">
+              <button
+                onClick={() => setActiveTab('transcript')}
+                className={cn(
+                  "flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2",
+                  activeTab === 'transcript' 
+                    ? "border-accent text-accent" 
+                    : "border-transparent text-text-muted hover:text-text-primary hover:bg-surface-hover/50"
+                )}
+              >
+                Transcrição
+              </button>
+              <button
+                onClick={() => setActiveTab('notes')}
+                className={cn(
+                  "flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2",
+                  activeTab === 'notes' 
+                    ? "border-accent text-accent" 
+                    : "border-transparent text-text-muted hover:text-text-primary hover:bg-surface-hover/50"
+                )}
+              >
+                Minhas Anotações
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            <div className="flex-1">
+              {activeTab === 'transcript' ? (
+                <StudyTranscript />
+              ) : (
+                <NotionEditor 
+                  content={noteContent}
+                  onChange={handleNoteChange}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>

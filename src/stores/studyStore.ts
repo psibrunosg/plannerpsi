@@ -19,6 +19,7 @@ interface StudyState {
   playbackRate: number
   lessonPositions: Record<string, number>
   volume: number
+  lessonNotes: Record<string, string>
 
   // Actions
   selectCourse: (courseId: string) => Promise<void>
@@ -34,6 +35,8 @@ interface StudyState {
   setPlaybackRate: (rate: number) => void
   saveLessonPosition: (baseName: string, time: number) => void
   getLessonPosition: (baseName: string) => number
+  saveLessonNote: (baseName: string, note: string) => void
+  getLessonNote: (baseName: string) => string
   setVolume: (volume: number) => void
 }
 
@@ -53,6 +56,7 @@ export const useStudyStore = create<StudyState>()(
       playbackRate: 1,
       lessonPositions: {},
       volume: 1,
+      lessonNotes: {},
 
       setIsPlaying: (isPlaying: boolean) => set({ isPlaying }),
 
@@ -64,6 +68,11 @@ export const useStudyStore = create<StudyState>()(
         set((s) => ({ lessonPositions: { ...s.lessonPositions, [baseName]: time } })),
 
       getLessonPosition: (baseName: string) => get().lessonPositions[baseName] ?? 0,
+
+      saveLessonNote: (baseName: string, note: string) =>
+        set((s) => ({ lessonNotes: { ...s.lessonNotes, [baseName]: note } })),
+
+      getLessonNote: (baseName: string) => get().lessonNotes[baseName] ?? '',
 
       playNextLesson: async () => {
         const { modules, activeModuleId, activeLesson, selectModule, selectLesson } = get()
@@ -279,13 +288,15 @@ export const useStudyStore = create<StudyState>()(
         completedLessons: state.completedLessons || [],
         playbackRate: state.playbackRate,
         lessonPositions: state.lessonPositions || {},
-        volume: state.volume
+        volume: state.volume,
+        lessonNotes: state.lessonNotes || {}
       }),
       merge: (persistedState: any, currentState) => ({
         ...currentState,
         ...persistedState,
         completedLessons: persistedState?.completedLessons || currentState.completedLessons || [],
         lessonPositions: persistedState?.lessonPositions || currentState.lessonPositions || {},
+        lessonNotes: persistedState?.lessonNotes || currentState.lessonNotes || {},
         playbackRate: persistedState?.playbackRate || currentState.playbackRate || 1,
         volume: persistedState?.volume ?? currentState.volume ?? 1,
         activeCourseId: COURSES.find(c => c.id === persistedState?.activeCourseId) ? persistedState.activeCourseId : COURSES[0].id
