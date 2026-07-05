@@ -34,6 +34,7 @@ async function parseM3uStream(stream: ReadableStream<Uint8Array>, sourceIndex: n
   const reader = stream.getReader()
 
   let chunkCount = 0
+  const MAX_CHANNELS_PER_LIST = 20000 // Prevent Out Of Memory crashes on huge VOD files
 
   while (true) {
     const { done, value } = await reader.read()
@@ -83,6 +84,11 @@ async function parseM3uStream(stream: ReadableStream<Uint8Array>, sourceIndex: n
           currentChannel.id = `ch-${sourceIndex}-${channelIndex++}`
           channels.push(currentChannel as Channel)
           currentChannel = {}
+          
+          if (channels.length >= MAX_CHANNELS_PER_LIST) {
+            reader.cancel()
+            return channels
+          }
         }
       }
     }
@@ -133,7 +139,26 @@ export const useIptvStore = create<IptvState>()(
         try {
           let allChannels: Channel[] = []
           
-          const fetchPromises = customUrls.map(async (url, index) => {
+          // Expand well-known GitHub repo URLs to their raw files to support user input
+          const expandedUrls: string[] = []
+          for (const url of customUrls) {
+            const cleanUrl = url.trim().replace(/\/$/, '')
+            if (cleanUrl.toLowerCase() === 'https://github.com/ramys/iptv-brasil-2026') {
+              expandedUrls.push(
+                'https://raw.githubusercontent.com/Ramys/Iptv-Brasil-2026/master/CanaisBR03.m3u8',
+                'https://raw.githubusercontent.com/Ramys/Iptv-Brasil-2026/master/CanaisBR04.m3u8',
+                'https://raw.githubusercontent.com/Ramys/Iptv-Brasil-2026/master/CanaisBR05.m3u8',
+                'https://raw.githubusercontent.com/Ramys/Iptv-Brasil-2026/master/CanaisBR06.m3u8',
+                'https://raw.githubusercontent.com/Ramys/Iptv-Brasil-2026/master/Lista%20Mundial01.m3u',
+                'https://raw.githubusercontent.com/Ramys/Iptv-Brasil-2026/master/Lista%20Mundial02.m3u',
+                'https://raw.githubusercontent.com/Ramys/Iptv-Brasil-2026/master/Lista%20Mundial03.m3u'
+              )
+            } else {
+              expandedUrls.push(url)
+            }
+          }
+          
+          const fetchPromises = expandedUrls.map(async (url, index) => {
             try {
               const response = await fetch(url)
               if (!response.ok) throw new Error(`HTTP error ${response.status}`)
