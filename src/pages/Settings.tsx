@@ -24,7 +24,7 @@ export default function Settings() {
   const user = useAuthStore((s) => s.user)
   const addToast = useToastStore((s) => s.addToast)
   const groups = useIptvStore((s) => s.groups)
-  const hiddenGroups = useIptvStore((s) => s.hiddenGroups)
+  const visibleGroups = useIptvStore((s) => s.visibleGroups)
   const customUrls = useIptvStore((s) => s.customUrls)
   const fetchPlaylists = useIptvStore((s) => s.fetchPlaylists)
   const isLoadingIptv = useIptvStore((s) => s.isLoading)
@@ -529,17 +529,54 @@ export default function Settings() {
               <div className="mt-6 pt-6 border-t border-border-subtle">
                 <div className="mb-3 flex flex-col">
                   <h4 className="text-sm font-semibold text-text-primary">Filtro de Categorias</h4>
-                  <p className="text-xs text-text-muted">Desmarque as categorias que você não deseja ver na aba de IPTV.</p>
+                  <p className="text-xs text-text-muted">Selecione as categorias que você deseja ver na aba de IPTV. Novas listas iniciam desmarcadas.</p>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto custom-scrollbar p-2 bg-surface-hover/50 rounded-[var(--radius-sm)] border border-border-subtle">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <input
+                    type="text"
+                    placeholder="Buscar categoria..."
+                    onChange={(e) => {
+                      const val = e.target.value.toLowerCase()
+                      const container = document.getElementById('category-filter-container')
+                      if (container) {
+                        const labels = container.querySelectorAll('label')
+                        labels.forEach(label => {
+                          const text = label.textContent?.toLowerCase() || ''
+                          if (text.includes(val)) {
+                            label.style.display = 'flex'
+                          } else {
+                            label.style.display = 'none'
+                          }
+                        })
+                      }
+                    }}
+                    className="flex-1 rounded-[var(--radius-sm)] bg-surface-hover px-3 py-1.5 text-xs text-text-primary outline-none focus:ring-1 focus:ring-accent border border-border-subtle"
+                  />
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => useIptvStore.getState().setVisibleGroups(groups)}
+                      className="text-[10px] font-medium text-accent hover:underline"
+                    >
+                      Marcar Todas
+                    </button>
+                    <button
+                      onClick={() => useIptvStore.getState().setVisibleGroups([])}
+                      className="text-[10px] font-medium text-text-muted hover:text-text-primary hover:underline"
+                    >
+                      Desmarcar Todas
+                    </button>
+                  </div>
+                </div>
+
+                <div id="category-filter-container" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto custom-scrollbar p-2 bg-surface-hover/50 rounded-[var(--radius-sm)] border border-border-subtle">
                   {groups.map(group => {
-                    const hidden = hiddenGroups.includes(group)
+                    const checked = visibleGroups.includes(group)
                     return (
                       <label key={group} className="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-surface-active rounded-md transition-colors">
                         <input
                           type="checkbox"
-                          checked={!hidden}
+                          checked={checked}
                           onChange={(e) => useIptvStore.getState().toggleGroupVisibility(group, e.target.checked)}
                           className="rounded border-border-subtle text-accent focus:ring-accent bg-surface h-4 w-4 shrink-0"
                         />

@@ -7,7 +7,7 @@ export function IptvSidebar() {
   const { 
     channels,
     groups,
-    hiddenGroups,
+    visibleGroups,
     activeChannel,
     isLoading,
     error,
@@ -17,30 +17,32 @@ export function IptvSidebar() {
   } = useIptvStore()
 
   const [activeGroup, setActiveGroup] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchPlaylists()
   }, [fetchPlaylists])
 
-  const visibleGroups = groups.filter(g => !hiddenGroups.includes(g))
+  const visibleGroupsList = groups.filter(g => visibleGroups.includes(g))
 
   // Set first visible group active when loaded
   useEffect(() => {
-    if (visibleGroups.length > 0 && (!activeGroup || !visibleGroups.includes(activeGroup))) {
-      setActiveGroup(visibleGroups[0])
+    if (visibleGroupsList.length > 0 && !searchQuery && (!activeGroup || !visibleGroupsList.includes(activeGroup))) {
+      setActiveGroup(visibleGroupsList[0])
     }
-  }, [visibleGroups, activeGroup])
+  }, [visibleGroupsList, activeGroup, searchQuery])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       await loadLocalPlaylists(e.target.files)
-      // Clear the input so the same folder/files can be selected again if needed
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
     }
   }
+
+  const query = searchQuery.toLowerCase()
 
   return (
     <div className="flex h-full w-72 flex-col glass-card border-r border-border-subtle overflow-hidden">
@@ -68,6 +70,14 @@ export function IptvSidebar() {
             onChange={handleFileChange}
           />
         </div>
+
+        <input
+          type="text"
+          placeholder="Buscar canal..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full rounded-[var(--radius-sm)] bg-surface px-3 py-1.5 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent border border-border-subtle"
+        />
       </div>
       
       <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1 relative">
@@ -91,24 +101,37 @@ export function IptvSidebar() {
           <div className="flex flex-col items-center justify-center p-6 text-center text-text-muted">
             <p className="text-sm">Nenhum canal encontrado</p>
           </div>
+        ) : visibleGroupsList.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-6 text-center text-text-muted">
+            <p className="text-sm">Nenhuma categoria selecionada.</p>
+            <p className="text-xs mt-2">Vá nas Configurações para selecionar as categorias que deseja exibir.</p>
+          </div>
         ) : (
-          visibleGroups.map(group => {
-            const isActiveGroup = activeGroup === group
-            const groupChannels = channels.filter(c => c.group === group)
+          visibleGroupsList.map(group => {
+            let groupChannels = channels.filter(c => c.group === group)
+            
+            if (query) {
+              groupChannels = groupChannels.filter(c => c.name.toLowerCase().includes(query))
+            }
+
+            if (groupChannels.length === 0) return null
+
+            const isActiveGroup = query ? true : activeGroup === group
 
             return (
               <div key={group} className="space-y-1">
                 <button
-                  onClick={() => setActiveGroup(isActiveGroup ? null : group)}
+                  onClick={() => !query && setActiveGroup(isActiveGroup ? null : group)}
                   className={cn(
                     "w-full flex items-center justify-between px-3 py-2 text-left text-sm rounded-[var(--radius-sm)] transition-colors",
-                    isActiveGroup ? "bg-accent/10 text-accent font-medium border border-accent/20 shadow-sm" : "text-text-secondary hover:bg-surface-hover border border-transparent"
+                    isActiveGroup && !query ? "bg-accent/10 text-accent font-medium border border-accent/20 shadow-sm" : "text-text-secondary hover:bg-surface-hover border border-transparent"
                   )}
+                  style={{ cursor: query ? 'default' : 'pointer' }}
                 >
                   <span className="truncate flex-1 pr-2">{group || 'Sem Categoria'}</span>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-[10px] tabular-nums text-text-muted">{groupChannels.length}</span>
-                    {isActiveGroup ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0 opacity-50" />}
+                    {!query && (isActiveGroup ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0 opacity-50" />)}
                   </div>
                 </button>
                 

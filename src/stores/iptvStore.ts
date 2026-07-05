@@ -12,7 +12,7 @@ export interface Channel {
 interface IptvState {
   channels: Channel[]
   groups: string[]
-  hiddenGroups: string[]
+  visibleGroups: string[]
   activeChannel: Channel | null
   isLoading: boolean
   error: string | null
@@ -24,6 +24,7 @@ interface IptvState {
   addCustomUrl: (url: string) => void
   removeCustomUrl: (url: string) => void
   toggleGroupVisibility: (group: string, isVisible: boolean) => void
+  setVisibleGroups: (groups: string[]) => void
 }
 
 async function parseM3uStream(stream: ReadableStream<Uint8Array>, sourceIndex: number): Promise<Channel[]> {
@@ -110,7 +111,7 @@ export const useIptvStore = create<IptvState>()(
     (set, get) => ({
       channels: [],
       groups: [],
-      hiddenGroups: [],
+      visibleGroups: [],
       activeChannel: null,
       isLoading: false,
       error: null,
@@ -135,14 +136,16 @@ export const useIptvStore = create<IptvState>()(
       
       toggleGroupVisibility: (group: string, isVisible: boolean) => set((state) => {
         if (isVisible) {
-          return { hiddenGroups: state.hiddenGroups.filter(g => g !== group) }
-        } else {
-          if (!state.hiddenGroups.includes(group)) {
-            return { hiddenGroups: [...state.hiddenGroups, group] }
+          if (!state.visibleGroups.includes(group)) {
+            return { visibleGroups: [...state.visibleGroups, group] }
           }
-          return state
+        } else {
+          return { visibleGroups: state.visibleGroups.filter(g => g !== group) }
         }
+        return state
       }),
+      
+      setVisibleGroups: (groups: string[]) => set({ visibleGroups: groups }),
 
       setActiveChannel: (channel) => set({ activeChannel: channel }),
 
@@ -253,7 +256,7 @@ export const useIptvStore = create<IptvState>()(
     }),
     {
       name: 'iptv-storage',
-      partialize: (state) => ({ customUrls: state.customUrls, hiddenGroups: state.hiddenGroups }),
+      partialize: (state) => ({ customUrls: state.customUrls, visibleGroups: state.visibleGroups }),
     }
   )
 )
