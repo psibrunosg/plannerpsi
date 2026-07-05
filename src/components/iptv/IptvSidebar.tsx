@@ -7,6 +7,7 @@ export function IptvSidebar() {
   const { 
     channels,
     groups,
+    hiddenGroups,
     activeChannel,
     isLoading,
     error,
@@ -22,12 +23,14 @@ export function IptvSidebar() {
     fetchPlaylists()
   }, [fetchPlaylists])
 
-  // Set first group active when loaded
+  const visibleGroups = groups.filter(g => !hiddenGroups.includes(g))
+
+  // Set first visible group active when loaded
   useEffect(() => {
-    if (groups.length > 0 && !activeGroup) {
-      setActiveGroup(groups[0])
+    if (visibleGroups.length > 0 && (!activeGroup || !visibleGroups.includes(activeGroup))) {
+      setActiveGroup(visibleGroups[0])
     }
-  }, [groups, activeGroup])
+  }, [visibleGroups, activeGroup])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -89,7 +92,7 @@ export function IptvSidebar() {
             <p className="text-sm">Nenhum canal encontrado</p>
           </div>
         ) : (
-          groups.map(group => {
+          visibleGroups.map(group => {
             const isActiveGroup = activeGroup === group
             const groupChannels = channels.filter(c => c.group === group)
 

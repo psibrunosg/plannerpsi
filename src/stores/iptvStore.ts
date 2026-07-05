@@ -12,6 +12,7 @@ export interface Channel {
 interface IptvState {
   channels: Channel[]
   groups: string[]
+  hiddenGroups: string[]
   activeChannel: Channel | null
   isLoading: boolean
   error: string | null
@@ -22,6 +23,7 @@ interface IptvState {
   setActiveChannel: (channel: Channel) => void
   addCustomUrl: (url: string) => void
   removeCustomUrl: (url: string) => void
+  toggleGroupVisibility: (group: string, isVisible: boolean) => void
 }
 
 async function parseM3uStream(stream: ReadableStream<Uint8Array>, sourceIndex: number): Promise<Channel[]> {
@@ -108,6 +110,7 @@ export const useIptvStore = create<IptvState>()(
     (set, get) => ({
       channels: [],
       groups: [],
+      hiddenGroups: [],
       activeChannel: null,
       isLoading: false,
       error: null,
@@ -123,6 +126,17 @@ export const useIptvStore = create<IptvState>()(
       removeCustomUrl: (url) => set((state) => ({
         customUrls: state.customUrls.filter(u => u !== url)
       })),
+      
+      toggleGroupVisibility: (group: string, isVisible: boolean) => set((state) => {
+        if (isVisible) {
+          return { hiddenGroups: state.hiddenGroups.filter(g => g !== group) }
+        } else {
+          if (!state.hiddenGroups.includes(group)) {
+            return { hiddenGroups: [...state.hiddenGroups, group] }
+          }
+          return state
+        }
+      }),
 
       setActiveChannel: (channel) => set({ activeChannel: channel }),
 
@@ -233,7 +247,7 @@ export const useIptvStore = create<IptvState>()(
     }),
     {
       name: 'iptv-storage',
-      partialize: (state) => ({ customUrls: state.customUrls }),
+      partialize: (state) => ({ customUrls: state.customUrls, hiddenGroups: state.hiddenGroups }),
     }
   )
 )

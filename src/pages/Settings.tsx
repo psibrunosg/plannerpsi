@@ -506,6 +506,32 @@ export default function Settings() {
                 ))
               )}
             </div>
+
+            {useIptvStore((s) => s.groups).length > 0 && (
+              <div className="mt-6 pt-6 border-t border-border-subtle">
+                <div className="mb-3 flex flex-col">
+                  <h4 className="text-sm font-semibold text-text-primary">Filtro de Categorias</h4>
+                  <p className="text-xs text-text-muted">Desmarque as categorias que você não deseja ver na aba de IPTV.</p>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto custom-scrollbar p-2 bg-surface-hover/50 rounded-[var(--radius-sm)] border border-border-subtle">
+                  {useIptvStore((s) => s.groups).map(group => {
+                    const hidden = useIptvStore((s) => s.hiddenGroups).includes(group)
+                    return (
+                      <label key={group} className="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-surface-active rounded-md transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={!hidden}
+                          onChange={(e) => useIptvStore.getState().toggleGroupVisibility(group, e.target.checked)}
+                          className="rounded border-border-subtle text-accent focus:ring-accent bg-surface h-4 w-4 shrink-0"
+                        />
+                        <span className="text-xs text-text-primary truncate" title={group || 'Sem Categoria'}>{group || 'Sem Categoria'}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
       </motion.div>
