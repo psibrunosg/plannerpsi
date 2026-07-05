@@ -4,11 +4,19 @@ import { BarChart3, Flame, Clock, BookOpen } from 'lucide-react'
 import { pageTransition, staggerContainer, staggerItem } from '@/lib/motion'
 import { useFocusStore } from '@/stores/focusStore'
 import { useStudyStore } from '@/stores/studyStore'
-import { computeStudyStreak, buildHeatmap, buildWeeklyHours, computeModuleProgress } from '@/lib/studyStats'
+import { useTaskStore } from '@/stores/taskStore'
+import { useGamificationStore } from '@/stores/gamificationStore'
+import { useProcedureStore } from '@/stores/procedureStore'
+import { computeStudyStreak, buildHeatmap, computeModuleProgress } from '@/lib/studyStats'
 import { cn } from '@/lib/cn'
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
+} from 'recharts'
+import { format, subDays } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 const HEATMAP_WEEKS = 12
-const BAR_WEEKS = 8
 const WEEKDAY_LABELS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
 
 function heatColor(minutes: number): string {
@@ -21,6 +29,9 @@ function heatColor(minutes: number): string {
 
 export default function Stats() {
   const sessions = useFocusStore((s) => s.sessions)
+  const tasks = useTaskStore((s) => s.tasks)
+  const procedures = useProcedureStore((s) => s.procedures)
+  const { xp, level, getXPForCurrentLevel, getXPForNextLevel } = useGamificationStore()
   const { modules, activeCourseId, completedLessons, loadModules } = useStudyStore()
   const [hoveredDay, setHoveredDay] = useState<string | null>(null)
 
@@ -30,9 +41,7 @@ export default function Stats() {
 
   const streak = useMemo(() => computeStudyStreak(sessions), [sessions])
   const heatmap = useMemo(() => buildHeatmap(sessions, HEATMAP_WEEKS), [sessions])
-  const weeklyHours = useMemo(() => buildWeeklyHours(sessions, BAR_WEEKS), [sessions])
   const moduleProgress = useMemo(() => computeModuleProgress(modules, completedLessons), [modules, completedLessons])
-  const maxWeeklyHours = Math.max(1, ...weeklyHours.map((w) => w.hours))
 
   const totalMinutes = sessions.reduce((acc, s) => acc + (s.duration_minutes ?? 0), 0)
   const totalHours = Math.round((totalMinutes / 60) * 10) / 10
@@ -40,6 +49,44 @@ export default function Stats() {
   const hoveredMinutes = hoveredDay
     ? heatmap.flat().find((d) => d?.date === hoveredDay)?.minutes ?? 0
     : null
+
+  // Focus Line Chart Data (Last 7 Days)
+  const focusChartData = useMemo(() => {
+    const data = []
+    for (let i = 6; i >= 0; i--) {
+      const date = subDays(new Date(), i)
+      const dateStr = format(date, 'yyyy-MM-dd')
+      const daySessions = sessions.filter(s => s.started_at.startsWith(dateStr))
+      const minutes = daySessions.reduce((acc, s) => acc + (s.duration_minutes || 0), 0)
+      data.push({
+        name: format(date, 'EEEEEE', { locale: ptBR }),
+        fullDate: format(date, "dd 'de' MMMM", { locale: ptBR }),
+        minutes
+      })
+    }
+    return data
+  }, [sessions])
+
+  // Tasks Pie Chart Data
+  const tasksChartData = useMemo(() => {
+    const todo = tasks.filter(t => t.status === 'todo').length
+    const inProgress = tasks.filter(t => t.status === 'in_progress').length
+    const done = tasks.filter(t => t.status === 'done').length
+    return [
+      { name: 'A Fazer', value: todo, color: '#94a3b8' },
+      { name: 'Em Progresso', value: inProgress, color: '#F4A261' },
+      { name: 'Concluídas', value: done, color: '#A4C3B2' },
+    ].filter(d => d.value > 0)
+  }, [tasks])
+
+  // Procedures Stats
+  const totalProcedures = procedures.length
+  const totalSteps = procedures.reduce((acc, p) => acc + p.steps.length, 0)
+
+  // XP Progress
+  const currentLevelXP = getXPForCurrentLevel(level)
+  const nextLevelXP = getXPForNextLevel(level)
+  const xpProgress = Math.max(0, Math.min(100, ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100))
 
   return (
     <motion.div variants={pageTransition} initial="hidden" animate="visible" exit="exit">
@@ -111,44 +158,113 @@ export default function Stats() {
       </motion.div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Weekly hours bar chart */}
+        {/* Foco e Produtividade (Line Chart) */}
         <motion.div variants={staggerItem} initial="hidden" animate="visible" className="glass-card p-6">
-          <h3 className="mb-4 text-lg font-semibold text-text-primary">Horas por semana</h3>
-          <div className="flex h-40 items-end gap-2">
-            {weeklyHours.map((w, i) => (
-              <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
-                <span className="text-[10px] text-text-muted">{w.hours > 0 ? `${w.hours}h` : ''}</span>
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: `${Math.max(4, (w.hours / maxWeeklyHours) * 100)}%` }}
-                  transition={{ duration: 0.4, delay: i * 0.03 }}
-                  className="w-full rounded-t-sm bg-accent/70"
-                  style={{ minHeight: 4 }}
+          <h3 className="mb-4 text-lg font-semibold text-text-primary">Foco e Produtividade (Últimos 7 dias)</h3>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={focusChartData} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
+                <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}m`} />
+                <RechartsTooltip 
+                  contentStyle={{ backgroundColor: 'var(--surface-elevated)', borderColor: 'var(--border-subtle)', borderRadius: '8px' }}
+                  labelStyle={{ color: 'var(--text-secondary)', marginBottom: '4px' }}
+                  itemStyle={{ color: 'var(--accent)', fontWeight: 'bold' }}
+                  labelFormatter={(_, payload) => payload.length > 0 ? payload[0].payload.fullDate : ''}
+                  formatter={(value: any) => [`${value} minutos`, 'Foco']}
                 />
-                <span className="text-[9px] text-text-muted">{w.label}</span>
-              </div>
-            ))}
+                <Line type="monotone" dataKey="minutes" stroke="var(--accent)" strokeWidth={3} dot={{ r: 4, fill: 'var(--accent)' }} activeDot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
+
+        {/* Status das Tarefas (Pie Chart) */}
+        <motion.div variants={staggerItem} initial="hidden" animate="visible" className="glass-card p-6">
+          <h3 className="mb-4 text-lg font-semibold text-text-primary">Status das Tarefas</h3>
+          {tasksChartData.length === 0 ? (
+            <div className="flex h-64 items-center justify-center text-text-muted">Nenhuma tarefa criada.</div>
+          ) : (
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={tasksChartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {tasksChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip 
+                    contentStyle={{ backgroundColor: 'var(--surface-elevated)', borderColor: 'var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)' }}
+                    itemStyle={{ color: 'var(--text-primary)' }}
+                  />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Gamification Stats */}
+        <motion.div variants={staggerItem} initial="hidden" animate="visible" className="glass-card p-6 flex flex-col justify-center">
+          <h3 className="mb-4 text-lg font-semibold text-text-primary">Sua Evolução (Nível {level})</h3>
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span className="text-text-secondary">Progresso Atual</span>
+            <span className="text-text-muted">{xp} / {nextLevelXP} XP</span>
+          </div>
+          <div className="h-3 w-full overflow-hidden rounded-full bg-surface-hover relative">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${xpProgress}%` }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="absolute inset-y-0 left-0 bg-accent rounded-full"
+            />
+          </div>
+          <p className="mt-4 text-xs text-text-muted text-center">
+            Complete tarefas e sessões de foco para ganhar XP e subir de nível!
+          </p>
+          
+          <div className="mt-6 pt-6 border-t border-border-subtle flex justify-between items-center text-center">
+            <div>
+              <p className="text-xl font-bold text-text-primary">{totalProcedures}</p>
+              <p className="text-xs text-text-muted">Protocolos</p>
+            </div>
+            <div className="w-px h-10 bg-border-subtle mx-4" />
+            <div>
+              <p className="text-xl font-bold text-accent">{totalSteps}</p>
+              <p className="text-xs text-text-muted">Passos Mapeados</p>
+            </div>
           </div>
         </motion.div>
 
         {/* Module progress */}
         <motion.div variants={staggerItem} initial="hidden" animate="visible" className="glass-card p-6">
-          <h3 className="mb-4 text-lg font-semibold text-text-primary">Progresso por módulo</h3>
+          <h3 className="mb-4 text-lg font-semibold text-text-primary">Progresso dos Cursos</h3>
           {moduleProgress.length === 0 ? (
             <p className="text-sm text-text-muted">
               {activeCourseId ? 'Nenhum módulo carregado ainda — abra a página de Estudos.' : 'Sem curso selecionado.'}
             </p>
           ) : (
-            <div className="space-y-3 max-h-52 overflow-y-auto custom-scrollbar pr-1">
+            <div className="space-y-4 max-h-64 overflow-y-auto custom-scrollbar pr-2">
               {moduleProgress.map((m) => {
                 const pct = m.total > 0 ? Math.round((m.completed / m.total) * 100) : 0
                 return (
                   <div key={m.id}>
-                    <div className="mb-1 flex justify-between text-xs">
-                      <span className="truncate text-text-secondary">{m.name}</span>
-                      <span className="text-text-muted">{m.completed}/{m.total}</span>
+                    <div className="mb-1.5 flex justify-between text-sm">
+                      <span className="truncate text-text-secondary font-medium">{m.name}</span>
+                      <span className="text-text-muted text-xs">{m.completed}/{m.total}</span>
                     </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-hover">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-surface-hover">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
