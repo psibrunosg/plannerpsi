@@ -26,6 +26,8 @@ export default function Settings() {
   const groups = useIptvStore((s) => s.groups)
   const hiddenGroups = useIptvStore((s) => s.hiddenGroups)
   const customUrls = useIptvStore((s) => s.customUrls)
+  const fetchPlaylists = useIptvStore((s) => s.fetchPlaylists)
+  const isLoadingIptv = useIptvStore((s) => s.isLoading)
 
   const {
     stations, initStations,
@@ -71,6 +73,12 @@ export default function Settings() {
       setPushStatus(await getPushStatus())
     }
   }
+
+  useEffect(() => {
+    if (customUrls.length > 0 && groups.length === 0 && !isLoadingIptv) {
+      fetchPlaylists()
+    }
+  }, [customUrls.length, groups.length, isLoadingIptv, fetchPlaylists])
 
   const baseCalendarUrl = user ? `${supabaseUrl}/functions/v1/calendar-feed/${user.id}.ics` : ''
   const webcalUrl = baseCalendarUrl.replace('https://', 'webcal://')
@@ -510,7 +518,14 @@ export default function Settings() {
               )}
             </div>
 
-            {groups.length > 0 && (
+            {isLoadingIptv ? (
+              <div className="mt-6 pt-6 border-t border-border-subtle">
+                <div className="mb-3 flex flex-col">
+                  <h4 className="text-sm font-semibold text-text-primary">Filtro de Categorias</h4>
+                  <p className="text-xs text-text-muted">Carregando categorias da sua lista...</p>
+                </div>
+              </div>
+            ) : groups.length > 0 && (
               <div className="mt-6 pt-6 border-t border-border-subtle">
                 <div className="mb-3 flex flex-col">
                   <h4 className="text-sm font-semibold text-text-primary">Filtro de Categorias</h4>

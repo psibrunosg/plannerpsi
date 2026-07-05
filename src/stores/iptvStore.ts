@@ -116,16 +116,22 @@ export const useIptvStore = create<IptvState>()(
       error: null,
       customUrls: [],
 
-      addCustomUrl: (url) => set((state) => {
-        if (!state.customUrls.includes(url)) {
-          return { customUrls: [...state.customUrls, url] }
-        }
-        return state
-      }),
+      addCustomUrl: (url) => {
+        set((state) => {
+          if (!state.customUrls.includes(url)) {
+            return { customUrls: [...state.customUrls, url] }
+          }
+          return state
+        })
+        get().fetchPlaylists(true)
+      },
 
-      removeCustomUrl: (url) => set((state) => ({
-        customUrls: state.customUrls.filter(u => u !== url)
-      })),
+      removeCustomUrl: (url) => {
+        set((state) => ({
+          customUrls: state.customUrls.filter(u => u !== url)
+        }))
+        get().fetchPlaylists(true)
+      },
       
       toggleGroupVisibility: (group: string, isVisible: boolean) => set((state) => {
         if (isVisible) {
