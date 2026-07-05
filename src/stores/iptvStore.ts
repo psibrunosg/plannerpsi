@@ -126,7 +126,34 @@ export const useIptvStore = create<IptvState>()(
             try {
               const response = await fetch(url)
               if (!response.ok) throw new Error(`HTTP error ${response.status}`)
-              const content = await response.text()
+              
+              const reader = response.body?.getReader()
+              if (!reader) {
+                const content = await response.text()
+                return parseM3u(content, index)
+              }
+
+              let content = ''
+              let receivedLength = 0
+              const MAX_BYTES = 1024 * 1024 * 2 // 2MB limit per file
+
+              const decoder = new TextDecoder('utf-8')
+              
+              while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+                
+                content += decoder.decode(value, { stream: true })
+                receivedLength += value.length
+                
+                if (receivedLength >= MAX_BYTES) {
+                  // Finalize decoding
+                  content += decoder.decode()
+                  reader.cancel()
+                  break
+                }
+              }
+
               return parseM3u(content, index)
             } catch (e) {
               console.error('Failed to fetch playlist', url, e)
