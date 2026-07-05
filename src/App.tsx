@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { AppShell } from '@/components/layout/AppShell'
@@ -6,15 +6,18 @@ import { ToastContainer } from '@/components/ui/ToastContainer'
 import { CommandPalette } from '@/components/layout/CommandPalette'
 import { TaskForm } from '@/components/tasks/TaskForm'
 import Dashboard from '@/pages/Dashboard'
-import Tasks from '@/pages/Tasks'
-import Focus from '@/pages/Focus'
-import Planning from '@/pages/Planning'
-import Procedures from '@/pages/Procedures'
-import Study from '@/pages/Study'
-import Iptv from '@/pages/Iptv'
-import Settings from '@/pages/Settings'
 import Login from '@/pages/Login'
 import UpdatePassword from '@/pages/UpdatePassword'
+
+// Lazy-loaded: only Dashboard (the landing page) ships in the initial bundle
+const Tasks = lazy(() => import('@/pages/Tasks'))
+const Focus = lazy(() => import('@/pages/Focus'))
+const Planning = lazy(() => import('@/pages/Planning'))
+const Procedures = lazy(() => import('@/pages/Procedures'))
+const Study = lazy(() => import('@/pages/Study'))
+const Stats = lazy(() => import('@/pages/Stats'))
+const Iptv = lazy(() => import('@/pages/Iptv'))
+const Settings = lazy(() => import('@/pages/Settings'))
 import { migrateLocalDataToSupabase } from '@/lib/migration'
 import { useAuthStore } from '@/stores/authStore'
 import { useTaskStore } from '@/stores/taskStore'
@@ -98,18 +101,21 @@ export default function App() {
   return (
     <>
       <AppShell isSyncing={isMigrating}>
-        <AnimatePresence mode="wait">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/tasks" element={<Tasks />} />
-            <Route path="/focus" element={<Focus />} />
-            <Route path="/planning" element={<Planning />} />
-            <Route path="/procedures" element={<Procedures />} />
-            <Route path="/study" element={<Study />} />
-            <Route path="/iptv" element={<Iptv />} />
-            <Route path="/settings" element={<Settings />} />
-          </Routes>
-        </AnimatePresence>
+        <Suspense fallback={<div className="flex h-full items-center justify-center"><div className="text-accent animate-pulse">Carregando...</div></div>}>
+          <AnimatePresence mode="wait">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/tasks" element={<Tasks />} />
+              <Route path="/focus" element={<Focus />} />
+              <Route path="/planning" element={<Planning />} />
+              <Route path="/procedures" element={<Procedures />} />
+              <Route path="/study" element={<Study />} />
+              <Route path="/stats" element={<Stats />} />
+              <Route path="/iptv" element={<Iptv />} />
+              <Route path="/settings" element={<Settings />} />
+            </Routes>
+          </AnimatePresence>
+        </Suspense>
       </AppShell>
       <TaskForm />
       <ToastContainer />

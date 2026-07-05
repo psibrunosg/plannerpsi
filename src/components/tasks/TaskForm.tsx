@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Calendar, Tag, Flag, Clock, AlignLeft, Percent, Repeat } from 'lucide-react'
+import { X, Calendar, Tag, Flag, Clock, AlignLeft, Percent, Repeat, ListTree, Plus, Trash2, CheckCircle2, Circle } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { modalOverlay, modalContent } from '@/lib/motion'
 import { useUIStore } from '@/stores/uiStore'
@@ -21,6 +21,7 @@ export function TaskForm() {
   const updateTask = useTaskStore((s) => s.updateTask)
   const deleteTask = useTaskStore((s) => s.deleteTask)
   const addToast = useToastStore((s) => s.addToast)
+  const allTasks = useTaskStore((s) => s.tasks)
 
   const isOpen = taskFormOpen || !!taskDetailId
   const isEditing = !!taskDetailId
@@ -44,6 +45,9 @@ export function TaskForm() {
   const [isRecurring, setIsRecurring] = useState(false)
   const [recurrenceFreq, setRecurrenceFreq] = useState<RecurrenceFreq>('weekly')
   const [recurrenceInterval, setRecurrenceInterval] = useState(1)
+  const [subtaskInput, setSubtaskInput] = useState('')
+
+  const subtasks = taskDetailId ? allTasks.filter((t) => t.parent_id === taskDetailId) : []
 
   const reset = () => {
     setTitle('')
@@ -62,6 +66,7 @@ export function TaskForm() {
     setIsRecurring(false)
     setRecurrenceFreq('weekly')
     setRecurrenceInterval(1)
+    setSubtaskInput('')
   }
 
   const closeForm = () => {
@@ -168,6 +173,43 @@ export function TaskForm() {
         }, 250)
       }
     }
+  }
+
+  const handleAddSubtask = () => {
+    const value = subtaskInput.trim()
+    if (!value || !taskDetailId) return
+    addTask({
+      id: crypto.randomUUID(),
+      title: value,
+      description: null,
+      status: 'todo',
+      priority: 'p3',
+      due_date: null,
+      due_time: null,
+      reminder_minutes: null,
+      estimated_minutes: null,
+      actual_minutes: null,
+      parent_id: taskDetailId,
+      tags: [],
+      is_recurring: false,
+      recurrence_rule: null,
+      completed_at: null,
+      position: 0,
+      kanban_column: 'todo',
+      completion_percentage: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      user_id: null,
+    })
+    setSubtaskInput('')
+  }
+
+  const handleToggleSubtask = (subtaskId: string, done: boolean) => {
+    updateTask(subtaskId, {
+      status: done ? 'todo' : 'done',
+      completed_at: done ? null : new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
   }
 
   const handleAddTag = (value?: string) => {
@@ -403,6 +445,48 @@ export function TaskForm() {
                       <button type="button" onClick={() => setTags(tags.filter((t) => t !== tag))} className="hover:text-accent-hover"><X className="h-3 w-3" /></button>
                     </span>
                   ))}
+                </div>
+              )}
+
+              {/* Subtasks (only available once the parent task exists) */}
+              {isEditing && (
+                <div>
+                  <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-text-muted">
+                    <ListTree className="h-3.5 w-3.5" />
+                    Subtarefas {subtasks.length > 0 && `(${subtasks.filter((s) => s.status === 'done').length}/${subtasks.length})`}
+                  </label>
+                  <div className="space-y-1">
+                    {subtasks.map((subtask) => (
+                      <div key={subtask.id} className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-surface-hover px-2 py-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleSubtask(subtask.id, subtask.status === 'done')}
+                          className={cn('shrink-0', subtask.status === 'done' ? 'text-success' : 'text-text-muted hover:text-accent')}
+                        >
+                          {subtask.status === 'done' ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+                        </button>
+                        <span className={cn('flex-1 truncate text-sm', subtask.status === 'done' ? 'text-text-muted line-through' : 'text-text-primary')}>
+                          {subtask.title}
+                        </span>
+                        <button type="button" onClick={() => deleteTask(subtask.id)} className="shrink-0 text-text-muted hover:text-red-500">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Adicionar subtarefa..."
+                      value={subtaskInput}
+                      onChange={(e) => setSubtaskInput(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddSubtask() } }}
+                      className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-3 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent"
+                    />
+                    <button type="button" onClick={handleAddSubtask} className="shrink-0 rounded-[var(--radius-sm)] bg-surface-hover px-2.5 text-text-muted hover:text-accent">
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               )}
 

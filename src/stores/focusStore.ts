@@ -29,6 +29,7 @@ interface FocusState {
   pauseSession: () => void
   resumeSession: () => void
   endSession: () => Promise<void>
+  logSession: (startedAt: Date, endedAt: Date, type: SessionType) => Promise<void>
   tick: () => void
   updateRemaining: (remaining: number) => void
   updateSettings: (settings: Partial<FocusState['pomodoroSettings']>) => void
@@ -152,6 +153,31 @@ export const useFocusStore = create<FocusState>()(
                 updated_at: new Date().toISOString()
               }, { onConflict: 'user_id' })
           }
+        }
+      },
+
+      // Logs a completed session without touching activeSession — used to auto-register
+      // lesson playback time as focus time, independent of the manual pomodoro timer.
+      logSession: async (startedAt, endedAt, type) => {
+        const durationMinutes = Math.round((endedAt.getTime() - startedAt.getTime()) / 60000)
+        if (durationMinutes <= 0) return
+
+        const session: FocusSession = {
+          id: crypto.randomUUID(),
+          task_id: null,
+          started_at: startedAt.toISOString(),
+          ended_at: endedAt.toISOString(),
+          duration_minutes: durationMinutes,
+          session_type: type,
+          created_at: new Date().toISOString(),
+        }
+
+        set((s) => ({ sessions: [session, ...s.sessions] }))
+
+        const user = useAuthStore.getState().user
+        if (user) {
+          const { error } = await supabase.from('focus_sessions').insert({ ...session, user_id: user.id })
+          if (error) console.error('Error logging study session:', error)
         }
       },
 

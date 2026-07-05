@@ -2,9 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { FileText, Loader2, Search, X } from 'lucide-react'
 import { useStudyStore } from '@/stores/studyStore'
 import { fetchMarkdownContent } from '@/lib/drive'
+import { studyMedia } from '@/lib/studyMedia'
 
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function timestampToSeconds(timestamp: string): number {
+  const [hh, mm, ss] = timestamp.replace(/[[\]]/g, '').split(':').map(Number)
+  return hh * 3600 + mm * 60 + ss
 }
 
 function highlightMatches(text: string, query: string) {
@@ -20,9 +26,16 @@ function highlightMatches(text: string, query: string) {
 
 export function StudyTranscript() {
   const activeLesson = useStudyStore(s => s.activeLesson)
+  const isAudioMode = useStudyStore(s => s.isAudioMode)
   const [markdown, setMarkdown] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+
+  const seekTo = (timestamp: string) => {
+    const media = isAudioMode ? studyMedia.audio : studyMedia.video
+    media.currentTime = timestampToSeconds(timestamp)
+    media.play().catch(() => {})
+  }
 
   useEffect(() => {
     setSearchQuery('')
@@ -116,7 +129,16 @@ export function StudyTranscript() {
                 <p key={i} className="mb-2 leading-relaxed">
                   {parts.map((part, j) =>
                     part.match(/\[\d{2}:\d{2}:\d{2}\]/)
-                      ? <span key={j} className="text-accent font-mono text-xs mr-1">{part}</span>
+                      ? (
+                        <button
+                          key={j}
+                          onClick={() => seekTo(part)}
+                          title="Pular para este momento"
+                          className="text-accent font-mono text-xs mr-1 rounded hover:bg-accent/10 hover:underline transition-colors"
+                        >
+                          {part}
+                        </button>
+                      )
                       : <span key={j}>{highlightMatches(part, searchQuery)}</span>
                   )}
                 </p>

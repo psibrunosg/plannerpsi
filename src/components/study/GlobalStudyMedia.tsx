@@ -1,32 +1,55 @@
 import { useEffect } from 'react'
 import { useStudyStore } from '@/stores/studyStore'
+import { useFocusStore } from '@/stores/focusStore'
 import { studyMedia } from '@/lib/studyMedia'
 import { getDriveStreamUrl } from '@/lib/drive'
 
 const POSITION_SAVE_INTERVAL_SEC = 5
 // Don't resume within this many seconds of the end (avoids re-triggering "ended" on reload)
 const RESUME_END_GUARD_SEC = 10
+// Only auto-log lesson playback as focus time past this threshold, to avoid
+// polluting stats with brief skips/previews.
+const MIN_AUTO_LOG_MINUTES = 5
 
 export function GlobalStudyMedia() {
   const {
     activeLesson, isAudioMode, toggleLessonCompleted, playNextLesson, playPreviousLesson, setIsPlaying,
     playbackRate, volume, saveLessonPosition, getLessonPosition,
   } = useStudyStore()
+  const logSession = useFocusStore((s) => s.logSession)
 
   useEffect(() => {
     if (!activeLesson) return
 
     const baseName = activeLesson.baseName
     let lastSavedSecond = -1
+    let watchStartedAt: Date | null = null
+
+    const flushWatchTime = () => {
+      if (!watchStartedAt) return
+      const startedAt = watchStartedAt
+      watchStartedAt = null
+      const endedAt = new Date()
+      if ((endedAt.getTime() - startedAt.getTime()) / 60000 >= MIN_AUTO_LOG_MINUTES) {
+        logSession(startedAt, endedAt, 'deep_work')
+      }
+    }
 
     const handleEnded = async () => {
+      flushWatchTime()
       saveLessonPosition(baseName, 0)
       await toggleLessonCompleted(baseName)
       await playNextLesson()
     }
 
-    const handlePlay = () => setIsPlaying(true)
-    const handlePause = () => setIsPlaying(false)
+    const handlePlay = () => {
+      setIsPlaying(true)
+      if (!watchStartedAt) watchStartedAt = new Date()
+    }
+    const handlePause = () => {
+      setIsPlaying(false)
+      flushWatchTime()
+    }
 
     const handleTimeUpdate = (e: Event) => {
       const target = e.currentTarget as HTMLMediaElement
@@ -98,6 +121,9 @@ export function GlobalStudyMedia() {
     studyMedia.video.addEventListener('loadedmetadata', handleLoadedMetadata)
 
     return () => {
+      // Flush any in-progress watch time before switching lesson/mode/unmounting
+      flushWatchTime()
+
       // Persist the last known position when leaving/switching the lesson
       if (!media.paused || media.currentTime > 0) {
         saveLessonPosition(baseName, media.currentTime)
@@ -115,7 +141,7 @@ export function GlobalStudyMedia() {
       studyMedia.video.removeEventListener('timeupdate', handleTimeUpdate)
       studyMedia.video.removeEventListener('loadedmetadata', handleLoadedMetadata)
     }
-  }, [activeLesson, isAudioMode, toggleLessonCompleted, playNextLesson, playPreviousLesson, setIsPlaying, playbackRate, volume, saveLessonPosition, getLessonPosition])
+  }, [activeLesson, isAudioMode, toggleLessonCompleted, playNextLesson, playPreviousLesson, setIsPlaying, playbackRate, volume, saveLessonPosition, getLessonPosition, logSession])
 
   return null // This component only manages global side-effects and events
 }

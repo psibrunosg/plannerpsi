@@ -9,21 +9,7 @@ import { WeatherWidget } from '@/components/dashboard/WeatherWidget'
 import { AgendaWidget } from '@/components/dashboard/AgendaWidget'
 import { ExamCountdownWidget } from '@/components/dashboard/ExamCountdownWidget'
 import { StoicQuoteWidget } from '@/components/dashboard/StoicQuoteWidget'
-
-function computeStudyStreak(sessions: { started_at: string }[]): number {
-  const activeDays = new Set(sessions.map((s) => s.started_at.split('T')[0]))
-  let streak = 0
-  const cursor = new Date()
-  // Allow streak to still count if today has no session yet, as long as yesterday does
-  if (!activeDays.has(cursor.toISOString().split('T')[0])) {
-    cursor.setDate(cursor.getDate() - 1)
-  }
-  while (activeDays.has(cursor.toISOString().split('T')[0])) {
-    streak++
-    cursor.setDate(cursor.getDate() - 1)
-  }
-  return streak
-}
+import { computeStudyStreak } from '@/lib/studyStats'
 
 export default function Dashboard() {
   const navigate = useNavigate()
