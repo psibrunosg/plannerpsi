@@ -16,7 +16,6 @@ const Planning = lazy(() => import('@/pages/Planning'))
 const Procedures = lazy(() => import('@/pages/Procedures'))
 const Study = lazy(() => import('@/pages/Study'))
 const Stats = lazy(() => import('@/pages/Stats'))
-const Iptv = lazy(() => import('@/pages/Iptv'))
 const Settings = lazy(() => import('@/pages/Settings'))
 import { migrateLocalDataToSupabase } from '@/lib/migration'
 import { useAuthStore } from '@/stores/authStore'
@@ -111,7 +110,6 @@ export default function App() {
               <Route path="/procedures" element={<Procedures />} />
               <Route path="/study" element={<Study />} />
               <Route path="/stats" element={<Stats />} />
-              <Route path="/iptv" element={<Iptv />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </AnimatePresence>

@@ -10,7 +10,6 @@ import {
   PanelLeftClose,
   PanelLeft,
   BookOpen,
-  Tv,
   BarChart3
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -25,7 +24,6 @@ const NAV_ITEMS = [
   { path: '/procedures', icon: ClipboardList, label: 'Procedimentos' },
   { path: '/study', icon: BookOpen, label: 'Estudos' },
   { path: '/stats', icon: BarChart3, label: 'Estatísticas' },
-  { path: '/iptv', icon: Tv, label: 'IPTV' },
   { path: '/settings', icon: Settings, label: 'Configurações' },
 ]
 

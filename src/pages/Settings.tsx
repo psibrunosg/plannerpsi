@@ -8,13 +8,12 @@ import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
 import { useRadioStore } from '@/stores/radioStore'
 import { supabaseUrl } from '@/lib/supabase'
-import { Calendar, Link as LinkIcon, Copy, Radio, Star, Play, Pause, Download, BellRing, Music, Tv } from 'lucide-react'
+import { Calendar, Link as LinkIcon, Copy, Radio, Star, Play, Pause, Download, BellRing, Music } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from '@/lib/pushManager'
 import { useSpotifyStore } from '@/stores/spotifyStore'
 import { beginLogin } from '@/lib/spotifyAuth'
 import { countryCodeToFlag } from '@/lib/countryFlag'
-import { useIptvStore } from '@/stores/iptvStore'
 
 export default function Settings() {
   const theme = useUIStore((s) => s.theme)
@@ -23,11 +22,6 @@ export default function Settings() {
   const updateSettings = useFocusStore((s) => s.updateSettings)
   const user = useAuthStore((s) => s.user)
   const addToast = useToastStore((s) => s.addToast)
-  const groups = useIptvStore((s) => s.groups)
-  const visibleGroups = useIptvStore((s) => s.visibleGroups)
-  const customUrls = useIptvStore((s) => s.customUrls)
-  const fetchPlaylists = useIptvStore((s) => s.fetchPlaylists)
-  const isLoadingIptv = useIptvStore((s) => s.isLoading)
 
   const {
     stations, initStations,
@@ -74,11 +68,7 @@ export default function Settings() {
     }
   }
 
-  useEffect(() => {
-    if (customUrls.length > 0 && groups.length === 0 && !isLoadingIptv) {
-      fetchPlaylists()
-    }
-  }, [customUrls.length, groups.length, isLoadingIptv, fetchPlaylists])
+
 
   const baseCalendarUrl = user ? `${supabaseUrl}/functions/v1/calendar-feed/${user.id}.ics` : ''
   const webcalUrl = baseCalendarUrl.replace('https://', 'webcal://')
@@ -454,141 +444,7 @@ export default function Settings() {
           </div>
         </motion.div>
 
-        <motion.div variants={staggerItem} className="glass-card p-6">
-          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-primary">
-            <Tv className="h-5 w-5" /> Listas IPTV Personalizadas
-          </h3>
-          <p className="mb-4 text-sm text-text-secondary">
-            Adicione links diretos para listas de IPTV (.m3u, .m3u8) que serão carregadas automaticamente na aba IPTV.
-          </p>
 
-          <div className="flex flex-col gap-4">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                id="iptv-url-input"
-                placeholder="https://exemplo.com/lista.m3u"
-                className="flex-1 rounded-[var(--radius-sm)] bg-surface-hover px-4 py-2 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const input = e.currentTarget
-                    const val = input.value.trim()
-                    if (val) {
-                      useIptvStore.getState().addCustomUrl(val)
-                      input.value = ''
-                      addToast('Lista adicionada com sucesso!', 'success')
-                    }
-                  }
-                }}
-              />
-              <button
-                onClick={() => {
-                  const input = document.getElementById('iptv-url-input') as HTMLInputElement
-                  const val = input?.value.trim()
-                  if (val) {
-                    useIptvStore.getState().addCustomUrl(val)
-                    input.value = ''
-                    addToast('Lista adicionada com sucesso!', 'success')
-                  }
-                }}
-                className="rounded-[var(--radius-sm)] bg-accent/10 px-4 py-2 text-sm font-medium text-accent hover:bg-accent/20 transition-colors"
-              >
-                Adicionar
-              </button>
-            </div>
-
-            <div className="space-y-2 mt-2">
-              {customUrls.length === 0 ? (
-                <p className="text-xs text-text-muted italic">Nenhuma lista personalizada adicionada.</p>
-              ) : (
-                customUrls.map((url, i) => (
-                  <div key={i} className="flex items-center justify-between rounded-[var(--radius-sm)] bg-surface-hover p-2 border border-border-subtle">
-                    <div className="flex items-center gap-2 overflow-hidden mr-4">
-                      <LinkIcon className="h-4 w-4 text-text-muted shrink-0" />
-                      <span className="text-xs text-text-muted truncate">{url}</span>
-                    </div>
-                    <button
-                      onClick={() => useIptvStore.getState().removeCustomUrl(url)}
-                      className="p-1.5 text-danger/70 hover:text-danger hover:bg-danger/10 rounded-md transition-colors shrink-0"
-                    >
-                      Remover
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-
-            {isLoadingIptv ? (
-              <div className="mt-6 pt-6 border-t border-border-subtle">
-                <div className="mb-3 flex flex-col">
-                  <h4 className="text-sm font-semibold text-text-primary">Filtro de Categorias</h4>
-                  <p className="text-xs text-text-muted">Carregando categorias da sua lista...</p>
-                </div>
-              </div>
-            ) : groups.length > 0 && (
-              <div className="mt-6 pt-6 border-t border-border-subtle">
-                <div className="mb-3 flex flex-col">
-                  <h4 className="text-sm font-semibold text-text-primary">Filtro de Categorias</h4>
-                  <p className="text-xs text-text-muted">Selecione as categorias que você deseja ver na aba de IPTV. Novas listas iniciam desmarcadas.</p>
-                </div>
-                
-                <div className="mb-3 flex items-center justify-between gap-2">
-                  <input
-                    type="text"
-                    placeholder="Buscar categoria..."
-                    onChange={(e) => {
-                      const val = e.target.value.toLowerCase()
-                      const container = document.getElementById('category-filter-container')
-                      if (container) {
-                        const labels = container.querySelectorAll('label')
-                        labels.forEach(label => {
-                          const text = label.textContent?.toLowerCase() || ''
-                          if (text.includes(val)) {
-                            label.style.display = 'flex'
-                          } else {
-                            label.style.display = 'none'
-                          }
-                        })
-                      }
-                    }}
-                    className="flex-1 rounded-[var(--radius-sm)] bg-surface-hover px-3 py-1.5 text-xs text-text-primary outline-none focus:ring-1 focus:ring-accent border border-border-subtle"
-                  />
-                  <div className="flex gap-2 shrink-0">
-                    <button
-                      onClick={() => useIptvStore.getState().setVisibleGroups(groups)}
-                      className="text-[10px] font-medium text-accent hover:underline"
-                    >
-                      Marcar Todas
-                    </button>
-                    <button
-                      onClick={() => useIptvStore.getState().setVisibleGroups([])}
-                      className="text-[10px] font-medium text-text-muted hover:text-text-primary hover:underline"
-                    >
-                      Desmarcar Todas
-                    </button>
-                  </div>
-                </div>
-
-                <div id="category-filter-container" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto custom-scrollbar p-2 bg-surface-hover/50 rounded-[var(--radius-sm)] border border-border-subtle">
-                  {groups.map(group => {
-                    const checked = visibleGroups.includes(group)
-                    return (
-                      <label key={group} className="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-surface-active rounded-md transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={(e) => useIptvStore.getState().toggleGroupVisibility(group, e.target.checked)}
-                          className="rounded border-border-subtle text-accent focus:ring-accent bg-surface h-4 w-4 shrink-0"
-                        />
-                        <span className="text-xs text-text-primary truncate" title={group || 'Sem Categoria'}>{group || 'Sem Categoria'}</span>
-                      </label>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        </motion.div>
       </motion.div>
     </motion.div>
   )
