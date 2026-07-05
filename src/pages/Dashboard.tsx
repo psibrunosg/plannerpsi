@@ -8,6 +8,7 @@ import { useStudyStore } from '@/stores/studyStore'
 import { WeatherWidget } from '@/components/dashboard/WeatherWidget'
 import { AgendaWidget } from '@/components/dashboard/AgendaWidget'
 import { ExamCountdownWidget } from '@/components/dashboard/ExamCountdownWidget'
+import { StoicQuoteWidget } from '@/components/dashboard/StoicQuoteWidget'
 
 function computeStudyStreak(sessions: { started_at: string }[]): number {
   const activeDays = new Set(sessions.map((s) => s.started_at.split('T')[0]))
@@ -76,6 +77,7 @@ export default function Dashboard() {
       </div>
 
       <ExamCountdownWidget className="mb-6" />
+      <StoicQuoteWidget className="mb-6" />
 
       <motion.div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" variants={staggerContainer} initial="hidden" animate="visible">
         {widgets.map((w) => (
