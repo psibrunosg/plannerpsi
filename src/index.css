@@ -50,6 +50,8 @@
   --glass-card-bg: rgba(255, 255, 255, 0.7);
   --glass-card-border: rgba(168, 195, 180, 0.3);
   --glass-card-hover-bg: rgba(255, 255, 255, 0.95);
+  
+  color-scheme: light;
 }
 
 .dark {
@@ -73,6 +75,8 @@
   --glass-card-bg: rgba(46, 46, 46, 0.6);
   --glass-card-border: rgba(168, 195, 180, 0.15);
   --glass-card-hover-bg: rgba(62, 107, 92, 0.7);
+
+  color-scheme: dark;
 }
 
 @layer base {
@@ -94,6 +98,11 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+  }
+
+  select option {
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
   }
 
   ::selection {
