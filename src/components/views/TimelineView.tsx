@@ -11,8 +11,9 @@ import {
   isBefore,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { cn } from '@/lib/cn'
 import { useUIStore } from '@/stores/uiStore'
+import { useAuthStore } from '@/stores/authStore'
+import { cn } from '@/lib/cn'
 import { PRIORITY_CONFIG, STATUS_CONFIG } from '@/types'
 import type { Task, TaskStatus } from '@/types'
 import { fadeIn, staggerContainer, staggerItem } from '@/lib/motion'
@@ -212,6 +213,7 @@ interface StatusGroupProps {
 
 function StatusGroup({ status, tasks, startDate, dayWidth, visibleDays, defaultOpen = true, onTooltip }: StatusGroupProps) {
   const [open, setOpen] = useState(defaultOpen)
+  const currentUser = useAuthStore((s) => s.user)
   const config = STATUS_CONFIG[status]
 
   if (tasks.length === 0) return null
@@ -249,11 +251,17 @@ function StatusGroup({ status, tasks, startDate, dayWidth, visibleDays, defaultO
                     </div>
                   )}
                 </div>
-                {task.assignee && (
-                  <span className="ml-2 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/20 text-[9px] font-bold text-accent" title={task.assignee.full_name || task.assignee.email}>
-                    {(task.assignee.full_name || task.assignee.email).charAt(0).toUpperCase()}
-                  </span>
-                )}
+                {task.assignee && (() => {
+                  const isDelegated = task.assignee_id !== currentUser?.id
+                  return (
+                    <span className={cn(
+                      "ml-2 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold",
+                      isDelegated ? "bg-warning/20 text-warning" : "bg-accent/20 text-accent"
+                    )} title={task.assignee.full_name || task.assignee.email}>
+                      {(task.assignee.full_name || task.assignee.email).charAt(0).toUpperCase()}
+                    </span>
+                  )
+                })()}
               </div>
 
               {/* Timeline bar area */}

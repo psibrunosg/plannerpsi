@@ -4,6 +4,7 @@ import { GripVertical, Calendar, Clock, Plus } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useTaskStore } from '@/stores/taskStore'
 import { useUIStore } from '@/stores/uiStore'
+import { useAuthStore } from '@/stores/authStore'
 import { KANBAN_COLUMNS, PRIORITY_CONFIG } from '@/types'
 import type { Task, TaskStatus } from '@/types'
 import { staggerContainer, staggerItem } from '@/lib/motion'
@@ -40,6 +41,7 @@ interface KanbanCardProps {
 
 function KanbanCard({ task, onDragStart }: KanbanCardProps) {
   const setTaskDetailId = useUIStore((s) => s.setTaskDetailId)
+  const currentUser = useAuthStore((s) => s.user)
   const completeTask = useTaskStore((s) => s.completeTask)
   const updateTask = useTaskStore((s) => s.updateTask)
   const dueLabel = formatDueDate(task.due_date)
@@ -149,22 +151,34 @@ function KanbanCard({ task, onDragStart }: KanbanCardProps) {
             </span>
           )}
           
-          {task.assignee && (
-            <span className="ml-auto flex h-4 w-4 items-center justify-center rounded-full bg-accent/20 text-[9px] font-bold text-accent" title={task.assignee.full_name || task.assignee.email}>
-              {(task.assignee.full_name || task.assignee.email).charAt(0).toUpperCase()}
-            </span>
-          )}
+          {task.assignee && (() => {
+            const isDelegated = task.assignee_id !== currentUser?.id
+            return (
+              <span className={cn(
+                "ml-auto flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold",
+                isDelegated ? "bg-warning/20 text-warning" : "bg-accent/20 text-accent"
+              )} title={task.assignee.full_name || task.assignee.email}>
+                {(task.assignee.full_name || task.assignee.email).charAt(0).toUpperCase()}
+              </span>
+            )
+          })()}
         </div>
       )}
       
       {/* If only assignee exists but no due_date or estimated */}
-      {!dueLabel && !task.estimated_minutes && task.assignee && (
-        <div className="mt-2.5 flex items-center justify-end border-t border-border-subtle pt-2">
-           <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent/20 text-[9px] font-bold text-accent" title={task.assignee.full_name || task.assignee.email}>
-              {(task.assignee.full_name || task.assignee.email).charAt(0).toUpperCase()}
+      {!dueLabel && !task.estimated_minutes && task.assignee && (() => {
+        const isDelegated = task.assignee_id !== currentUser?.id
+        return (
+          <div className="mt-3 flex items-center justify-end">
+             <span className={cn(
+                "flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold",
+                isDelegated ? "bg-warning/20 text-warning" : "bg-accent/20 text-accent"
+              )} title={task.assignee.full_name || task.assignee.email}>
+                {(task.assignee.full_name || task.assignee.email).charAt(0).toUpperCase()}
             </span>
-        </div>
-      )}
+          </div>
+        )
+      })()}
     </div>
   )
 }
