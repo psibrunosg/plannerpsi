@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useToastStore } from '@/stores/toastStore'
+import { supabase } from '@/lib/supabase'
 
 interface GamificationState {
   xp: number
@@ -34,12 +35,21 @@ export const useGamificationStore = create<GamificationState>()(
         return Math.pow(level, 2) * 100
       },
 
-      addXP: (amount: number, reason: string) => {
+      addXP: async (amount: number, reason: string) => {
         const { xp, level, calculateLevel } = get()
         const newXP = xp + amount
         const newLevel = calculateLevel(newXP)
         
         set({ xp: newXP, level: newLevel })
+        
+        // Sync with Supabase (RPC increments XP securely)
+        const { data: session } = await supabase.auth.getSession()
+        if (session.session?.user) {
+          await supabase.rpc('increment_xp', {
+            user_id: session.session.user.id,
+            amount: amount
+          })
+        }
         
         // Mostrar toast de XP
         useToastStore.getState().addToast(`+${amount} XP: ${reason}`, 'success')

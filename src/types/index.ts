@@ -15,6 +15,7 @@ export interface Profile {
   email: string
   full_name: string | null
   level: number
+  xp?: number
 }
 
 export interface Patient {
