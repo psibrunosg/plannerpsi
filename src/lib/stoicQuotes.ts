@@ -90,13 +90,21 @@ export const STOIC_QUOTES: StoicQuote[] = [
   { quote: 'A verdadeira riqueza está em desejar pouco.', author: 'Epicteto' },
   { quote: 'A mente que não é perturbada por medos ou desejos é um castelo inexpugnável.', author: 'Marco Aurélio' },
   { quote: 'Cada dia é uma vida em miniatura: nascemos ao acordar, e morremos ao dormir.', author: 'Sêneca' },
+  { quote: 'O sábio não se aflige com o que não tem, mas se alegra com o que tem.', author: 'Epicteto' },
+  { quote: 'Aquele que comete uma injustiça, faz mal a si mesmo.', author: 'Marco Aurélio' },
+  { quote: 'Sofremos mais muitas vezes por nossas próprias opiniões do que pelos fatos em si.', author: 'Sêneca' },
+  { quote: 'Tente viver de modo que não seja um escravo dos seus próprios desejos.', author: 'Epicteto' },
+  { quote: 'Apressa-te em viver bem e pensa que cada dia é, por si só, uma vida.', author: 'Sêneca' },
+  { quote: 'Nada de grandioso é criado de repente.', author: 'Epicteto' },
+  { quote: 'Seja qual for a dificuldade que surja, é uma oportunidade para a virtude.', author: 'Sêneca' },
+  { quote: 'Não exija que as coisas aconteçam como você quer, mas queira que elas aconteçam como acontecem, e tudo irá bem.', author: 'Epicteto' },
+  { quote: 'Se você se deixar levar por qualquer provocação, você se torna escravo de quem o provocou.', author: 'Epicteto' },
 ]
 
-export function getQuoteOfTheDay(): StoicQuote {
-  const dayOfYear = Math.floor(
-    (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24)
-  )
-  return STOIC_QUOTES[dayOfYear % STOIC_QUOTES.length]
+export function getQuoteOfTheInterval(): StoicQuote {
+  // Cycle the quote every 30 minutes
+  const intervalsOf30Min = Math.floor(Date.now() / (1000 * 60 * 30))
+  return STOIC_QUOTES[intervalsOf30Min % STOIC_QUOTES.length]
 }
 
 export function getRandomQuote(excludeIndex?: number): { quote: StoicQuote; index: number } {

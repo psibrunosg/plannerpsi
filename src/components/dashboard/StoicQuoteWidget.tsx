@@ -1,18 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Quote, Shuffle } from 'lucide-react'
 import { staggerItem } from '@/lib/motion'
 import { cn } from '@/lib/cn'
-import { getQuoteOfTheDay, getRandomQuote, STOIC_QUOTES } from '@/lib/stoicQuotes'
+import { getQuoteOfTheInterval, getRandomQuote, STOIC_QUOTES } from '@/lib/stoicQuotes'
 
 export function StoicQuoteWidget({ className }: { className?: string }) {
-  const [current, setCurrent] = useState(() => {
-    const quote = getQuoteOfTheDay()
-    return { quote, index: STOIC_QUOTES.indexOf(quote) }
+  const [quoteData, setQuoteData] = useState(() => {
+    const quote = getQuoteOfTheInterval()
+    return { quote, index: STOIC_QUOTES.findIndex(q => q.quote === quote.quote) }
   })
 
+  useEffect(() => {
+    // Update the quote every minute to check if the 30-min interval has changed
+    const interval = setInterval(() => {
+      const newQuote = getQuoteOfTheInterval()
+      if (newQuote.quote !== quoteData.quote.quote) {
+        setQuoteData({ quote: newQuote, index: STOIC_QUOTES.findIndex(q => q.quote === newQuote.quote) })
+      }
+    }, 60000)
+    return () => clearInterval(interval)
+  }, [quoteData.quote.quote])
+
   const handleShuffle = () => {
-    setCurrent(getRandomQuote(current.index))
+    setQuoteData(getRandomQuote(quoteData.index))
   }
 
   return (
@@ -23,14 +34,14 @@ export function StoicQuoteWidget({ className }: { className?: string }) {
       <div className="min-w-0 flex-1">
         <AnimatePresence mode="wait">
           <motion.div
-            key={current.index}
+            key={quoteData.index}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2 }}
+            className="space-y-1.5"
           >
-            <p className="text-sm italic text-text-primary leading-relaxed">"{current.quote.quote}"</p>
-            <p className="mt-2 text-xs font-medium text-text-muted">— {current.quote.author}</p>
+            <p className="text-[13px] italic leading-relaxed text-text-secondary">"{quoteData.quote.quote}"</p>
+            <p className="text-[11px] font-medium text-text-muted">— {quoteData.quote.author}</p>
           </motion.div>
         </AnimatePresence>
       </div>
