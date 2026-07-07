@@ -11,7 +11,8 @@ import {
   PanelLeft,
   BookOpen,
   BarChart3,
-  Network
+  Network,
+  Users
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { sidebarVariants } from '@/lib/motion'
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { path: '/focus', icon: Timer, label: 'Foco' },
   { path: '/planning', icon: CalendarDays, label: 'Planejamento' },
   { path: '/procedures', icon: ClipboardList, label: 'Procedimentos' },
+  { path: '/patients', icon: Users, label: 'Pacientes' },
   { path: '/study', icon: BookOpen, label: 'Estudos' },
   { path: '/maps', icon: Network, label: 'Mapas' },
   { path: '/stats', icon: BarChart3, label: 'Estatísticas' },

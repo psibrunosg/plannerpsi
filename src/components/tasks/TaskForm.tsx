@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Calendar, Tag, Flag, Clock, AlignLeft, Percent, Repeat, ListTree, Plus, Trash2, CheckCircle2, Circle, User as UserIcon } from 'lucide-react'
+import { X, Calendar, Tag, Flag, Clock, AlignLeft, Percent, Repeat, ListTree, Plus, Trash2, CheckCircle2, Circle, User as UserIcon, Users } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { modalOverlay, modalContent } from '@/lib/motion'
 import { useUIStore } from '@/stores/uiStore'
@@ -8,9 +8,11 @@ import { useTaskStore } from '@/stores/taskStore'
 import { useToastStore } from '@/stores/toastStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useProfileStore } from '@/stores/profileStore'
+import { usePatientStore } from '@/stores/patientStore'
 import type { TaskPriority, TaskStatus, RecurrenceFreq } from '@/types'
 import { PRIORITY_CONFIG, SMART_DATE_TAGS, RECURRENCE_FREQ_CONFIG } from '@/types'
 import { useScrollLock } from '@/lib/useScrollLock'
+import { TaskComments } from './TaskComments'
 
 export function TaskForm() {
   const taskFormOpen = useUIStore((s) => s.taskFormOpen)
@@ -49,10 +51,19 @@ export function TaskForm() {
   const [recurrenceInterval, setRecurrenceInterval] = useState(1)
   const [subtaskInput, setSubtaskInput] = useState('')
   const [assigneeId, setAssigneeId] = useState<string | null>(null)
+  const [patientId, setPatientId] = useState<string | null>(null)
 
   const currentUser = useAuthStore(s => s.user)
   const currentProfile = useAuthStore(s => s.profile)
   const allProfiles = useProfileStore(s => s.profiles)
+  const patients = usePatientStore(s => s.patients)
+  const fetchPatients = usePatientStore(s => s.fetchPatients)
+
+  useEffect(() => {
+    if (isOpen && patients.length === 0) {
+      fetchPatients()
+    }
+  }, [isOpen, patients.length, fetchPatients])
 
   const assignableProfiles = allProfiles.filter(p => (currentProfile?.level ?? 1) > 1 && p.level <= currentProfile!.level)
 
@@ -77,6 +88,7 @@ export function TaskForm() {
     setRecurrenceInterval(1)
     setSubtaskInput('')
     setAssigneeId(null)
+    setPatientId(null)
   }
 
   const closeForm = () => {
@@ -104,6 +116,7 @@ export function TaskForm() {
         setRecurrenceFreq(task.recurrence_rule?.freq ?? 'weekly')
         setRecurrenceInterval(task.recurrence_rule?.interval ?? 1)
         setAssigneeId(task.assignee_id || null)
+        setPatientId(task.patient_id || null)
       }
     } else if (taskFormOpen) {
       reset()
@@ -141,6 +154,7 @@ export function TaskForm() {
       is_recurring: isRecurring,
       recurrence_rule: isRecurring ? { freq: recurrenceFreq, interval: recurrenceInterval } : null,
       assignee_id: assigneeId || currentUser?.id || null,
+      patient_id: patientId || null,
     }
 
     // Defer the heavy store update to allow the modal exit animation to be fluid
@@ -340,6 +354,19 @@ export function TaskForm() {
                   </div>
                 )}
 
+                {patients && patients.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 shrink-0 text-text-muted" />
+                    <select value={patientId || ''} onChange={(e) => setPatientId(e.target.value || null)}
+                      className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent">
+                      <option value="">Sem paciente vinculado</option>
+                      {patients.map(p => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 shrink-0 text-text-muted" />
                   <input type="date" value={dueDate} onChange={(e) => { setDueDate(e.target.value); setSelectedDateTag(null) }}
@@ -516,7 +543,11 @@ export function TaskForm() {
                 </div>
               )}
 
-              <div className="flex justify-between gap-2 border-t border-border-subtle pt-4">
+              {isEditing && taskDetailId && (
+                <TaskComments taskId={taskDetailId} />
+              )}
+
+              <div className="flex justify-between gap-2 border-t border-border-subtle pt-4 mt-6">
                 <div>
                   {isEditing && (
                     <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleDelete}

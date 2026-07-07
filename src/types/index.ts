@@ -17,6 +17,27 @@ export interface Profile {
   level: number
 }
 
+export interface Patient {
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+  document: string | null
+  birth_date: string | null
+  notes: string | null
+  created_at: string
+  user_id: string | null
+}
+
+export interface TaskComment {
+  id: string
+  task_id: string
+  user_id: string
+  content: string
+  created_at: string
+  user?: Profile
+}
+
 export interface Task {
   id: string
   title: string
@@ -40,7 +61,9 @@ export interface Task {
   updated_at: string
   user_id: string | null
   assignee_id: string | null
+  patient_id?: string | null
   assignee?: Profile
+  patient?: Patient
   subtasks?: Task[]
 }
 

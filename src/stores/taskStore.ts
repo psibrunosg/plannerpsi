@@ -87,7 +87,7 @@ export const useTaskStore = create<TaskState>()(
         set({ loading: true })
         const { data, error } = await supabase
           .from('tasks')
-          .select('*, assignee:profiles(id, email, full_name, level)')
+          .select('*, assignee:profiles(id, email, full_name, level), patient:patients(id, name)')
           .order('created_at', { ascending: false })
         
         if (!error && data) {

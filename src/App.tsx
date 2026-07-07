@@ -18,6 +18,7 @@ const Study = lazy(() => import('@/pages/Study'))
 const Stats = lazy(() => import('@/pages/Stats'))
 const Settings = lazy(() => import('@/pages/Settings'))
 const MindMaps = lazy(() => import('@/pages/MindMaps'))
+const Patients = lazy(() => import('@/pages/Patients'))
 import { migrateLocalDataToSupabase } from '@/lib/migration'
 import { useAuthStore } from '@/stores/authStore'
 import { useTaskStore } from '@/stores/taskStore'
@@ -150,6 +151,7 @@ export default function App() {
               <Route path="/procedures" element={<Procedures />} />
               <Route path="/study" element={<Study />} />
               <Route path="/maps" element={<MindMaps />} />
+              <Route path="/patients" element={<Patients />} />
               <Route path="/stats" element={<Stats />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>

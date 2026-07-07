@@ -103,6 +103,14 @@ function KanbanCard({ task, onDragStart }: KanbanCardProps) {
         <p className="mt-1 text-xs text-text-muted line-clamp-2">{task.description}</p>
       )}
 
+      {/* Patient tag */}
+      {task.patient && (
+        <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-accent-primary/10 border border-accent-primary/20 text-accent-primary text-[10px] font-medium w-fit">
+          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span className="truncate max-w-[120px]">{task.patient.name}</span>
+        </div>
+      )}
+
       {/* Tags */}
       {task.tags?.length > 0 && (
         <div className="mt-2.5 flex flex-wrap gap-1">
