@@ -148,6 +148,21 @@ function KanbanCard({ task, onDragStart }: KanbanCardProps) {
               {task.estimated_minutes}m
             </span>
           )}
+          
+          {task.assignee && (
+            <span className="ml-auto flex h-4 w-4 items-center justify-center rounded-full bg-accent/20 text-[9px] font-bold text-accent" title={task.assignee.full_name || task.assignee.email}>
+              {(task.assignee.full_name || task.assignee.email).charAt(0).toUpperCase()}
+            </span>
+          )}
+        </div>
+      )}
+      
+      {/* If only assignee exists but no due_date or estimated */}
+      {!dueLabel && !task.estimated_minutes && task.assignee && (
+        <div className="mt-2.5 flex items-center justify-end border-t border-border-subtle pt-2">
+           <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent/20 text-[9px] font-bold text-accent" title={task.assignee.full_name || task.assignee.email}>
+              {(task.assignee.full_name || task.assignee.email).charAt(0).toUpperCase()}
+            </span>
         </div>
       )}
     </div>

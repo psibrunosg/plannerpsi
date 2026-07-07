@@ -100,7 +100,7 @@ export function NotionEditor({ content, onChange }: NotionEditorProps) {
       }),
     ],
     content,
-    onUpdate: ({ editor }) => {
+    onUpdate: ({ editor }: { editor: any }) => {
       onChange(editor.getHTML())
     },
     editorProps: {

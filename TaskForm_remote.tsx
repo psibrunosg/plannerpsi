@@ -8,9 +8,8 @@ import { useTaskStore } from '@/stores/taskStore'
 import { useToastStore } from '@/stores/toastStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useProfileStore } from '@/stores/profileStore'
-import type { TaskPriority, TaskStatus, RecurrenceFreq } from '@/types'
+import type { TaskPriority, TaskStatus, RecurrenceFreq, Profile } from '@/types'
 import { PRIORITY_CONFIG, SMART_DATE_TAGS, RECURRENCE_FREQ_CONFIG } from '@/types'
-import { useScrollLock } from '@/lib/useScrollLock'
 
 export function TaskForm() {
   const taskFormOpen = useUIStore((s) => s.taskFormOpen)
@@ -212,7 +211,6 @@ export function TaskForm() {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       user_id: null,
-      assignee_id: assigneeId || currentUser?.id || null
     })
     setSubtaskInput('')
   }
@@ -326,19 +324,6 @@ export function TaskForm() {
                     ))}
                   </select>
                 </div>
-
-                {assignableProfiles && assignableProfiles.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <UserIcon className="h-4 w-4 shrink-0 text-text-muted" />
-                    <select value={assigneeId || ''} onChange={(e) => setAssigneeId(e.target.value || null)}
-                      className="w-full rounded-[var(--radius-sm)] bg-surface-hover px-3 py-2 text-sm text-text-primary outline-none focus:ring-1 focus:ring-accent">
-                      <option value="">Atribuir a (Eu)</option>
-                      {assignableProfiles.map(p => (
-                        <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
 
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 shrink-0 text-text-muted" />

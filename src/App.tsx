@@ -25,8 +25,11 @@ import { usePlanningStore } from '@/stores/planningStore'
 import { useFocusStore } from '@/stores/focusStore'
 import { useProcedureStore } from '@/stores/procedureStore'
 import { useRadioStore } from '@/stores/radioStore'
+import { useProfileStore } from '@/stores/profileStore'
+import { useUIStore } from '@/stores/uiStore'
 import { requestNotificationPermission, checkAndNotifyTasks } from '@/lib/notificationManager'
 import { handleCallbackIfPresent } from '@/lib/spotifyAuth'
+import { registerServiceWorker, syncTasksToSW, syncSessionToSW, syncSettingsToSW, triggerImmediateCheck } from '@/lib/swManager'
 
 export default function App() {
 
@@ -53,26 +56,62 @@ export default function App() {
         }
         await Promise.all([
           useTaskStore.getState().fetchTasks(),
+          useProfileStore.getState().fetchProfiles(),
           usePlanningStore.getState().fetchNotes(),
           useFocusStore.getState().fetchSessions(),
           useFocusStore.getState().loadPreferencesFromDB(),
           useProcedureStore.getState().fetchProcedures(),
           useRadioStore.getState().loadFavoritesFromDB()
         ])
-        setIsMigrating(false)
+      setIsMigrating(false)
       }
-      initData()
+      initData().then(() => {
+        // After data is loaded, sync tasks to SW so background checks work immediately
+        const tasks = useTaskStore.getState().tasks
+        if (tasks.length > 0) syncTasksToSW(tasks)
+        triggerImmediateCheck()
+      })
 
       requestNotificationPermission()
+      
+      // Register Service Worker for background notifications
+      registerServiceWorker().then(() => {
+        // Sync session token to SW so it can fetch tasks when the tab is closed
+        const sbSession = localStorage.getItem(`sb-vqilivjthzulevnxytyg-auth-token`)
+        if (sbSession) {
+          try {
+            const parsed = JSON.parse(sbSession)
+            const token = parsed?.access_token
+            if (token) syncSessionToSW(token)
+          } catch { /* ignore */ }
+        }
+        // Sync notification setting
+        const notifEnabled = localStorage.getItem('planner-notifications') !== 'false'
+        syncSettingsToSW(notifEnabled)
+      })
       
       const interval = setInterval(() => {
         const tasks = useTaskStore.getState().tasks
         if (tasks.length > 0) {
           checkAndNotifyTasks(tasks)
+          // Also sync tasks to SW for background checks
+          syncTasksToSW(tasks)
         }
       }, 60 * 1000) // check every 1 minute
+
+      // Handle notification click → open task detail
+      const handleSWOpenTask = (e: Event) => {
+        const { taskId } = (e as CustomEvent).detail || {}
+        if (taskId) {
+          useUIStore.getState().setTaskDetailId(taskId)
+        }
+      }
+      window.addEventListener('sw:open-task', handleSWOpenTask)
       
-      return () => clearInterval(interval)
+      return () => {
+        clearInterval(interval)
+        window.removeEventListener('sw:open-task', handleSWOpenTask)
+      }
     }
   }, [session])
 

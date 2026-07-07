@@ -63,6 +63,7 @@ export function AgendaWidget({ maxEvents = 5, className, date = new Date() }: Ag
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       user_id: useAuthStore.getState().user?.id ?? null,
+      assignee_id: null
     })
     addToast('Tarefa criada a partir da agenda!', 'success')
   }

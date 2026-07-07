@@ -1,0 +1,27 @@
+{
+  "name": "BS Planner",
+  "short_name": "BS Planner",
+  "description": "Planejador profissional de tarefas, estudos e foco",
+  "start_url": "/plannerpsi/",
+  "scope": "/plannerpsi/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#7c3aed",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/plannerpsi/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/plannerpsi/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["productivity", "utilities"]
+}

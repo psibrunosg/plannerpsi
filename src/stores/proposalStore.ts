@@ -104,6 +104,7 @@ export const useProposalStore = create<ProposalState>((set, get) => ({
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         user_id: useAuthStore.getState().user?.id || null,
+        assignee_id: null,
       })
       useToastStore.getState().addToast('Proposta aceita e adicionada às suas tarefas!', 'success')
       // Atualiza o estado local removendo a proposta

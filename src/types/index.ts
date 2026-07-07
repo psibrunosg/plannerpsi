@@ -10,6 +10,13 @@ export interface RecurrenceRule {
   interval: number
 }
 
+export interface Profile {
+  id: string
+  email: string
+  full_name: string | null
+  level: number
+}
+
 export interface Task {
   id: string
   title: string
@@ -32,6 +39,8 @@ export interface Task {
   created_at: string
   updated_at: string
   user_id: string | null
+  assignee_id: string | null
+  assignee?: Profile
   subtasks?: Task[]
 }
 

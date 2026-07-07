@@ -166,12 +166,12 @@ export default function Stats() {
               <LineChart data={focusChartData} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
                 <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}m`} />
+                <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val: number) => `${val}m`} />
                 <RechartsTooltip 
                   contentStyle={{ backgroundColor: 'var(--surface-elevated)', borderColor: 'var(--border-subtle)', borderRadius: '8px' }}
                   labelStyle={{ color: 'var(--text-secondary)', marginBottom: '4px' }}
                   itemStyle={{ color: 'var(--accent)', fontWeight: 'bold' }}
-                  labelFormatter={(_, payload) => payload.length > 0 ? payload[0].payload.fullDate : ''}
+                  labelFormatter={(_: any, payload: any) => payload.length > 0 ? payload[0].payload.fullDate : ''}
                   formatter={(value: any) => [`${value} minutos`, 'Foco']}
                 />
                 <Line type="monotone" dataKey="minutes" stroke="var(--accent)" strokeWidth={3} dot={{ r: 4, fill: 'var(--accent)' }} activeDot={{ r: 6 }} />

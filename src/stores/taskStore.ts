@@ -47,6 +47,8 @@ function sanitizeTask(t: any): Task {
     created_at: t.created_at ?? new Date().toISOString(),
     updated_at: t.updated_at ?? new Date().toISOString(),
     user_id: t.user_id ?? null,
+    assignee_id: t.assignee_id ?? null,
+    assignee: t.assignee ?? undefined,
   }
 }
 
@@ -85,11 +87,17 @@ export const useTaskStore = create<TaskState>()(
         set({ loading: true })
         const { data, error } = await supabase
           .from('tasks')
-          .select('*')
+          .select('*, assignee:profiles(id, email, full_name, level)')
           .order('created_at', { ascending: false })
         
         if (!error && data) {
-          set({ tasks: data.map(sanitizeTask), loading: false })
+          // Flatten array if supabase returns it as array (should be object)
+          const sanitized = data.map(t => ({
+             ...t, 
+             assignee: Array.isArray(t.assignee) ? t.assignee[0] : t.assignee 
+          })).map(sanitizeTask)
+          
+          set({ tasks: sanitized, loading: false })
         } else {
           set({ loading: false })
         }

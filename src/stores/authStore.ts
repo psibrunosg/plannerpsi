@@ -1,9 +1,11 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
 import type { User, Session } from '@supabase/supabase-js'
+import type { Profile } from '@/types'
 
 interface AuthState {
   user: User | null
+  profile: Profile | null
   session: Session | null
   loading: boolean
   initialized: boolean
@@ -17,6 +19,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  profile: null,
   session: null,
   loading: true,
   initialized: false,
@@ -24,15 +27,32 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setRecoveryMode: (val) => set({ isRecoveryMode: val }),
   setUser: (user) => set({ user }),
-  setSession: (session) => set({ session, user: session?.user ?? null }),
+  setSession: async (session) => {
+    let profile = null
+    if (session?.user?.id) {
+      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+      if (data) profile = data
+    }
+    set({ session, user: session?.user ?? null, profile })
+  },
 
   initialize: async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      set({ session, user: session?.user ?? null, initialized: true, loading: false })
+      let profile = null
+      if (session?.user?.id) {
+        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+        if (data) profile = data
+      }
+      set({ session, user: session?.user ?? null, profile, initialized: true, loading: false })
 
-      supabase.auth.onAuthStateChange((event, session) => {
-        set({ session, user: session?.user ?? null })
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        let p = null
+        if (session?.user?.id) {
+          const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+          if (data) p = data
+        }
+        set({ session, user: session?.user ?? null, profile: p })
         if (event === 'PASSWORD_RECOVERY') {
           set({ isRecoveryMode: true })
         }
@@ -45,6 +65,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signOut: async () => {
     await supabase.auth.signOut()
-    set({ user: null, session: null })
+    set({ user: null, profile: null, session: null })
   }
 }))

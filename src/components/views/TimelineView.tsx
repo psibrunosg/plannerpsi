@@ -181,6 +181,12 @@ function TaskTooltip({ data }: { data: TooltipData }) {
               <span className="font-medium text-text-secondary">{task.estimated_minutes}min</span>
             </div>
           )}
+          {task.assignee && (
+            <div className="flex items-center justify-between">
+              <span>Atribuído a</span>
+              <span className="font-medium text-text-secondary">{task.assignee.full_name || task.assignee.email}</span>
+            </div>
+          )}
           {task.tags && task.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-1">
               {task.tags.map((tag) => (
@@ -229,17 +235,24 @@ function StatusGroup({ status, tasks, startDate, dayWidth, visibleDays, defaultO
           {tasks.map((task) => (
             <div key={task.id} className="flex items-center">
               {/* Task label (fixed left) */}
-              <div className="w-48 shrink-0 pr-3">
-                <p className={cn('truncate text-xs font-medium', task.status === 'done' ? 'text-text-muted line-through' : 'text-text-primary')}>
-                  {task.title}
-                </p>
-                {(task.completion_percentage ?? 0) > 0 && task.status !== 'done' && (
-                  <div className="mt-0.5 h-0.5 w-full overflow-hidden rounded-full bg-surface-hover">
-                    <div
-                      className={cn('h-full rounded-full bg-gradient-to-r', PRIORITY_BAR_COLORS[task.priority].gradient)}
-                      style={{ width: `${task.completion_percentage}%` }}
-                    />
-                  </div>
+              <div className="w-48 shrink-0 pr-3 flex items-center justify-between">
+                <div className="flex-1 truncate">
+                  <p className={cn('truncate text-xs font-medium', task.status === 'done' ? 'text-text-muted line-through' : 'text-text-primary')} title={task.title}>
+                    {task.title}
+                  </p>
+                  {(task.completion_percentage ?? 0) > 0 && task.status !== 'done' && (
+                    <div className="mt-0.5 h-0.5 w-full overflow-hidden rounded-full bg-surface-hover">
+                      <div
+                        className={cn('h-full rounded-full bg-gradient-to-r', PRIORITY_BAR_COLORS[task.priority].gradient)}
+                        style={{ width: `${task.completion_percentage}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+                {task.assignee && (
+                  <span className="ml-2 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/20 text-[9px] font-bold text-accent" title={task.assignee.full_name || task.assignee.email}>
+                    {(task.assignee.full_name || task.assignee.email).charAt(0).toUpperCase()}
+                  </span>
                 )}
               </div>
 

@@ -126,7 +126,8 @@ function BoardCard({ procedure, onClick }: { procedure: Procedure; onClick: () =
       completion_percentage: 0,
       created_at: today,
       updated_at: today,
-      user_id: user?.id || ''
+      user_id: user?.id || '',
+      assignee_id: user?.id || null
     }
     addTask(parentTask)
 
@@ -154,7 +155,8 @@ function BoardCard({ procedure, onClick }: { procedure: Procedure; onClick: () =
         completion_percentage: 0,
         created_at: today,
         updated_at: today,
-        user_id: user?.id || ''
+        user_id: user?.id || '',
+        assignee_id: user?.id || null
       })
     })
 
