@@ -15,7 +15,8 @@ export function TaskProposalModal({ isOpen, onClose }: { isOpen: boolean; onClos
     if (!email || !title) return
     setIsSubmitting(true)
     try {
-      await sendProposal(email, title, description)
+      const sent = await sendProposal(email, title, description)
+      if (!sent) return
       setEmail('')
       setTitle('')
       setDescription('')

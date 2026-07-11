@@ -81,6 +81,8 @@ export interface TaskProposal {
   description: string | null
   status: 'pending' | 'accepted' | 'rejected'
   created_at: string
+  decided_at?: string | null
+  accepted_task_id?: string | null
 }
 
 export interface FocusSession {

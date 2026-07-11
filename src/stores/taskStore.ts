@@ -64,10 +64,10 @@ interface TaskState {
   setTasks: (tasks: Task[]) => void
   fetchTasks: () => Promise<void>
   addTask: (task: Task) => Promise<void>
-  updateTask: (id: string, updates: Partial<Task>) => Promise<void>
+  updateTask: (id: string, updates: Partial<Task>) => Promise<boolean>
   deleteTask: (id: string) => Promise<void>
   completeTask: (id: string) => Promise<void>
-  archiveCompletedTasks: () => Promise<void>
+  archiveCompletedTasks: () => Promise<boolean>
   moveTask: (id: string, status: TaskStatus, position?: number) => Promise<void>
   setFilter: (filter: Partial<TaskFilter>) => void
   clearFilter: () => void
@@ -138,6 +138,7 @@ export const useTaskStore = create<TaskState>()(
       updateTask: async (id, updates) => {
         const updated_at = new Date().toISOString()
         const previousTasks = get().tasks
+        const currentTask = previousTasks.find((task) => task.id === id)
         set({
           tasks: previousTasks.map((t) => t.id === id ? { ...t, ...updates, updated_at } : t),
           syncStatus: 'syncing', syncError: null,
@@ -145,14 +146,31 @@ export const useTaskStore = create<TaskState>()(
         
         const user = useAuthStore.getState().user
         if (user) {
-          const { data, error } = await supabase.from('tasks').update({ ...updates, updated_at }).eq('id', id).select('id').single()
+          const updateKeys = Object.keys(updates).filter((key) => key !== 'updated_at')
+          const isDelegateProgressUpdate = currentTask?.assignee_id === user.id
+            && currentTask.user_id !== user.id
+            && updateKeys.every((key) => ['status', 'completion_percentage', 'actual_minutes', 'completed_at', 'kanban_column'].includes(key))
+
+          const result = isDelegateProgressUpdate
+            ? await supabase.rpc('update_delegated_task_progress', {
+              p_task_id: id,
+              p_status: updates.status ?? null,
+              p_completion_percentage: updates.completion_percentage ?? null,
+              p_actual_minutes: updates.actual_minutes ?? null,
+            })
+            : await supabase.from('tasks').update({ ...updates, updated_at }).eq('id', id).select('id').single()
+          const { data, error } = result
           if (error || !data) {
             set({ tasks: previousTasks, syncStatus: 'error', syncError: error?.message ?? 'A operaÃ§Ã£o nÃ£o retornou confirmaÃ§Ã£o.' })
             useToastStore.getState().addToast('A alteração não foi salva na nuvem e foi desfeita.', 'error', 6000)
           } else {
+            if (isDelegateProgressUpdate) {
+              set((state) => ({ tasks: state.tasks.map((task) => task.id === id ? sanitizeTask(data) : task) }))
+            }
             set({ syncStatus: 'synced' })
           }
         }
+        return get().syncStatus !== 'error'
       },
 
       deleteTask: async (id) => {
@@ -182,13 +200,13 @@ export const useTaskStore = create<TaskState>()(
           completion_percentage: isCompleting ? 100 : 0,
         }
 
-        await get().updateTask(id, updates)
+        const saved = await get().updateTask(id, updates)
 
-        if (isCompleting) {
+        if (isCompleting && saved) {
           useGamificationStore.getState().addXP(10, 'Tarefa concluída')
         }
 
-        if (isCompleting && task.is_recurring && task.recurrence_rule) {
+        if (isCompleting && saved && task.is_recurring && task.recurrence_rule) {
           await get().addTask({
             ...task,
             id: crypto.randomUUID(),
@@ -204,13 +222,31 @@ export const useTaskStore = create<TaskState>()(
       },
 
       archiveCompletedTasks: async () => {
-        const completedTasks = get().tasks.filter((t) => t.status === 'done')
-        for (const task of completedTasks) {
-          await get().updateTask(task.id, { 
-            status: 'archived',
-            kanban_column: 'archived'
-          })
+        const user = useAuthStore.getState().user
+        const completedTasks = get().tasks.filter((task) =>
+          task.status === 'done' && (!user || task.user_id === user.id)
+        )
+        const previousTasks = get().tasks
+        if (completedTasks.length === 0) return true
+
+        const updates = { status: 'archived' as const, kanban_column: 'archived' as const, updated_at: new Date().toISOString() }
+        const ids = completedTasks.map((task) => task.id)
+        const idSet = new Set(ids)
+        set({
+          tasks: previousTasks.map((task) => idSet.has(task.id) ? { ...task, ...updates } : task),
+          syncStatus: user ? 'syncing' : 'idle',
+          syncError: null,
+        })
+
+        if (!user) return true
+        const { data, error } = await supabase.from('tasks').update(updates).in('id', ids).select('id')
+        if (error || !data || data.length !== ids.length) {
+          set({ tasks: previousTasks, syncStatus: 'error', syncError: error?.message ?? 'Nem todas as tarefas foram confirmadas.' })
+          useToastStore.getState().addToast('As tarefas n\u00e3o foram arquivadas na nuvem e a altera\u00e7\u00e3o foi desfeita.', 'error', 6000)
+          return false
         }
+        set({ syncStatus: 'synced' })
+        return true
       },
 
       moveTask: async (id, status, position) => {
@@ -234,13 +270,13 @@ export const useTaskStore = create<TaskState>()(
           updates.completed_at = null
         }
 
-        await get().updateTask(id, updates)
+        const saved = await get().updateTask(id, updates)
 
-        if (isCompleting) {
+        if (isCompleting && saved) {
           useGamificationStore.getState().addXP(10, 'Tarefa concluída')
         }
 
-        if (isCompleting && task.is_recurring && task.recurrence_rule) {
+        if (isCompleting && saved && task.is_recurring && task.recurrence_rule) {
           await get().addTask({
             ...task,
             id: crypto.randomUUID(),

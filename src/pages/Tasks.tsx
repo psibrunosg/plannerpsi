@@ -13,7 +13,8 @@ import { CalendarView } from '@/components/views/CalendarView'
 import { TimelineView } from '@/components/views/TimelineView'
 import { useProposalStore } from '@/stores/proposalStore'
 import { TaskProposalModal } from '@/components/tasks/TaskProposalModal'
-import { Send, Check, X as XIcon } from 'lucide-react'
+import { Send, Check, X as XIcon, Clock, CircleCheck, CircleX } from 'lucide-react'
+import { getLocalTodayStr } from '@/lib/dateUtils'
 
 const VIEW_OPTIONS: { id: ViewMode; icon: React.ElementType; label: string }[] = [
   { id: 'list', icon: List, label: 'Lista' },
@@ -22,50 +23,46 @@ const VIEW_OPTIONS: { id: ViewMode; icon: React.ElementType; label: string }[] =
   { id: 'timeline', icon: GanttChart, label: 'Timeline' },
 ]
 
-function getDateOnly(iso: string): string {
-  return iso.split('T')[0]
-}
-
 function filterByDateTag(tasks: Task[], tag: DateTagId): Task[] {
   if (tag === 'all') return tasks
 
   const now = new Date()
-  const todayStr = getDateOnly(now.toISOString())
+  const todayStr = getLocalTodayStr(now)
 
   // Get this Sunday
   const day = now.getDay()
   const daysToSunday = day === 0 ? 0 : 7 - day
   const thisSunday = new Date(now)
   thisSunday.setDate(now.getDate() + daysToSunday)
-  const thisSundayStr = getDateOnly(thisSunday.toISOString())
+  const thisSundayStr = getLocalTodayStr(thisSunday)
 
   // Get next Monday + Sunday
   const nextMon = new Date(thisSunday)
   nextMon.setDate(thisSunday.getDate() + 1)
-  const nextMonStr = getDateOnly(nextMon.toISOString())
+  const nextMonStr = getLocalTodayStr(nextMon)
   
   const nextSun = new Date(nextMon)
   nextSun.setDate(nextMon.getDate() + 6)
-  const nextSunStr = getDateOnly(nextSun.toISOString())
+  const nextSunStr = getLocalTodayStr(nextSun)
 
   // Tomorrow
   const tmrw = new Date(now)
   tmrw.setDate(now.getDate() + 1)
-  const tmrwStr = getDateOnly(tmrw.toISOString())
+  const tmrwStr = getLocalTodayStr(tmrw)
 
   switch (tag) {
     case 'overdue':
-      return tasks.filter((t) => t.due_date && getDateOnly(t.due_date) < todayStr && t.status !== 'done')
+      return tasks.filter((t) => t.due_date && t.due_date.slice(0, 10) < todayStr && t.status !== 'done')
     case 'today':
-      return tasks.filter((t) => t.due_date && getDateOnly(t.due_date) === todayStr)
+      return tasks.filter((t) => t.due_date && t.due_date.slice(0, 10) === todayStr)
     case 'tomorrow':
-      return tasks.filter((t) => t.due_date && getDateOnly(t.due_date) === tmrwStr)
+      return tasks.filter((t) => t.due_date && t.due_date.slice(0, 10) === tmrwStr)
     case 'this_week':
-      return tasks.filter((t) => t.due_date && getDateOnly(t.due_date) > todayStr && getDateOnly(t.due_date) <= thisSundayStr)
+      return tasks.filter((t) => t.due_date && t.due_date.slice(0, 10) > todayStr && t.due_date.slice(0, 10) <= thisSundayStr)
     case 'next_week':
-      return tasks.filter((t) => t.due_date && getDateOnly(t.due_date) >= nextMonStr && getDateOnly(t.due_date) <= nextSunStr)
+      return tasks.filter((t) => t.due_date && t.due_date.slice(0, 10) >= nextMonStr && t.due_date.slice(0, 10) <= nextSunStr)
     case 'future':
-      return tasks.filter((t) => t.due_date && getDateOnly(t.due_date) > nextSunStr)
+      return tasks.filter((t) => t.due_date && t.due_date.slice(0, 10) > nextSunStr)
     default:
       return tasks
   }
@@ -173,11 +170,18 @@ export default function Tasks() {
   useEffect(() => { localStorage.setItem('tasks-search', searchQuery) }, [searchQuery])
 
   const proposals = useProposalStore(s => s.proposals)
+  const sentProposals = useProposalStore(s => s.sentProposals)
   const fetchProposals = useProposalStore(s => s.fetchProposals)
   const acceptProposal = useProposalStore(s => s.acceptProposal)
   const rejectProposal = useProposalStore(s => s.rejectProposal)
   const processingProposalId = useProposalStore(s => s.processingProposalId)
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false)
+
+  const proposalStatus = {
+    pending: { label: 'Aguardando resposta', className: 'bg-warning/10 text-warning', icon: Clock },
+    accepted: { label: 'Aceita', className: 'bg-success/10 text-success', icon: CircleCheck },
+    rejected: { label: 'Recusada', className: 'bg-danger/10 text-danger', icon: CircleX },
+  } as const
 
   useEffect(() => {
     fetchProposals()
@@ -232,8 +236,8 @@ export default function Tasks() {
 
   const handleArchive = async () => {
     if (confirm("Tem certeza que deseja arquivar TODAS as tarefas concluídas? Elas sumirão desta lista.")) {
-      await archiveCompletedTasks()
-      addToast("Tarefas arquivadas com sucesso!", "success")
+      const archived = await archiveCompletedTasks()
+      if (archived) addToast("Tarefas arquivadas com sucesso!", "success")
     }
   }
 
@@ -306,16 +310,16 @@ export default function Tasks() {
         </div>
       </div>
 
-      {/* Propostas Recebidas */}
+      {/* Propostas recebidas aguardam uma decisao do responsavel. */}
       {!showArchived && proposals.length > 0 && (
         <div className="mb-6 space-y-3">
-          <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wider">Propostas Recebidas ({proposals.length})</h2>
+          <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wider">Recebidas ({proposals.length})</h2>
           {proposals.map(proposal => (
             <div key={proposal.id} className="glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-l-4 border-l-accent">
               <div>
                 <p className="text-sm font-medium text-text-primary">{proposal.title}</p>
                 {proposal.description && <p className="text-xs text-text-muted mt-1">{proposal.description}</p>}
-                <p className="text-xs text-accent mt-2">Enviado por: {proposal.sender_email}</p>
+                <p className="text-xs text-accent mt-2">Solicitante: {proposal.sender_email}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button
@@ -335,6 +339,31 @@ export default function Tasks() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {!showArchived && sentProposals.length > 0 && (
+        <div className="mb-6 space-y-3">
+          <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wider">Enviadas ({sentProposals.length})</h2>
+          {sentProposals.map((proposal) => {
+            const status = proposalStatus[proposal.status]
+            const StatusIcon = status.icon
+            return (
+              <div key={proposal.id} className="glass-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-text-primary">{proposal.title}</p>
+                  {proposal.description && <p className="mt-1 truncate text-xs text-text-muted">{proposal.description}</p>}
+                  <p className="mt-2 text-xs text-text-muted">Responsável: {proposal.receiver_email}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className={cn('flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium', status.className)}>
+                    <StatusIcon className="h-3.5 w-3.5" />
+                    {status.label}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 
