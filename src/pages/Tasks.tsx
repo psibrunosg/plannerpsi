@@ -176,6 +176,7 @@ export default function Tasks() {
   const fetchProposals = useProposalStore(s => s.fetchProposals)
   const acceptProposal = useProposalStore(s => s.acceptProposal)
   const rejectProposal = useProposalStore(s => s.rejectProposal)
+  const processingProposalId = useProposalStore(s => s.processingProposalId)
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false)
 
   useEffect(() => {
@@ -319,15 +320,17 @@ export default function Tasks() {
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => rejectProposal(proposal.id)}
+                  disabled={processingProposalId === proposal.id}
                   className="flex flex-1 sm:flex-none items-center justify-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors border border-danger/20"
                 >
                   <XIcon className="h-3 w-3" /> Recusar
                 </button>
                 <button
                   onClick={() => acceptProposal(proposal.id)}
+                  disabled={processingProposalId === proposal.id}
                   className="flex flex-1 sm:flex-none items-center justify-center gap-1 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-hover transition-colors"
                 >
-                  <Check className="h-3 w-3" /> Aceitar
+                  <Check className="h-3 w-3" /> {processingProposalId === proposal.id ? 'Aceitando...' : 'Aceitar'}
                 </button>
               </div>
             </div>

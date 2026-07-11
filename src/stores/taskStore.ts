@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { useGamificationStore } from '@/stores/gamificationStore'
+import { useToastStore } from '@/stores/toastStore'
 import type { Task, TaskFilter, TaskStatus, TaskPriority } from '@/types'
 
 function getNextDueDate(dueDateISO: string, rule: Task['recurrence_rule']): string {
@@ -49,6 +50,8 @@ function sanitizeTask(t: any): Task {
     user_id: t.user_id ?? null,
     assignee_id: t.assignee_id ?? null,
     assignee: t.assignee ?? undefined,
+    patient_id: t.patient_id ?? null,
+    patient: t.patient ?? undefined,
   }
 }
 
@@ -56,6 +59,8 @@ interface TaskState {
   tasks: Task[]
   filter: TaskFilter
   loading: boolean
+  syncStatus: 'idle' | 'syncing' | 'synced' | 'error'
+  syncError: string | null
   setTasks: (tasks: Task[]) => void
   fetchTasks: () => Promise<void>
   addTask: (task: Task) => Promise<void>
@@ -78,61 +83,90 @@ export const useTaskStore = create<TaskState>()(
       tasks: [],
       filter: {},
       loading: false,
+      syncStatus: 'idle',
+      syncError: null,
 
       setTasks: (tasks) => set({ tasks }),
 
       fetchTasks: async () => {
         const user = useAuthStore.getState().user
         if (!user) return
-        set({ loading: true })
+        set({ loading: true, syncStatus: 'syncing', syncError: null })
+        // Resolve public profiles separately: tasks.assignee_id references auth.users,
+        // so PostgREST cannot safely embed public.profiles through that relation.
         const { data, error } = await supabase
           .from('tasks')
-          .select('*, assignee:profiles(id, email, full_name, level), patient:patients(id, name)')
+          .select('*')
           .order('created_at', { ascending: false })
         
         if (!error && data) {
-          // Flatten array if supabase returns it as array (should be object)
-          const sanitized = data.map(t => ({
-             ...t, 
-             assignee: Array.isArray(t.assignee) ? t.assignee[0] : t.assignee 
-          })).map(sanitizeTask)
+          const assigneeIds = [...new Set(data.map((task) => task.assignee_id).filter(Boolean))]
+          const { data: profiles } = assigneeIds.length
+            ? await supabase.from('profiles').select('id, email, full_name, level').in('id', assigneeIds)
+            : { data: [] }
+          const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]))
+          const sanitized = data.map((task) => sanitizeTask({
+            ...task,
+            assignee: task.assignee_id ? profilesById.get(task.assignee_id) : undefined,
+          }))
           
-          set({ tasks: sanitized, loading: false })
+          set({ tasks: sanitized, loading: false, syncStatus: 'synced' })
         } else {
-          set({ loading: false })
+          const message = error?.message ?? 'Não foi possível carregar as tarefas.'
+          set({ loading: false, syncStatus: 'error', syncError: message })
+          useToastStore.getState().addToast('As tarefas locais foram mantidas. A sincronização falhou.', 'error', 6000)
         }
       },
 
       addTask: async (task) => {
         const user = useAuthStore.getState().user
         const taskWithUser = { ...task, user_id: user?.id || null }
-        set((s) => ({ tasks: [taskWithUser, ...s.tasks] }))
+        const previousTasks = get().tasks
+        set({ tasks: [taskWithUser, ...previousTasks], syncStatus: user ? 'syncing' : 'idle', syncError: null })
         
         if (user) {
-          const { error } = await supabase.from('tasks').insert(taskWithUser)
-          if (error) console.error('Error adding task to Supabase:', error)
+          const { data, error } = await supabase.from('tasks').insert(taskWithUser).select('id').single()
+          if (error || !data) {
+            set({ tasks: previousTasks, syncStatus: 'error', syncError: error?.message ?? 'A operaÃ§Ã£o nÃ£o retornou confirmaÃ§Ã£o.' })
+            useToastStore.getState().addToast('A tarefa não foi salva na nuvem e foi desfeita.', 'error', 6000)
+          } else {
+            set({ syncStatus: 'synced' })
+          }
         }
       },
 
       updateTask: async (id, updates) => {
         const updated_at = new Date().toISOString()
-        set((s) => ({
-          tasks: s.tasks.map((t) => t.id === id ? { ...t, ...updates, updated_at } : t),
-        }))
+        const previousTasks = get().tasks
+        set({
+          tasks: previousTasks.map((t) => t.id === id ? { ...t, ...updates, updated_at } : t),
+          syncStatus: 'syncing', syncError: null,
+        })
         
         const user = useAuthStore.getState().user
         if (user) {
-          const { error } = await supabase.from('tasks').update({ ...updates, updated_at }).eq('id', id)
-          if (error) console.error('Error updating task:', error)
+          const { data, error } = await supabase.from('tasks').update({ ...updates, updated_at }).eq('id', id).select('id').single()
+          if (error || !data) {
+            set({ tasks: previousTasks, syncStatus: 'error', syncError: error?.message ?? 'A operaÃ§Ã£o nÃ£o retornou confirmaÃ§Ã£o.' })
+            useToastStore.getState().addToast('A alteração não foi salva na nuvem e foi desfeita.', 'error', 6000)
+          } else {
+            set({ syncStatus: 'synced' })
+          }
         }
       },
 
       deleteTask: async (id) => {
-        set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) }))
+        const previousTasks = get().tasks
+        set({ tasks: previousTasks.filter((t) => t.id !== id), syncStatus: 'syncing', syncError: null })
         const user = useAuthStore.getState().user
         if (user) {
-          const { error } = await supabase.from('tasks').delete().eq('id', id)
-          if (error) console.error('Error deleting task:', error)
+          const { data, error } = await supabase.from('tasks').delete().eq('id', id).select('id').single()
+          if (error || !data) {
+            set({ tasks: previousTasks, syncStatus: 'error', syncError: error?.message ?? 'A operaÃ§Ã£o nÃ£o retornou confirmaÃ§Ã£o.' })
+            useToastStore.getState().addToast('A exclusão não foi salva na nuvem e foi desfeita.', 'error', 6000)
+          } else {
+            set({ syncStatus: 'synced' })
+          }
         }
       },
 

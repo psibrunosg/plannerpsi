@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { ToastContainer } from '@/components/ui/ToastContainer'
 import { CommandPalette } from '@/components/layout/CommandPalette'
 import { TaskForm } from '@/components/tasks/TaskForm'
+import { RequireModule } from '@/components/RequireModule'
 import Dashboard from '@/pages/Dashboard'
 import Login from '@/pages/Login'
 import UpdatePassword from '@/pages/UpdatePassword'
@@ -29,6 +30,7 @@ import { useProcedureStore } from '@/stores/procedureStore'
 import { useRadioStore } from '@/stores/radioStore'
 import { useProfileStore } from '@/stores/profileStore'
 import { useUIStore } from '@/stores/uiStore'
+import { useGamificationStore } from '@/stores/gamificationStore'
 import { requestNotificationPermission, checkAndNotifyTasks } from '@/lib/notificationManager'
 import { handleCallbackIfPresent } from '@/lib/spotifyAuth'
 import { registerServiceWorker, syncTasksToSW, syncSessionToSW, syncSettingsToSW, triggerImmediateCheck } from '@/lib/swManager'
@@ -49,6 +51,8 @@ export default function App() {
 
   useEffect(() => {
     if (session) {
+      const profile = useAuthStore.getState().profile
+      if (profile) useGamificationStore.getState().hydrateXP(profile.xp ?? 0)
       const initData = async () => {
         setIsMigrating(true)
         try {
@@ -148,13 +152,13 @@ export default function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/tasks" element={<Tasks />} />
               <Route path="/focus" element={<Focus />} />
-              <Route path="/planning" element={<Planning />} />
-              <Route path="/procedures" element={<Procedures />} />
-              <Route path="/study" element={<Study />} />
+              <Route path="/planning" element={<RequireModule module="operation"><Planning /></RequireModule>} />
+              <Route path="/procedures" element={<RequireModule module="operation"><Procedures /></RequireModule>} />
+              <Route path="/study" element={<RequireModule module="study"><Study /></RequireModule>} />
               <Route path="/maps" element={<MindMaps />} />
-              <Route path="/patients" element={<Patients />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/stats" element={<Stats />} />
+              <Route path="/patients" element={<RequireModule module="clinical"><Patients /></RequireModule>} />
+              <Route path="/leaderboard" element={<RequireModule module="operation"><Leaderboard /></RequireModule>} />
+              <Route path="/stats" element={<RequireModule module="study"><Stats /></RequireModule>} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </AnimatePresence>

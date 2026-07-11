@@ -153,7 +153,9 @@ export function TaskForm() {
       completion_percentage: completionPercentage,
       is_recurring: isRecurring,
       recurrence_rule: isRecurring ? { freq: recurrenceFreq, interval: recurrenceInterval } : null,
-      assignee_id: assigneeId || currentUser?.id || null,
+      // A new task defaults to its creator; while editing, an empty choice truly
+      // removes the assignment instead of silently assigning it back to the creator.
+      assignee_id: isEditing ? assigneeId : assigneeId ?? currentUser?.id ?? null,
       patient_id: patientId || null,
     }
 
@@ -204,6 +206,7 @@ export function TaskForm() {
   const handleAddSubtask = () => {
     const value = subtaskInput.trim()
     if (!value || !taskDetailId) return
+    const parentTask = allTasks.find((task) => task.id === taskDetailId)
     addTask({
       id: crypto.randomUUID(),
       title: value,
@@ -226,7 +229,7 @@ export function TaskForm() {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       user_id: null,
-      assignee_id: assigneeId || currentUser?.id || null
+      assignee_id: parentTask?.assignee_id ?? assigneeId ?? currentUser?.id ?? null
     })
     setSubtaskInput('')
   }

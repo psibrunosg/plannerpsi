@@ -10,6 +10,7 @@ interface GamificationState {
   calculateLevel: (xp: number) => number
   getXPForNextLevel: (currentLevel: number) => number
   getXPForCurrentLevel: (currentLevel: number) => number
+  hydrateXP: (xp: number) => void
 }
 
 export const useGamificationStore = create<GamificationState>()(
@@ -35,21 +36,25 @@ export const useGamificationStore = create<GamificationState>()(
         return Math.pow(level, 2) * 100
       },
 
+      hydrateXP: (xp) => set({ xp, level: get().calculateLevel(xp) }),
+
       addXP: async (amount: number, reason: string) => {
         const { xp, level, calculateLevel } = get()
         const newXP = xp + amount
         const newLevel = calculateLevel(newXP)
         
-        set({ xp: newXP, level: newLevel })
-        
-        // Sync with Supabase (RPC increments XP securely)
         const { data: session } = await supabase.auth.getSession()
         if (session.session?.user) {
-          await supabase.rpc('increment_xp', {
+          const { error } = await supabase.rpc('increment_xp', {
             user_id: session.session.user.id,
             amount: amount
           })
+          if (error) {
+            useToastStore.getState().addToast('Nao foi possivel registrar XP agora.', 'error')
+            return
+          }
         }
+        set({ xp: newXP, level: newLevel })
         
         // Mostrar toast de XP
         useToastStore.getState().addToast(`+${amount} XP: ${reason}`, 'success')

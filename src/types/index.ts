@@ -16,7 +16,11 @@ export interface Profile {
   full_name: string | null
   level: number
   xp?: number
+  app_role?: UserRole
 }
+
+export type UserRole = 'admin' | 'professional' | 'collaborator' | 'learner' | 'personal'
+export type AppModule = 'personal' | 'operation' | 'study' | 'clinical'
 
 export interface Patient {
   id: string

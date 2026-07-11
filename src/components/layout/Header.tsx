@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
-import { Search, Sun, Moon, Plus, Command, RefreshCw } from 'lucide-react'
+import { Search, Sun, Moon, Plus, Command, RefreshCw, Cloud, CloudOff } from 'lucide-react'
 import { useUIStore } from '@/stores/uiStore'
+import { useTaskStore } from '@/stores/taskStore'
 import { RadioControls } from './RadioControls'
 import { StudyControls } from './StudyControls'
 import { SpotifyControls } from './SpotifyControls'
@@ -10,6 +11,16 @@ export function Header({ isSyncing = false }: { isSyncing?: boolean }) {
   const toggleTheme = useUIStore((s) => s.toggleTheme)
   const setCommandPaletteOpen = useUIStore((s) => s.setCommandPaletteOpen)
   const setTaskFormOpen = useUIStore((s) => s.setTaskFormOpen)
+  const syncStatus = useTaskStore((s) => s.syncStatus)
+  const syncError = useTaskStore((s) => s.syncError)
+
+  const syncLabel = syncStatus === 'error'
+    ? 'Erro de sincronização. Seus dados locais foram preservados.'
+    : syncStatus === 'syncing'
+      ? 'Sincronizando tarefas'
+      : syncStatus === 'synced'
+        ? 'Tarefas sincronizadas'
+        : null
 
   return (
     <header className="glass sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border-subtle px-6">
@@ -23,6 +34,21 @@ export function Header({ isSyncing = false }: { isSyncing?: boolean }) {
       </div>
 
       <div className="flex items-center gap-2">
+        {syncLabel && (
+          <span
+            title={syncError ?? syncLabel}
+            className={syncStatus === 'error' ? 'text-danger' : 'text-text-muted'}
+            aria-label={syncLabel}
+          >
+            {syncStatus === 'error' ? (
+              <CloudOff className="h-5 w-5" />
+            ) : syncStatus === 'syncing' ? (
+              <RefreshCw className="h-5 w-5 animate-spin" />
+            ) : (
+              <Cloud className="h-5 w-5" />
+            )}
+          </span>
+        )}
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

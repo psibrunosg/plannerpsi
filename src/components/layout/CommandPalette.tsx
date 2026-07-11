@@ -15,6 +15,8 @@ import { modalOverlay, modalContent } from '@/lib/motion'
 import { useUIStore } from '@/stores/uiStore'
 import { useTaskStore } from '@/stores/taskStore'
 import { useScrollLock } from '@/lib/useScrollLock'
+import { useAuthStore } from '@/stores/authStore'
+import { hasModuleAccess } from '@/lib/access'
 
 interface CommandItem {
   id: string
@@ -30,6 +32,7 @@ export function CommandPalette() {
   const setCommandPaletteOpen = useUIStore((s) => s.setCommandPaletteOpen)
   const setTaskFormOpen = useUIStore((s) => s.setTaskFormOpen)
   const tasks = useTaskStore((s) => s.tasks)
+  const profile = useAuthStore((s) => s.profile)
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -49,7 +52,10 @@ export function CommandPalette() {
       action: () => { useUIStore.getState().setTaskDetailId(t.id); setCommandPaletteOpen(false) },
       category: 'Tarefas',
     })),
-  ]
+  ].filter((command) => {
+    if (command.id === 'nav-planning') return hasModuleAccess(profile, 'operation')
+    return true
+  })
 
   const filtered = query
     ? commands.filter((c) => c.label.toLowerCase().includes(query.toLowerCase()))

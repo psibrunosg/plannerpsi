@@ -19,6 +19,9 @@ import { cn } from '@/lib/cn'
 import { sidebarVariants } from '@/lib/motion'
 import { useUIStore } from '@/stores/uiStore'
 import { SidebarXP } from '@/components/layout/SidebarXP'
+import { useAuthStore } from '@/stores/authStore'
+import { hasModuleAccess } from '@/lib/access'
+import type { AppModule } from '@/types'
 
 const NAV_ITEMS = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -34,11 +37,18 @@ const NAV_ITEMS = [
   { path: '/settings', icon: Settings, label: 'Configurações' },
 ]
 
+const NAV_MODULES: Record<string, AppModule> = {
+  '/': 'personal', '/tasks': 'personal', '/focus': 'personal', '/maps': 'personal', '/settings': 'personal',
+  '/planning': 'operation', '/procedures': 'operation', '/leaderboard': 'operation',
+  '/study': 'study', '/stats': 'study', '/patients': 'clinical',
+}
+
 export function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const sidebarExpanded = useUIStore((s) => s.sidebarExpanded)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
+  const profile = useAuthStore((s) => s.profile)
 
   return (
     <motion.aside
@@ -68,7 +78,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.filter((item) => hasModuleAccess(profile, NAV_MODULES[item.path])).map((item) => {
           const active = location.pathname === item.path
           return (
             <motion.button

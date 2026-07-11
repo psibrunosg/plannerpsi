@@ -64,8 +64,14 @@ async function requestPeriodicSync(): Promise<void> {
 // Called from App.tsx whenever tasks or session change.
 
 function sendToSW(message: object): void {
-  if (!navigator.serviceWorker.controller) return
-  navigator.serviceWorker.controller.postMessage(message)
+  if (!('serviceWorker' in navigator)) return
+
+  void navigator.serviceWorker.ready
+    .then((registration) => {
+      const worker = navigator.serviceWorker.controller ?? registration.active
+      worker?.postMessage(message)
+    })
+    .catch((error) => console.warn('[SW] Could not send message:', error))
 }
 
 /** Send current tasks to the SW so it can check notifications in the background. */
