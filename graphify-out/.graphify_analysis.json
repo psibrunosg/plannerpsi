@@ -1,0 +1,1009 @@
+{
+  "communities": {
+    "0": [
+      "clsx",
+      "dagrejs_dagre",
+      "date_fns",
+      "framer_motion",
+      "hello_pangea_dnd",
+      "hls_js",
+      "lucide_react",
+      "package_dependencies",
+      "package_dependencies_clsx",
+      "package_dependencies_dagrejs_dagre",
+      "package_dependencies_date_fns",
+      "package_dependencies_framer_motion",
+      "package_dependencies_hello_pangea_dnd",
+      "package_dependencies_hls_js",
+      "package_dependencies_lucide_react",
+      "package_dependencies_react",
+      "package_dependencies_react_dom",
+      "package_dependencies_react_router_dom",
+      "package_dependencies_recharts",
+      "package_dependencies_supabase_supabase_js",
+      "package_dependencies_tailwind_merge",
+      "package_dependencies_tailwindcss_typography",
+      "package_dependencies_tiptap_extension_placeholder",
+      "package_dependencies_tiptap_extension_task_item",
+      "package_dependencies_tiptap_extension_task_list",
+      "package_dependencies_tiptap_react",
+      "package_dependencies_tiptap_starter_kit",
+      "package_dependencies_types_hls_js",
+      "package_dependencies_xyflow_react",
+      "package_dependencies_zustand",
+      "react",
+      "react_dom",
+      "react_router_dom",
+      "recharts",
+      "supabase_supabase_js",
+      "tailwind_merge",
+      "tailwindcss_typography",
+      "tiptap_extension_placeholder",
+      "tiptap_extension_task_item",
+      "tiptap_extension_task_list",
+      "tiptap_react",
+      "tiptap_starter_kit",
+      "types_hls_js",
+      "xyflow_react",
+      "zustand"
+    ],
+    "1": [
+      "src_components_tasks_taskform_taskform",
+      "src_types_index",
+      "src_types_index_appmodule",
+      "src_types_index_dailynote",
+      "src_types_index_date_filter_tabs",
+      "src_types_index_datetagconfig",
+      "src_types_index_datetagid",
+      "src_types_index_flowedge",
+      "src_types_index_flowposition",
+      "src_types_index_focussession",
+      "src_types_index_getnextmonday",
+      "src_types_index_getthisfriday",
+      "src_types_index_kanban_columns",
+      "src_types_index_mood",
+      "src_types_index_parsedproceduredesc",
+      "src_types_index_parsedstepdesc",
+      "src_types_index_patient",
+      "src_types_index_priority_config",
+      "src_types_index_procedure",
+      "src_types_index_procedurecolumn",
+      "src_types_index_procedurestep",
+      "src_types_index_profile",
+      "src_types_index_recurrence_freq_config",
+      "src_types_index_recurrencefreq",
+      "src_types_index_recurrencerule",
+      "src_types_index_sessiontype",
+      "src_types_index_smart_date_tags",
+      "src_types_index_status_config",
+      "src_types_index_task",
+      "src_types_index_taskcomment",
+      "src_types_index_taskfilter",
+      "src_types_index_taskpriority",
+      "src_types_index_taskproposal",
+      "src_types_index_taskstatus",
+      "src_types_index_todatestr",
+      "src_types_index_userrole",
+      "src_types_index_viewmode"
+    ],
+    "2": [
+      "jsdom",
+      "oxlint",
+      "package_devdependencies",
+      "package_devdependencies_jsdom",
+      "package_devdependencies_oxlint",
+      "package_devdependencies_puppeteer",
+      "package_devdependencies_tailwindcss",
+      "package_devdependencies_tailwindcss_vite",
+      "package_devdependencies_testing_library_jest_dom",
+      "package_devdependencies_testing_library_react",
+      "package_devdependencies_testing_library_user_event",
+      "package_devdependencies_types_node",
+      "package_devdependencies_types_react",
+      "package_devdependencies_types_react_dom",
+      "package_devdependencies_typescript",
+      "package_devdependencies_vite",
+      "package_devdependencies_vite_plugin_pwa",
+      "package_devdependencies_vitejs_plugin_react",
+      "package_devdependencies_vitest",
+      "package_devdependencies_workbox_precaching",
+      "puppeteer",
+      "tailwindcss",
+      "tailwindcss_vite",
+      "testing_library_jest_dom",
+      "testing_library_react",
+      "testing_library_user_event",
+      "types_node",
+      "types_react",
+      "types_react_dom",
+      "typescript",
+      "vite",
+      "vite_plugin_pwa",
+      "vitejs_plugin_react",
+      "vitest",
+      "workbox_precaching"
+    ],
+    "3": [
+      "src_app",
+      "src_app_app",
+      "src_app_focus",
+      "src_app_leaderboard",
+      "src_app_mindmaps",
+      "src_app_patients",
+      "src_app_planning",
+      "src_app_procedures",
+      "src_app_settings",
+      "src_app_stats",
+      "src_app_study",
+      "src_app_tasks",
+      "src_components_errorboundary",
+      "src_components_errorboundary_errorboundary",
+      "src_components_errorboundary_errorboundary_constructor",
+      "src_components_errorboundary_errorboundary_getderivedstatefromerror",
+      "src_components_errorboundary_errorboundary_handlereset",
+      "src_components_errorboundary_errorboundary_render",
+      "src_components_errorboundary_props",
+      "src_components_errorboundary_state",
+      "src_lib_swmanager",
+      "src_lib_swmanager_caninstallpwa",
+      "src_lib_swmanager_getswstatus",
+      "src_lib_swmanager_initinstallprompt",
+      "src_lib_swmanager_installpwa",
+      "src_lib_swmanager_isrunningaspwa",
+      "src_lib_swmanager_registerserviceworker",
+      "src_lib_swmanager_requestperiodicsync",
+      "src_lib_swmanager_sendtosw",
+      "src_lib_swmanager_syncsessiontosw",
+      "src_lib_swmanager_syncsettingstosw",
+      "src_lib_swmanager_synctaskstosw",
+      "src_lib_swmanager_triggerimmediatecheck",
+      "src_main"
+    ],
+    "4": [
+      "ref_dom",
+      "ref_dom_iterable",
+      "ref_src",
+      "ref_vite_client",
+      "ref_vitest_globals",
+      "tsconfig_app",
+      "tsconfig_app_compileroptions",
+      "tsconfig_app_compileroptions_allowimportingtsextensions",
+      "tsconfig_app_compileroptions_erasablesyntaxonly",
+      "tsconfig_app_compileroptions_jsx",
+      "tsconfig_app_compileroptions_lib",
+      "tsconfig_app_compileroptions_module",
+      "tsconfig_app_compileroptions_moduledetection",
+      "tsconfig_app_compileroptions_moduleresolution",
+      "tsconfig_app_compileroptions_noemit",
+      "tsconfig_app_compileroptions_nofallthroughcasesinswitch",
+      "tsconfig_app_compileroptions_nounusedlocals",
+      "tsconfig_app_compileroptions_nounusedparameters",
+      "tsconfig_app_compileroptions_paths",
+      "tsconfig_app_compileroptions_skiplibcheck",
+      "tsconfig_app_compileroptions_strict",
+      "tsconfig_app_compileroptions_target",
+      "tsconfig_app_compileroptions_tsbuildinfofile",
+      "tsconfig_app_compileroptions_types",
+      "tsconfig_app_compileroptions_verbatimmodulesyntax",
+      "tsconfig_app_exclude",
+      "tsconfig_app_include",
+      "tsconfig_app_json_ref_es2023",
+      "tsconfig_app_json_ref_src_sw_ts",
+      "tsconfig_app_paths"
+    ],
+    "5": [
+      "ref_node",
+      "ref_vite_config_ts",
+      "tsconfig_node",
+      "tsconfig_node_compileroptions",
+      "tsconfig_node_compileroptions_allowimportingtsextensions",
+      "tsconfig_node_compileroptions_erasablesyntaxonly",
+      "tsconfig_node_compileroptions_lib",
+      "tsconfig_node_compileroptions_module",
+      "tsconfig_node_compileroptions_moduledetection",
+      "tsconfig_node_compileroptions_noemit",
+      "tsconfig_node_compileroptions_nofallthroughcasesinswitch",
+      "tsconfig_node_compileroptions_nounusedlocals",
+      "tsconfig_node_compileroptions_nounusedparameters",
+      "tsconfig_node_compileroptions_skiplibcheck",
+      "tsconfig_node_compileroptions_target",
+      "tsconfig_node_compileroptions_tsbuildinfofile",
+      "tsconfig_node_compileroptions_types",
+      "tsconfig_node_compileroptions_verbatimmodulesyntax",
+      "tsconfig_node_include",
+      "tsconfig_node_json_ref_es2023"
+    ],
+    "6": [
+      "ref_react",
+      "src_components_study_globalstudymedia",
+      "src_components_study_globalstudymedia_globalstudymedia",
+      "src_components_tasks_taskcomments",
+      "src_components_tasks_taskcomments_taskcomments",
+      "src_components_tasks_taskform",
+      "src_pages_dashboard",
+      "src_pages_dashboard_dashboard",
+      "src_pages_focus",
+      "src_pages_focus_focus",
+      "src_pages_leaderboard",
+      "src_pages_leaderboard_leaderboard",
+      "src_pages_patients",
+      "src_pages_patients_patients",
+      "src_pages_settings",
+      "src_pages_settings_settings",
+      "src_pages_updatepassword",
+      "src_pages_updatepassword_updatepassword"
+    ],
+    "7": [
+      "ref_webworker",
+      "tsconfig_sw",
+      "tsconfig_sw_compileroptions",
+      "tsconfig_sw_compileroptions_allowimportingtsextensions",
+      "tsconfig_sw_compileroptions_lib",
+      "tsconfig_sw_compileroptions_module",
+      "tsconfig_sw_compileroptions_moduledetection",
+      "tsconfig_sw_compileroptions_moduleresolution",
+      "tsconfig_sw_compileroptions_noemit",
+      "tsconfig_sw_compileroptions_skiplibcheck",
+      "tsconfig_sw_compileroptions_strict",
+      "tsconfig_sw_compileroptions_target",
+      "tsconfig_sw_compileroptions_tsbuildinfofile",
+      "tsconfig_sw_compileroptions_verbatimmodulesyntax",
+      "tsconfig_sw_include",
+      "tsconfig_sw_json_ref_es2023",
+      "tsconfig_sw_json_ref_src_sw_ts"
+    ],
+    "8": [
+      "src_components_layout_appshell",
+      "src_components_layout_appshell_appshell",
+      "src_components_layout_appshell_appshellprops",
+      "src_components_layout_header",
+      "src_components_layout_header_getgreeting",
+      "src_components_layout_header_header",
+      "src_components_layout_radiocontrols",
+      "src_components_layout_radiocontrols_radiocontrols",
+      "src_components_layout_sidebar",
+      "src_components_layout_sidebar_nav_items",
+      "src_components_layout_sidebar_nav_modules",
+      "src_components_layout_sidebar_sidebar",
+      "src_components_layout_spotifycontrols",
+      "src_components_layout_spotifycontrols_spotifycontrols",
+      "src_components_layout_studycontrols",
+      "src_components_layout_studycontrols_formattime",
+      "src_components_layout_studycontrols_studycontrols"
+    ],
+    "9": [
+      "src_lib_motion",
+      "src_lib_motion_checkboxvariants",
+      "src_lib_motion_dragvariants",
+      "src_lib_motion_fadein",
+      "src_lib_motion_modalcontent",
+      "src_lib_motion_modaloverlay",
+      "src_lib_motion_pagetransition",
+      "src_lib_motion_scalein",
+      "src_lib_motion_sidebarvariants",
+      "src_lib_motion_slideright",
+      "src_lib_motion_slideup",
+      "src_lib_motion_spring",
+      "src_lib_motion_springbouncy",
+      "src_lib_motion_springgentle",
+      "src_lib_motion_staggercontainer",
+      "src_lib_motion_staggeritem",
+      "src_lib_motion_toastvariants"
+    ],
+    "10": [
+      "public_manifest",
+      "public_manifest_background_color",
+      "public_manifest_categories",
+      "public_manifest_description",
+      "public_manifest_display",
+      "public_manifest_icons",
+      "public_manifest_lang",
+      "public_manifest_name",
+      "public_manifest_scope",
+      "public_manifest_screenshots",
+      "public_manifest_short_name",
+      "public_manifest_start_url",
+      "public_manifest_theme_color",
+      "ref_productivity",
+      "ref_utilities"
+    ],
+    "11": [
+      "src_lib_drive",
+      "src_lib_drive_course",
+      "src_lib_drive_courses",
+      "src_lib_drive_drivefile",
+      "src_lib_drive_drivemodule",
+      "src_lib_drive_drivetopic",
+      "src_lib_drive_fetchfoldercontents",
+      "src_lib_drive_fetchfoldertree",
+      "src_lib_drive_fetchmarkdowncontent",
+      "src_lib_drive_fetchmodules",
+      "src_lib_drive_fetchmoduletopics",
+      "src_lib_drive_getdrivestreamurl",
+      "src_lib_drive_lessongroup",
+      "src_pages_study",
+      "src_pages_study_study"
+    ],
+    "12": [
+      "oxlintrc",
+      "oxlintrc_ignorepatterns",
+      "oxlintrc_plugins",
+      "oxlintrc_rules",
+      "oxlintrc_rules_react_only_export_components",
+      "oxlintrc_rules_react_rules_of_hooks",
+      "oxlintrc_schema",
+      "ref_oxc",
+      "ref_taskform_remote_tsx",
+      "ref_temp_js",
+      "ref_typescript",
+      "ref_warn"
+    ],
+    "13": [
+      "package",
+      "package_name",
+      "package_private",
+      "package_scripts",
+      "package_scripts_build",
+      "package_scripts_dev",
+      "package_scripts_lint",
+      "package_scripts_preview",
+      "package_scripts_test",
+      "package_scripts_test_watch",
+      "package_type",
+      "package_version"
+    ],
+    "14": [
+      "src_components_views_timelineview",
+      "src_components_views_timelineview_priority_bar_colors",
+      "src_components_views_timelineview_status_group_order",
+      "src_components_views_timelineview_statusgroup",
+      "src_components_views_timelineview_statusgroupprops",
+      "src_components_views_timelineview_tasktooltip",
+      "src_components_views_timelineview_timelinebar",
+      "src_components_views_timelineview_timelinebarprops",
+      "src_components_views_timelineview_timelineview",
+      "src_components_views_timelineview_tooltipdata",
+      "src_components_views_timelineview_zoom_levels"
+    ],
+    "15": [
+      "src_lib_spotifyauth",
+      "src_lib_spotifyauth_base64urlencode",
+      "src_lib_spotifyauth_beginlogin",
+      "src_lib_spotifyauth_generatecodechallenge",
+      "src_lib_spotifyauth_generatecodeverifier",
+      "src_lib_spotifyauth_getredirecturi",
+      "src_lib_spotifyauth_handlecallbackifpresent",
+      "src_lib_spotifyauth_randomstate",
+      "src_lib_spotifyauth_refreshaccesstoken",
+      "src_lib_spotifyauth_tokenresponse"
+    ],
+    "16": [
+      "src_lib_studystats",
+      "src_lib_studystats_buildheatmap",
+      "src_lib_studystats_buildweeklyhours",
+      "src_lib_studystats_computemoduleprogress",
+      "src_lib_studystats_computestudystreak",
+      "src_lib_studystats_countmodulelessons",
+      "src_lib_studystats_heatmapday",
+      "src_lib_studystats_moduleprogress",
+      "src_lib_studystats_todatekey",
+      "src_lib_studystats_weeklyhours"
+    ],
+    "17": [
+      "src_components_procedures_procedureflow",
+      "src_components_procedures_procedureflow_blockmodal",
+      "src_components_procedures_procedureflow_deletableedge",
+      "src_components_procedures_procedureflow_edgetypes",
+      "src_components_procedures_procedureflow_node_color_palette",
+      "src_components_procedures_procedureflow_nodetypes",
+      "src_components_procedures_procedureflow_procedureflow",
+      "src_components_procedures_procedureflow_procedureflowprops",
+      "src_components_procedures_procedureflow_stepnode"
+    ],
+    "18": [
+      "src_pages_planning",
+      "src_pages_planning_dailynotes",
+      "src_pages_planning_mood_options",
+      "src_pages_planning_moodretrospective",
+      "src_pages_planning_morningritual",
+      "src_pages_planning_noteshistory",
+      "src_pages_planning_planning",
+      "src_pages_planning_weeklyreview"
+    ],
+    "19": [
+      "src_stores_radiostore",
+      "src_stores_radiostore_api_mirrors",
+      "src_stores_radiostore_curated_stations",
+      "src_stores_radiostore_fetchfromradiobrowser",
+      "src_stores_radiostore_radiostate",
+      "src_stores_radiostore_radiostation",
+      "src_stores_radiostore_searchcache",
+      "src_stores_radiostore_useradiostore"
+    ],
+    "20": [
+      "src_components_dashboard_stoicquotewidget",
+      "src_components_dashboard_stoicquotewidget_stoicquotewidget",
+      "src_lib_stoicquotes",
+      "src_lib_stoicquotes_getquoteoftheinterval",
+      "src_lib_stoicquotes_getrandomquote",
+      "src_lib_stoicquotes_stoic_quotes",
+      "src_lib_stoicquotes_stoicquote"
+    ],
+    "21": [
+      "src_components_views_kanbanboard",
+      "src_components_views_kanbanboard_column_colors",
+      "src_components_views_kanbanboard_formatduedate",
+      "src_components_views_kanbanboard_isoverdue",
+      "src_components_views_kanbanboard_kanbanboard",
+      "src_components_views_kanbanboard_kanbancard",
+      "src_components_views_kanbanboard_kanbancardprops"
+    ],
+    "22": [
+      "src_lib_access",
+      "src_lib_access_hasmoduleaccess",
+      "src_lib_access_role_access",
+      "src_lib_access_test",
+      "src_lib_access_test_expected",
+      "src_lib_access_test_modules",
+      "src_lib_access_test_profile"
+    ],
+    "23": [
+      "src_lib_studymedia",
+      "src_lib_studymedia_studymedia",
+      "src_lib_studymedia_studymediamanager",
+      "src_lib_studymedia_studymediamanager_applyfixedstyle",
+      "src_lib_studymedia_studymediamanager_constructor",
+      "src_lib_studymedia_studymediamanager_dock",
+      "src_lib_studymedia_studymediamanager_hideall"
+    ],
+    "24": [
+      "src_pages_tasks",
+      "src_pages_tasks_completionbar",
+      "src_pages_tasks_filterbydatetag",
+      "src_pages_tasks_listview",
+      "src_pages_tasks_tasks",
+      "src_pages_tasks_view_components",
+      "src_pages_tasks_view_options"
+    ],
+    "25": [
+      "src_components_views_calendarview",
+      "src_components_views_calendarview_calendarview",
+      "src_components_views_calendarview_daypopover",
+      "src_components_views_calendarview_daypopoverprops",
+      "src_components_views_calendarview_taskpill",
+      "src_components_views_calendarview_weekdays"
+    ],
+    "26": [
+      "src_lib_procedureparser",
+      "src_lib_procedureparser_default_columns",
+      "src_lib_procedureparser_parseproceduredesc",
+      "src_lib_procedureparser_parsestepdesc",
+      "src_lib_procedureparser_stringifyproceduredesc",
+      "src_lib_procedureparser_stringifystepdesc"
+    ],
+    "27": [
+      "src_lib_pushmanager",
+      "src_lib_pushmanager_getpushstatus",
+      "src_lib_pushmanager_ispushsupported",
+      "src_lib_pushmanager_subscribetopush",
+      "src_lib_pushmanager_unsubscribefrompush",
+      "src_lib_pushmanager_urlbase64touint8array"
+    ],
+    "28": [
+      "src_components_mindmaps_mindmapboard",
+      "src_components_mindmaps_mindmapboard_flow",
+      "src_components_mindmaps_mindmapboard_mindmapboard",
+      "src_components_mindmaps_mindmapnode",
+      "src_components_mindmaps_mindmapnode_mindmapnode"
+    ],
+    "29": [
+      "src_components_study_studysidebar",
+      "src_components_study_studysidebar_countlessons",
+      "src_components_study_studysidebar_progressbadge",
+      "src_components_study_studysidebar_studysidebar",
+      "src_components_study_studysidebar_topicnode"
+    ],
+    "30": [
+      "src_components_study_studytranscript",
+      "src_components_study_studytranscript_escaperegexp",
+      "src_components_study_studytranscript_highlightmatches",
+      "src_components_study_studytranscript_studytranscript",
+      "src_components_study_studytranscript_timestamptoseconds"
+    ],
+    "31": [
+      "src_lib_icsparser",
+      "src_lib_icsparser_fetchicsevents",
+      "src_lib_icsparser_icsevent",
+      "src_lib_icsparser_parseics",
+      "src_lib_icsparser_parseicsdate"
+    ],
+    "32": [
+      "src_lib_notificationmanager",
+      "src_lib_notificationmanager_checkandnotifytasks",
+      "src_lib_notificationmanager_getsentlog",
+      "src_lib_notificationmanager_requestnotificationpermission",
+      "src_lib_notificationmanager_savesentlog"
+    ],
+    "33": [
+      "src_stores_mindmapstore",
+      "src_stores_mindmapstore_initialnodes",
+      "src_stores_mindmapstore_mindmapnodedata",
+      "src_stores_mindmapstore_mindmapstate",
+      "src_stores_mindmapstore_usemindmapstore"
+    ],
+    "34": [
+      "src_stores_spotifystore",
+      "src_stores_spotifystore_spotifyplaybackstate",
+      "src_stores_spotifystore_spotifyplaylist",
+      "src_stores_spotifystore_spotifystate",
+      "src_stores_spotifystore_usespotifystore"
+    ],
+    "35": [
+      "src_stores_taskstore",
+      "src_stores_taskstore_getnextduedate",
+      "src_stores_taskstore_sanitizetask",
+      "src_stores_taskstore_taskstate",
+      "src_stores_taskstore_usetaskstore"
+    ],
+    "36": [
+      "supabase_functions_push_overdue_index",
+      "supabase_functions_push_overdue_index_isoverdue",
+      "supabase_functions_push_overdue_index_nowinsaopaulo",
+      "supabase_functions_push_overdue_index_subscription",
+      "supabase_functions_push_overdue_index_taskrow"
+    ],
+    "37": [
+      "supabase_migrations_202607110003_module_access_and_security",
+      "supabase_migrations_202607110003_module_access_and_security_public_can_access_module",
+      "supabase_migrations_202607110003_module_access_and_security_public_increment_xp",
+      "supabase_migrations_202607110003_module_access_and_security_public_profiles",
+      "supabase_migrations_202607110003_module_access_and_security_public_user_module_access"
+    ],
+    "38": [
+      "supabase_migrations_20260711220000_task_activity_and_delegate_action_permissions",
+      "supabase_migrations_20260711220000_task_activity_and_delegate_action_permissions_public_log_task_activity",
+      "supabase_migrations_20260711220000_task_activity_and_delegate_action_permissions_public_task_activity",
+      "supabase_migrations_20260711220000_task_activity_and_delegate_action_permissions_public_update_delegated_task_progress",
+      "supabase_migrations_20260711220000_task_activity_and_delegate_action_permissions_tasks_log_activity"
+    ],
+    "39": [
+      "update_hierarchy",
+      "update_hierarchy_on_auth_user_created",
+      "update_hierarchy_profiles",
+      "update_hierarchy_public_handle_new_user",
+      "update_hierarchy_tasks"
+    ],
+    "40": [
+      "src_components_dashboard_delegationpulsewidget",
+      "src_components_dashboard_delegationpulsewidget_delegationpulsewidget",
+      "src_components_dashboard_delegationpulsewidget_delegationpulsewidgetprops",
+      "src_components_dashboard_delegationpulsewidget_pulseitems"
+    ],
+    "41": [
+      "src_components_dashboard_examcountdownwidget",
+      "src_components_dashboard_examcountdownwidget_exam_keywords",
+      "src_components_dashboard_examcountdownwidget_examcountdownwidget",
+      "src_components_dashboard_examcountdownwidget_isexamevent"
+    ],
+    "42": [
+      "src_components_requiremodule",
+      "src_components_requiremodule_requiremodule",
+      "src_components_requiremodule_test",
+      "src_components_requiremodule_test_renderguard"
+    ],
+    "43": [
+      "src_components_study_notioneditor",
+      "src_components_study_notioneditor_menubar",
+      "src_components_study_notioneditor_notioneditor",
+      "src_components_study_notioneditor_notioneditorprops"
+    ],
+    "44": [
+      "src_components_ui_toastcontainer",
+      "src_components_ui_toastcontainer_colors",
+      "src_components_ui_toastcontainer_icons",
+      "src_components_ui_toastcontainer_toastcontainer"
+    ],
+    "45": [
+      "src_lib_migration",
+      "src_lib_migration_migratelocaldatatosupabase",
+      "src_lib_supabase",
+      "src_lib_supabase_supabase"
+    ],
+    "46": [
+      "src_pages_procedures",
+      "src_pages_procedures_boardcard",
+      "src_pages_procedures_procedureform",
+      "src_pages_procedures_procedures"
+    ],
+    "47": [
+      "src_pages_stats",
+      "src_pages_stats_heatcolor",
+      "src_pages_stats_stats",
+      "src_pages_stats_weekday_labels"
+    ],
+    "48": [
+      "src_stores_toaststore",
+      "src_stores_toaststore_toast",
+      "src_stores_toaststore_toaststate",
+      "src_stores_toaststore_usetoaststore"
+    ],
+    "49": [
+      "supabase_migrations_202607110001_align_tasks_patients_comments",
+      "supabase_migrations_202607110001_align_tasks_patients_comments_public_patients",
+      "supabase_migrations_202607110001_align_tasks_patients_comments_public_task_comments",
+      "supabase_migrations_202607110001_align_tasks_patients_comments_public_tasks"
+    ],
+    "50": [
+      "supabase_migrations_202607110002_version_task_delegation",
+      "supabase_migrations_202607110002_version_task_delegation_public_task_comments",
+      "supabase_migrations_202607110002_version_task_delegation_public_task_proposals",
+      "supabase_migrations_202607110002_version_task_delegation_public_tasks"
+    ],
+    "51": [
+      "src_components_dashboard_agendawidget",
+      "src_components_dashboard_agendawidget_agendawidget",
+      "src_components_dashboard_agendawidget_agendawidgetprops"
+    ],
+    "52": [
+      "src_components_dashboard_weatherwidget",
+      "src_components_dashboard_weatherwidget_weatherdata",
+      "src_components_dashboard_weatherwidget_weatherwidget"
+    ],
+    "53": [
+      "src_components_layout_commandpalette",
+      "src_components_layout_commandpalette_commanditem",
+      "src_components_layout_commandpalette_commandpalette"
+    ],
+    "54": [
+      "src_components_procedures_procedureboard",
+      "src_components_procedures_procedureboard_procedureboard",
+      "src_components_procedures_procedureboard_procedureboardprops"
+    ],
+    "55": [
+      "src_components_study_studyplayer",
+      "src_components_study_studyplayer_playback_rates",
+      "src_components_study_studyplayer_studyplayer"
+    ],
+    "56": [
+      "src_components_ui_radioplayer",
+      "src_components_ui_radioplayer_radioplayer",
+      "src_components_ui_radioplayer_retry_delays_ms"
+    ],
+    "57": [
+      "src_lib_delegationpulse",
+      "src_lib_delegationpulse_computedelegationpulse",
+      "src_lib_delegationpulse_delegationpulse"
+    ],
+    "58": [
+      "src_lib_spotifyapi",
+      "src_lib_spotifyapi_ensurefreshtoken",
+      "src_lib_spotifyapi_spotifyfetch"
+    ],
+    "59": [
+      "src_stores_authstore",
+      "src_stores_authstore_authstate",
+      "src_stores_authstore_useauthstore"
+    ],
+    "60": [
+      "src_stores_focusstore",
+      "src_stores_focusstore_focusstate",
+      "src_stores_focusstore_usefocusstore"
+    ],
+    "61": [
+      "src_stores_gamificationstore",
+      "src_stores_gamificationstore_gamificationstate",
+      "src_stores_gamificationstore_usegamificationstore"
+    ],
+    "62": [
+      "src_stores_patientstore",
+      "src_stores_patientstore_patientstate",
+      "src_stores_patientstore_usepatientstore"
+    ],
+    "63": [
+      "src_stores_planningstore",
+      "src_stores_planningstore_planningstate",
+      "src_stores_planningstore_useplanningstore"
+    ],
+    "64": [
+      "src_stores_procedurestore",
+      "src_stores_procedurestore_procedurestate",
+      "src_stores_procedurestore_useprocedurestore"
+    ],
+    "65": [
+      "src_stores_profilestore",
+      "src_stores_profilestore_profilestate",
+      "src_stores_profilestore_useprofilestore"
+    ],
+    "66": [
+      "src_stores_proposalstore",
+      "src_stores_proposalstore_proposalstate",
+      "src_stores_proposalstore_useproposalstore"
+    ],
+    "67": [
+      "src_stores_studystore",
+      "src_stores_studystore_studystate",
+      "src_stores_studystore_usestudystore"
+    ],
+    "68": [
+      "src_stores_uistore",
+      "src_stores_uistore_uistate",
+      "src_stores_uistore_useuistore"
+    ],
+    "69": [
+      "supabase_migrations_202607110005_atomic_task_proposals",
+      "supabase_migrations_202607110005_atomic_task_proposals_public_respond_to_task_proposal",
+      "supabase_migrations_202607110005_atomic_task_proposals_public_task_proposals"
+    ],
+    "70": [
+      "tsconfig",
+      "tsconfig_files",
+      "tsconfig_references"
+    ],
+    "71": [
+      "src_components_layout_sidebarxp",
+      "src_components_layout_sidebarxp_sidebarxp"
+    ],
+    "72": [
+      "src_components_tasks_taskproposalmodal",
+      "src_components_tasks_taskproposalmodal_taskproposalmodal"
+    ],
+    "73": [
+      "src_lib_cn",
+      "src_lib_cn_cn"
+    ],
+    "74": [
+      "src_lib_countryflag",
+      "src_lib_countryflag_countrycodetoflag"
+    ],
+    "75": [
+      "src_lib_dateutils",
+      "src_lib_dateutils_getlocaltodaystr"
+    ],
+    "76": [
+      "src_lib_delegationpulse_test",
+      "src_lib_delegationpulse_test_proposal"
+    ],
+    "77": [
+      "src_lib_flowlayout",
+      "src_lib_flowlayout_layoutnodes"
+    ],
+    "78": [
+      "src_lib_usescrolllock",
+      "src_lib_usescrolllock_usescrolllock"
+    ],
+    "79": [
+      "src_pages_login",
+      "src_pages_login_login"
+    ],
+    "80": [
+      "src_pages_mindmaps",
+      "src_pages_mindmaps_mindmaps"
+    ],
+    "81": [
+      "supabase_functions_calendar_feed_index",
+      "supabase_functions_calendar_feed_index_generateical"
+    ],
+    "82": [
+      "supabase_migrations_202607120001_secure_proposal_rpc_ownership",
+      "supabase_migrations_202607120001_secure_proposal_rpc_ownership_public_respond_to_task_proposal"
+    ],
+    "83": [
+      "src_sw"
+    ],
+    "84": [
+      "src_test_setup"
+    ],
+    "85": [
+      "supabase_migrations_202607110004_revoke_anon_module_function"
+    ],
+    "86": [
+      "supabase_migrations_202607120002_revoke_anon_proposal_update"
+    ],
+    "87": [
+      "vite_config"
+    ]
+  },
+  "cohesion": {
+    "0": 0.044444444444444446,
+    "1": 0.05405405405405406,
+    "2": 0.05714285714285714,
+    "3": 0.07130124777183601,
+    "4": 0.06896551724137931,
+    "5": 0.1,
+    "6": 0.12418300653594772,
+    "7": 0.11764705882352941,
+    "8": 0.16911764705882354,
+    "9": 0.11764705882352941,
+    "10": 0.13333333333333333,
+    "11": 0.17142857142857143,
+    "12": 0.16666666666666666,
+    "13": 0.16666666666666666,
+    "14": 0.18181818181818182,
+    "15": 0.37777777777777777,
+    "16": 0.26666666666666666,
+    "17": 0.2222222222222222,
+    "18": 0.32142857142857145,
+    "19": 0.25,
+    "20": 0.2857142857142857,
+    "21": 0.38095238095238093,
+    "22": 0.3333333333333333,
+    "23": 0.38095238095238093,
+    "24": 0.3333333333333333,
+    "25": 0.3333333333333333,
+    "26": 0.3333333333333333,
+    "27": 0.6,
+    "28": 0.6,
+    "29": 0.6,
+    "30": 0.8,
+    "31": 0.6,
+    "32": 0.6,
+    "33": 0.4,
+    "34": 0.4,
+    "35": 0.4,
+    "36": 0.4,
+    "37": 0.7,
+    "38": 0.5,
+    "39": 0.5,
+    "40": 0.5,
+    "41": 0.8333333333333334,
+    "42": 0.6666666666666666,
+    "43": 0.5,
+    "44": 0.5,
+    "45": 0.6666666666666666,
+    "46": 0.5,
+    "47": 0.6666666666666666,
+    "48": 0.5,
+    "49": 0.6666666666666666,
+    "50": 0.6666666666666666,
+    "51": 0.6666666666666666,
+    "52": 0.6666666666666666,
+    "53": 0.6666666666666666,
+    "54": 0.6666666666666666,
+    "55": 0.6666666666666666,
+    "56": 0.6666666666666666,
+    "57": 0.6666666666666666,
+    "58": 1.0,
+    "59": 0.6666666666666666,
+    "60": 0.6666666666666666,
+    "61": 0.6666666666666666,
+    "62": 0.6666666666666666,
+    "63": 0.6666666666666666,
+    "64": 0.6666666666666666,
+    "65": 0.6666666666666666,
+    "66": 0.6666666666666666,
+    "67": 0.6666666666666666,
+    "68": 0.6666666666666666,
+    "69": 1.0,
+    "70": 0.6666666666666666,
+    "71": 1.0,
+    "72": 1.0,
+    "73": 1.0,
+    "74": 1.0,
+    "75": 1.0,
+    "76": 1.0,
+    "77": 1.0,
+    "78": 1.0,
+    "79": 1.0,
+    "80": 1.0,
+    "81": 1.0,
+    "82": 1.0,
+    "83": 1.0,
+    "84": 1.0,
+    "85": 1.0,
+    "86": 1.0,
+    "87": 1.0
+  },
+  "gods": [
+    {
+      "id": "ref_react",
+      "label": "react",
+      "degree": 43
+    },
+    {
+      "id": "tsconfig_app_compileroptions",
+      "label": "compilerOptions",
+      "degree": 19
+    },
+    {
+      "id": "tsconfig_node_compileroptions",
+      "label": "compilerOptions",
+      "degree": 15
+    },
+    {
+      "id": "tsconfig_sw_compileroptions",
+      "label": "compilerOptions",
+      "degree": 12
+    },
+    {
+      "id": "package_scripts",
+      "label": "scripts",
+      "degree": 7
+    },
+    {
+      "id": "src_components_errorboundary_errorboundary",
+      "label": "ErrorBoundary",
+      "degree": 6
+    },
+    {
+      "id": "src_lib_spotifyauth_beginlogin",
+      "label": "beginLogin()",
+      "degree": 5
+    },
+    {
+      "id": "src_lib_studymedia_studymediamanager",
+      "label": "StudyMediaManager",
+      "degree": 5
+    },
+    {
+      "id": "src_lib_swmanager_sendtosw",
+      "label": "sendToSW()",
+      "degree": 5
+    },
+    {
+      "id": "oxlintrc_plugins",
+      "label": "plugins",
+      "degree": 4
+    }
+  ],
+  "surprises": [
+    {
+      "source": "TaskComments()",
+      "target": "profile()",
+      "source_files": [
+        "src/components/tasks/TaskComments.tsx",
+        "src/lib/access.test.ts"
+      ],
+      "confidence": "INFERRED",
+      "relation": "indirect_call",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+    },
+    {
+      "source": "Flow()",
+      "target": "MindMapNode()",
+      "source_files": [
+        "src/components/mindmaps/MindMapBoard.tsx",
+        "src/components/mindmaps/MindMapNode.tsx"
+      ],
+      "confidence": "INFERRED",
+      "relation": "indirect_call",
+      "why": "inferred connection - not explicitly stated in source"
+    },
+    {
+      "source": "StoicQuoteWidget()",
+      "target": "STOIC_QUOTES",
+      "source_files": [
+        "src/components/dashboard/StoicQuoteWidget.tsx",
+        "src/lib/stoicQuotes.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "cross-file semantic connection"
+    },
+    {
+      "source": "TaskForm()",
+      "target": "SMART_DATE_TAGS",
+      "source_files": [
+        "src/components/tasks/TaskForm.tsx",
+        "src/types/index.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "cross-file semantic connection"
+    },
+    {
+      "source": "Study()",
+      "target": "COURSES",
+      "source_files": [
+        "src/pages/Study.tsx",
+        "src/lib/drive.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "cross-file semantic connection"
+    }
+  ],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}

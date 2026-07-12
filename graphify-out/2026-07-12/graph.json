@@ -3800,7 +3800,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_lib_usescrolllock",
-      "community": 6,
+      "community": 78,
       "norm_label": "usescrolllock.ts"
     },
     {
@@ -3810,7 +3810,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "src_lib_usescrolllock_usescrolllock",
-      "community": 6,
+      "community": 78,
       "norm_label": "usescrolllock()"
     },
     {
@@ -3830,7 +3830,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_pages_dashboard",
-      "community": 79,
+      "community": 6,
       "norm_label": "dashboard.tsx"
     },
     {
@@ -3840,7 +3840,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "src_pages_dashboard_dashboard",
-      "community": 79,
+      "community": 6,
       "norm_label": "dashboard()"
     },
     {
@@ -3870,7 +3870,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_pages_leaderboard",
-      "community": 88,
+      "community": 6,
       "norm_label": "leaderboard.tsx"
     },
     {
@@ -3880,7 +3880,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_pages_leaderboard_leaderboard",
-      "community": 88,
+      "community": 6,
       "norm_label": "leaderboard()"
     },
     {
@@ -3890,7 +3890,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_pages_login",
-      "community": 6,
+      "community": 79,
       "norm_label": "login.tsx"
     },
     {
@@ -3900,7 +3900,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_pages_login_login",
-      "community": 6,
+      "community": 79,
       "norm_label": "login()"
     },
     {
@@ -3930,7 +3930,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_pages_patients",
-      "community": 89,
+      "community": 6,
       "norm_label": "patients.tsx"
     },
     {
@@ -3940,7 +3940,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_pages_patients_patients",
-      "community": 89,
+      "community": 6,
       "norm_label": "patients()"
     },
     {
@@ -4262,16 +4262,6 @@
       "id": "src_stores_authstore_useauthstore",
       "community": 59,
       "norm_label": "useauthstore"
-    },
-    {
-      "label": "focusStore.test.ts",
-      "file_type": "code",
-      "source_file": "src/stores/focusStore.test.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "src_stores_focusstore_test",
-      "community": 60,
-      "norm_label": "focusstore.test.ts"
     },
     {
       "label": "focusStore.ts",
@@ -6272,86 +6262,6 @@
       "id": "vite_config",
       "community": 87,
       "norm_label": "vite.config.ts"
-    },
-    {
-      "label": "README.md",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "readme",
-      "community": 78,
-      "norm_label": "readme.md"
-    },
-    {
-      "label": "PlannerPSI",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "readme_plannerpsi",
-      "community": 78,
-      "norm_label": "plannerpsi"
-    },
-    {
-      "label": "Requisitos",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L5",
-      "_origin": "ast",
-      "id": "readme_requisitos",
-      "community": 78,
-      "norm_label": "requisitos"
-    },
-    {
-      "label": "Desenvolvimento local",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L11",
-      "_origin": "ast",
-      "id": "readme_desenvolvimento_local",
-      "community": 78,
-      "norm_label": "desenvolvimento local"
-    },
-    {
-      "label": "Vari\u00e1veis de ambiente",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L22",
-      "_origin": "ast",
-      "id": "readme_vari\u00e1veis_de_ambiente",
-      "community": 78,
-      "norm_label": "variaveis de ambiente"
-    },
-    {
-      "label": "Scripts",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L32",
-      "_origin": "ast",
-      "id": "readme_scripts",
-      "community": 78,
-      "norm_label": "scripts"
-    },
-    {
-      "label": "Banco e migrations",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L43",
-      "_origin": "ast",
-      "id": "readme_banco_e_migrations",
-      "community": 78,
-      "norm_label": "banco e migrations"
-    },
-    {
-      "label": "Deploy",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L55",
-      "_origin": "ast",
-      "id": "readme_deploy",
-      "community": 78,
-      "norm_label": "deploy"
     }
   ],
   "links": [
@@ -11225,28 +11135,6 @@
       "confidence_score": 1.0
     },
     {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/stores/focusStore.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "src_stores_focusstore_test",
-      "target": "src_stores_focusstore",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/stores/focusStore.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "source": "src_stores_focusstore_test",
-      "target": "src_stores_focusstore_usefocusstore",
-      "confidence_score": 1.0
-    },
-    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/stores/focusStore.ts",
@@ -13018,76 +12906,6 @@
       "weight": 1.0,
       "source": "update_hierarchy_on_auth_user_created",
       "target": "update_hierarchy_public_handle_new_user",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L1",
-      "weight": 1.0,
-      "source": "readme",
-      "target": "readme_plannerpsi",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L43",
-      "weight": 1.0,
-      "source": "readme_plannerpsi",
-      "target": "readme_banco_e_migrations",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L55",
-      "weight": 1.0,
-      "source": "readme_plannerpsi",
-      "target": "readme_deploy",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L11",
-      "weight": 1.0,
-      "source": "readme_plannerpsi",
-      "target": "readme_desenvolvimento_local",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L5",
-      "weight": 1.0,
-      "source": "readme_plannerpsi",
-      "target": "readme_requisitos",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L32",
-      "weight": 1.0,
-      "source": "readme_plannerpsi",
-      "target": "readme_scripts",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L22",
-      "weight": 1.0,
-      "source": "readme_plannerpsi",
-      "target": "readme_vari\u00e1veis_de_ambiente",
       "confidence_score": 1.0
     }
   ],
