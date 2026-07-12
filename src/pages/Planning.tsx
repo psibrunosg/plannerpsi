@@ -56,24 +56,6 @@ function MorningRitual() {
 
   const todayTasks = tasks.filter((t) => t.due_date?.startsWith(todayStr) && t.status !== 'done' && t.status !== 'archived')
 
-  if (!note) return <div className="glass-card p-6 min-h-[300px] animate-pulse" />
-
-  const handleAddPriority = () => {
-    const p = priorityInput.trim()
-    if (p && !priorities.includes(p)) {
-      const newPriorities = [...priorities, p]
-      setPriorities(newPriorities)
-      setPriorityInput('')
-      updateNote(note.id, { today_priorities: newPriorities })
-    }
-  }
-
-  const handleRemovePriority = (p: string) => {
-    const newPriorities = priorities.filter((x) => x !== p)
-    setPriorities(newPriorities)
-    updateNote(note.id, { today_priorities: newPriorities })
-  }
-
   // Auto-save debounced
   useEffect(() => {
     if (!note) return
@@ -97,6 +79,24 @@ function MorningRitual() {
     }, 1500)
     return () => clearTimeout(timer)
   }, [yesterdayReview, priorities, mood, note, updateNote])
+
+  if (!note) return <div className="glass-card p-6 min-h-[300px] animate-pulse" />
+
+  const handleAddPriority = () => {
+    const p = priorityInput.trim()
+    if (p && !priorities.includes(p)) {
+      const newPriorities = [...priorities, p]
+      setPriorities(newPriorities)
+      setPriorityInput('')
+      updateNote(note.id, { today_priorities: newPriorities })
+    }
+  }
+
+  const handleRemovePriority = (p: string) => {
+    const newPriorities = priorities.filter((x) => x !== p)
+    setPriorities(newPriorities)
+    updateNote(note.id, { today_priorities: newPriorities })
+  }
 
   const handleSave = () => {
     updateNote(note.id, {
@@ -381,8 +381,6 @@ function DailyNotes() {
     }
   }, [note])
 
-  if (!note) return <div className="glass-card col-span-full p-6 min-h-[200px] animate-pulse" />
-
   // Auto-save debounced
   useEffect(() => {
     if (!note) return
@@ -394,6 +392,8 @@ function DailyNotes() {
     }, 1500)
     return () => clearTimeout(timer)
   }, [noteText, note, updateNote])
+
+  if (!note) return <div className="glass-card col-span-full p-6 min-h-[200px] animate-pulse" />
 
   const handleSave = () => {
     updateNote(note.id, { notes: noteText.trim() || null })

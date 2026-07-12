@@ -40,7 +40,7 @@ export interface TaskComment {
   user_id: string
   content: string
   created_at: string
-  user?: Profile
+  user?: Pick<Profile, 'id' | 'full_name'>
 }
 
 export interface Task {
