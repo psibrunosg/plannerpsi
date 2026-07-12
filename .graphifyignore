@@ -1,0 +1,10 @@
+# Artefatos legados, gerados ou externos que poluem o grafo arquitetural
+temp.js
+TaskForm_remote.tsx
+dist/
+public/sw.js
+graphify-out/
+adultos_funcionando.m3u
+cal.ics
+runs.json
+jobs.json

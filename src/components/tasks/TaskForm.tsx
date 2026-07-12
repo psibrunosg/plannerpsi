@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Calendar, Tag, Flag, Clock, AlignLeft, Percent, Repeat, ListTree, Plus, Trash2, CheckCircle2, Circle, User as UserIcon, Users } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { X, Calendar, Tag, Flag, Clock, AlignLeft, Percent, Repeat, ListTree, Plus, Trash2, CheckCircle2, Circle, User as UserIcon, Users, Timer } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { modalOverlay, modalContent } from '@/lib/motion'
 import { useUIStore } from '@/stores/uiStore'
@@ -9,12 +10,14 @@ import { useToastStore } from '@/stores/toastStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useProfileStore } from '@/stores/profileStore'
 import { usePatientStore } from '@/stores/patientStore'
+import { useFocusStore } from '@/stores/focusStore'
 import type { TaskPriority, TaskStatus, RecurrenceFreq } from '@/types'
 import { PRIORITY_CONFIG, SMART_DATE_TAGS, RECURRENCE_FREQ_CONFIG } from '@/types'
 import { useScrollLock } from '@/lib/useScrollLock'
 import { TaskComments } from './TaskComments'
 
 export function TaskForm() {
+  const navigate = useNavigate()
   const taskFormOpen = useUIStore((s) => s.taskFormOpen)
   const setTaskFormOpen = useUIStore((s) => s.setTaskFormOpen)
   const taskDetailId = useUIStore((s) => s.taskDetailId)
@@ -26,6 +29,9 @@ export function TaskForm() {
   const deleteTask = useTaskStore((s) => s.deleteTask)
   const addToast = useToastStore((s) => s.addToast)
   const allTasks = useTaskStore((s) => s.tasks)
+  const activeSession = useFocusStore((s) => s.activeSession)
+  const pomodoroSettings = useFocusStore((s) => s.pomodoroSettings)
+  const startSession = useFocusStore((s) => s.startSession)
 
   const isOpen = taskFormOpen || !!taskDetailId
   const isEditing = !!taskDetailId
@@ -68,6 +74,17 @@ export function TaskForm() {
   const assignableProfiles = allProfiles.filter(p => (currentProfile?.level ?? 1) > 1 && p.level <= currentProfile!.level)
 
   const subtasks = taskDetailId ? allTasks.filter((t) => t.parent_id === taskDetailId) : []
+  const detailedTask = taskDetailId ? allTasks.find((task) => task.id === taskDetailId) : null
+  const canStartFocus = detailedTask ? !['done', 'archived'].includes(detailedTask.status) : false
+
+  const handleFocusTask = () => {
+    if (!taskDetailId) return
+    if (!activeSession) {
+      startSession(taskDetailId, 'pomodoro', pomodoroSettings.workMinutes)
+    }
+    closeForm()
+    navigate('/focus')
+  }
 
   const reset = () => {
     setTitle('')
@@ -551,10 +568,23 @@ export function TaskForm() {
               )}
 
               <div className="flex justify-between gap-2 border-t border-border-subtle pt-4 mt-6">
-                <div>
-                  {isEditing && (
+                <div className="flex items-center gap-2">
+                  {isEditing && (activeSession || canStartFocus) && (
                     <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleDelete}
                       className="rounded-[var(--radius-sm)] px-4 py-2 text-sm text-red-500 hover:bg-red-500/10">Excluir</motion.button>
+                  )}
+                  {isEditing && (
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleFocusTask}
+                      className="flex items-center gap-1.5 rounded-[var(--radius-sm)] px-3 py-2 text-sm font-medium text-accent hover:bg-accent/10"
+                      title={activeSession ? 'Ir para a sessão de foco em andamento' : 'Iniciar um Pomodoro vinculado a esta tarefa'}
+                    >
+                      <Timer className="h-4 w-4" />
+                      {activeSession ? 'Ir para foco' : 'Focar nesta tarefa'}
+                    </motion.button>
                   )}
                 </div>
                 <div className="flex gap-2">

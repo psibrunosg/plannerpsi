@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Target, CheckCircle, Clock, TrendingUp, Calendar, Flame, BookOpen } from 'lucide-react'
@@ -10,12 +11,28 @@ import { AgendaWidget } from '@/components/dashboard/AgendaWidget'
 import { ExamCountdownWidget } from '@/components/dashboard/ExamCountdownWidget'
 import { StoicQuoteWidget } from '@/components/dashboard/StoicQuoteWidget'
 import { computeStudyStreak } from '@/lib/studyStats'
+import { useProposalStore } from '@/stores/proposalStore'
+import { computeDelegationPulse } from '@/lib/delegationPulse'
+import { DelegationPulseWidget } from '@/components/dashboard/DelegationPulseWidget'
 
 export default function Dashboard() {
   const navigate = useNavigate()
   const tasks = useTaskStore((s) => s.tasks)
   const sessions = useFocusStore((s) => s.sessions)
   const completedLessons = useStudyStore((s) => s.completedLessons)
+  const proposals = useProposalStore((s) => s.proposals)
+  const sentProposals = useProposalStore((s) => s.sentProposals)
+  const proposalsLoading = useProposalStore((s) => s.loading)
+  const fetchProposals = useProposalStore((s) => s.fetchProposals)
+
+  useEffect(() => {
+    void fetchProposals()
+  }, [fetchProposals])
+
+  const delegationPulse = useMemo(
+    () => computeDelegationPulse(proposals, sentProposals),
+    [proposals, sentProposals],
+  )
 
   const todayStr = new Date().toISOString().split('T')[0]
 
@@ -65,7 +82,13 @@ export default function Dashboard() {
       <ExamCountdownWidget className="mb-6" />
       <StoicQuoteWidget className="mb-6" />
 
-      <motion.div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" variants={staggerContainer} initial="hidden" animate="visible">
+      <DelegationPulseWidget
+        {...delegationPulse}
+        loading={proposalsLoading}
+        onOpen={() => navigate('/tasks')}
+      />
+
+      <motion.div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" variants={staggerContainer} initial="hidden" animate="visible">
         {widgets.map((w) => (
           <motion.div 
             key={w.title} 

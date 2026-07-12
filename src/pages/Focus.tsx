@@ -5,6 +5,7 @@ import { cn } from '@/lib/cn'
 import { pageTransition } from '@/lib/motion'
 import { useFocusStore } from '@/stores/focusStore'
 import { useUIStore } from '@/stores/uiStore'
+import { useTaskStore } from '@/stores/taskStore'
 
 export default function Focus() {
   const activeSession = useFocusStore((s) => s.activeSession)
@@ -15,6 +16,9 @@ export default function Focus() {
   const resumeSession = useFocusStore((s) => s.resumeSession)
   const endSession = useFocusStore((s) => s.endSession)
   const tick = useFocusStore((s) => s.tick)
+  const focusedTask = useTaskStore((s) => (
+    s.tasks.find((task) => task.id === activeSession?.taskId) ?? null
+  ))
   
   const zenMode = useUIStore((s) => s.zenMode)
   const setZenMode = useUIStore((s) => s.setZenMode)
@@ -70,6 +74,11 @@ export default function Focus() {
         <div className="mb-8 text-center mt-4">
           <h1 className="text-3xl font-bold"><span className="gradient-text">Modo Foco</span></h1>
           <p className="mt-1 text-text-secondary">Concentre-se no que importa</p>
+          {focusedTask && (
+            <p className="mt-2 max-w-md truncate text-sm font-medium text-accent" title={focusedTask.title}>
+              Focando em: {focusedTask.title}
+            </p>
+          )}
         </div>
       )}
 
@@ -100,6 +109,11 @@ export default function Focus() {
           <span className={cn("mt-4 text-text-muted transition-all uppercase tracking-widest font-semibold", zenMode ? "text-lg" : "text-sm")}>
             {activeSession ? (activeSession.type === 'pomodoro' ? 'Pomodoro' : activeSession.type === 'break' ? 'Pausa' : 'Deep Work') : 'Pronto'}
           </span>
+          {zenMode && focusedTask && (
+            <span className="mt-2 max-w-72 truncate text-sm font-medium normal-case tracking-normal text-accent" title={focusedTask.title}>
+              {focusedTask.title}
+            </span>
+          )}
         </div>
       </motion.div>
 
