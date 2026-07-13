@@ -314,7 +314,7 @@ export function TaskForm() {
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
-              <div className="space-y-4 p-6 overflow-y-auto">
+              <div className="space-y-4 p-6 overflow-y-auto flex-1 min-h-0">
               <input autoFocus type="text" placeholder="Título da tarefa..." value={title} onChange={(e) => setTitle(e.target.value)}
                 className="w-full bg-transparent text-lg font-medium text-text-primary placeholder:text-text-muted outline-none" />
 
