@@ -299,13 +299,13 @@ export function TaskForm() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeForm} />
 
           <motion.div
-            className="glass relative w-full max-w-lg rounded-[var(--radius-lg)] shadow-2xl"
+            className="glass relative w-full max-w-lg rounded-[var(--radius-lg)] shadow-2xl flex flex-col max-h-[90vh]"
             variants={modalContent}
             initial="hidden"
             animate="visible"
             exit="exit"
           >
-            <div className="flex items-center justify-between border-b border-border-subtle px-6 py-4">
+            <div className="flex items-center justify-between border-b border-border-subtle px-6 py-4 shrink-0">
               <h2 className="text-lg font-semibold text-text-primary">{isEditing ? 'Editar Tarefa' : 'Nova Tarefa'}</h2>
               <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={closeForm}
                 className="text-text-muted hover:text-text-secondary">
@@ -313,7 +313,8 @@ export function TaskForm() {
               </motion.button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 p-6">
+            <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
+              <div className="space-y-4 p-6 overflow-y-auto">
               <input autoFocus type="text" placeholder="Título da tarefa..." value={title} onChange={(e) => setTitle(e.target.value)}
                 className="w-full bg-transparent text-lg font-medium text-text-primary placeholder:text-text-muted outline-none" />
 
@@ -566,8 +567,9 @@ export function TaskForm() {
               {isEditing && taskDetailId && (
                 <TaskComments taskId={taskDetailId} />
               )}
+              </div>
 
-              <div className="flex justify-between gap-2 border-t border-border-subtle pt-4 mt-6">
+              <div className="flex justify-between gap-2 border-t border-border-subtle p-6 shrink-0 mt-auto">
                 <div className="flex items-center gap-2">
                   {isEditing && (activeSession || canStartFocus) && (
                     <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleDelete}
