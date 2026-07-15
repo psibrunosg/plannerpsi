@@ -10,15 +10,15 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "/plannerpsi/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/plannerpsi/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/plannerpsi/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/plannerpsi/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
