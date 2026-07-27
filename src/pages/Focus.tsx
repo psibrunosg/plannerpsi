@@ -22,6 +22,13 @@ export default function Focus() {
   
   const zenMode = useUIStore((s) => s.zenMode)
   const setZenMode = useUIStore((s) => s.setZenMode)
+  const fetchSessions = useFocusStore((s) => s.fetchSessions)
+  const loadPreferencesFromDB = useFocusStore((s) => s.loadPreferencesFromDB)
+
+  useEffect(() => {
+    fetchSessions()
+    loadPreferencesFromDB()
+  }, [fetchSessions, loadPreferencesFromDB])
 
   useEffect(() => {
     if (!activeSession || activeSession.isPaused) return

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Radio, Play, Pause, Volume2, VolumeX, Trash2, Settings } from 'lucide-react'
 import { useRadioStore } from '@/stores/radioStore'
@@ -15,6 +15,10 @@ export function RadioControls() {
   } = useRadioStore()
 
   const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    useRadioStore.getState().loadFavoritesFromDB()
+  }, [])
 
   return (
     <div className="relative">

@@ -24,10 +24,6 @@ const Leaderboard = lazy(() => import('@/pages/Leaderboard'))
 import { migrateLocalDataToSupabase } from '@/lib/migration'
 import { useAuthStore } from '@/stores/authStore'
 import { useTaskStore } from '@/stores/taskStore'
-import { usePlanningStore } from '@/stores/planningStore'
-import { useFocusStore } from '@/stores/focusStore'
-import { useProcedureStore } from '@/stores/procedureStore'
-import { useRadioStore } from '@/stores/radioStore'
 import { useProfileStore } from '@/stores/profileStore'
 import { useUIStore } from '@/stores/uiStore'
 import { useGamificationStore } from '@/stores/gamificationStore'
@@ -62,12 +58,7 @@ export default function App() {
         }
         await Promise.all([
           useTaskStore.getState().fetchTasks(),
-          useProfileStore.getState().fetchProfiles(),
-          usePlanningStore.getState().fetchNotes(),
-          useFocusStore.getState().fetchSessions(),
-          useFocusStore.getState().loadPreferencesFromDB(),
-          useProcedureStore.getState().fetchProcedures(),
-          useRadioStore.getState().loadFavoritesFromDB()
+          useProfileStore.getState().fetchProfiles()
         ])
       setIsMigrating(false)
       }

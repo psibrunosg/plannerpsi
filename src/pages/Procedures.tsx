@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, X, AlignLeft, KanbanSquare, ListPlus } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -197,9 +197,14 @@ function BoardCard({ procedure, onClick }: { procedure: Procedure; onClick: () =
 
 export default function Procedures() {
   const procedures = useProcedureStore((s) => s.procedures)
+  const fetchProcedures = useProcedureStore((s) => s.fetchProcedures)
   const [formOpen, setFormOpen] = useState(false)
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'kanban' | 'flow'>('kanban')
+
+  useEffect(() => {
+    fetchProcedures()
+  }, [fetchProcedures])
 
   const activeBoard = procedures.find(p => p.id === activeBoardId)
 

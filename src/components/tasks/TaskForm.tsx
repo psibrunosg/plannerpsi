@@ -58,6 +58,16 @@ export function TaskForm() {
   const [subtaskInput, setSubtaskInput] = useState('')
   const [assigneeId, setAssigneeId] = useState<string | null>(null)
   const [patientId, setPatientId] = useState<string | null>(null)
+  const [isFullyOpen, setIsFullyOpen] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      const t = setTimeout(() => setIsFullyOpen(true), 250) // waits for Framer Motion entrance
+      return () => clearTimeout(t)
+    } else {
+      setIsFullyOpen(false)
+    }
+  }, [isOpen])
 
   const currentUser = useAuthStore(s => s.user)
   const currentProfile = useAuthStore(s => s.profile)
@@ -66,10 +76,10 @@ export function TaskForm() {
   const fetchPatients = usePatientStore(s => s.fetchPatients)
 
   useEffect(() => {
-    if (isOpen && patients.length === 0) {
+    if (isFullyOpen && patients.length === 0) {
       fetchPatients()
     }
-  }, [isOpen, patients.length, fetchPatients])
+  }, [isFullyOpen, patients.length, fetchPatients])
 
   const assignableProfiles = allProfiles.filter(p => (currentProfile?.level ?? 1) > 1 && p.level <= currentProfile!.level)
 
@@ -523,7 +533,7 @@ export function TaskForm() {
               )}
 
               {/* Subtasks (only available once the parent task exists) */}
-              {isEditing && (
+              {isEditing && isFullyOpen && (
                 <div>
                   <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-text-muted">
                     <ListTree className="h-3.5 w-3.5" />
@@ -564,7 +574,7 @@ export function TaskForm() {
                 </div>
               )}
 
-              {isEditing && taskDetailId && (
+              {isEditing && taskDetailId && isFullyOpen && (
                 <TaskComments taskId={taskDetailId} />
               )}
               </div>
