@@ -15,6 +15,7 @@ import type { TaskPriority, TaskStatus, RecurrenceFreq } from '@/types'
 import { PRIORITY_CONFIG, SMART_DATE_TAGS, RECURRENCE_FREQ_CONFIG } from '@/types'
 import { useScrollLock } from '@/lib/useScrollLock'
 import { TaskComments } from './TaskComments'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
 export function TaskForm() {
   const navigate = useNavigate()
@@ -58,6 +59,7 @@ export function TaskForm() {
   const [subtaskInput, setSubtaskInput] = useState('')
   const [assigneeId, setAssigneeId] = useState<string | null>(null)
   const [patientId, setPatientId] = useState<string | null>(null)
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false)
   const [isFullyOpen, setIsFullyOpen] = useState(false)
 
   useEffect(() => {
@@ -219,14 +221,19 @@ export function TaskForm() {
 
   const handleDelete = () => {
     if (isEditing && taskDetailId) {
-      if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
-        const idToDelete = taskDetailId
-        closeForm()
-        setTimeout(() => {
-          deleteTask(idToDelete)
-          addToast('Tarefa excluída!', 'success')
-        }, 250)
-      }
+      setIsConfirmDeleteOpen(true)
+    }
+  }
+
+  const executeDelete = () => {
+    if (taskDetailId) {
+      const idToDelete = taskDetailId
+      setIsConfirmDeleteOpen(false)
+      closeForm()
+      setTimeout(() => {
+        deleteTask(idToDelete)
+        addToast('Tarefa excluída!', 'success')
+      }, 250)
     }
   }
 
@@ -297,6 +304,7 @@ export function TaskForm() {
   }
 
   return (
+    <>
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -614,5 +622,16 @@ export function TaskForm() {
         </motion.div>
       )}
     </AnimatePresence>
+    <ConfirmModal
+      isOpen={isConfirmDeleteOpen}
+      onClose={() => setIsConfirmDeleteOpen(false)}
+      onConfirm={executeDelete}
+      title="Excluir Tarefa"
+      description="Tem certeza que deseja excluir esta tarefa? Essa ação não pode ser desfeita."
+      confirmText="Excluir"
+      cancelText="Cancelar"
+      variant="danger"
+    />
+    </>
   )
 }

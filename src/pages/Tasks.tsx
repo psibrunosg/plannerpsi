@@ -13,6 +13,7 @@ import { CalendarView } from '@/components/views/CalendarView'
 import { TimelineView } from '@/components/views/TimelineView'
 import { useProposalStore } from '@/stores/proposalStore'
 import { TaskProposalModal } from '@/components/tasks/TaskProposalModal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { Send, Check, X as XIcon, Clock, CircleCheck, CircleX } from 'lucide-react'
 import { getLocalTodayStr } from '@/lib/dateUtils'
 import { buildTaskTree, type TaskTreeNode } from '@/lib/taskTree'
@@ -199,6 +200,8 @@ export default function Tasks() {
   const rejectProposal = useProposalStore(s => s.rejectProposal)
   const processingProposalId = useProposalStore(s => s.processingProposalId)
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false)
+  const [isConfirmArchiveOpen, setIsConfirmArchiveOpen] = useState(false)
+  const [isArchiving, setIsArchiving] = useState(false)
 
   const proposalStatus = {
     pending: { label: 'Aguardando resposta', className: 'bg-warning/10 text-warning', icon: Clock },
@@ -257,10 +260,20 @@ export default function Tasks() {
     )
   }
 
-  const handleArchive = async () => {
-    if (confirm("Tem certeza que deseja arquivar TODAS as tarefas concluídas? Elas sumirão desta lista.")) {
+  const handleArchive = () => {
+    setIsConfirmArchiveOpen(true)
+  }
+
+  const executeArchive = async () => {
+    setIsArchiving(true)
+    try {
       const archived = await archiveCompletedTasks()
-      if (archived) addToast("Tarefas arquivadas com sucesso!", "success")
+      if (archived) {
+        addToast('Tarefas arquivadas com sucesso!', 'success')
+      }
+      setIsConfirmArchiveOpen(false)
+    } finally {
+      setIsArchiving(false)
     }
   }
 
@@ -482,6 +495,17 @@ export default function Tasks() {
         </motion.div>
       </AnimatePresence>
       <TaskProposalModal isOpen={isProposalModalOpen} onClose={() => setIsProposalModalOpen(false)} />
+      <ConfirmModal
+        isOpen={isConfirmArchiveOpen}
+        onClose={() => setIsConfirmArchiveOpen(false)}
+        onConfirm={executeArchive}
+        title="Arquivar Tarefas Concluídas"
+        description="Tem certeza que deseja arquivar TODAS as tarefas concluídas? Elas serão limpas desta lista e migradas para o arquivo de tarefas."
+        confirmText="Arquivar Tudo"
+        cancelText="Cancelar"
+        variant="archive"
+        isLoading={isArchiving}
+      />
       <AnimatePresence>
         {isTagFilterOpen && (
           <motion.div
