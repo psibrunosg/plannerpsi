@@ -29,6 +29,7 @@ import { useGamificationStore } from '@/stores/gamificationStore'
 import { requestNotificationPermission, checkAndNotifyTasks } from '@/lib/notificationManager'
 import { handleCallbackIfPresent } from '@/lib/spotifyAuth'
 import { registerServiceWorker, syncTasksToSW, syncSessionToSW, syncSettingsToSW, triggerImmediateCheck } from '@/lib/swManager'
+import { initializeDeviceSync } from '@/lib/syncManager'
 
 export default function App() {
 
@@ -67,6 +68,9 @@ export default function App() {
         if (tasks.length > 0) syncTasksToSW(tasks)
         triggerImmediateCheck()
       })
+
+      // Initialize Supabase realtime WebSockets & Window focus resync
+      const cleanupSync = initializeDeviceSync()
 
       requestNotificationPermission()
       
@@ -107,6 +111,7 @@ export default function App() {
       return () => {
         clearInterval(interval)
         window.removeEventListener('sw:open-task', handleSWOpenTask)
+        if (cleanupSync) cleanupSync()
       }
     }
   }, [session])
