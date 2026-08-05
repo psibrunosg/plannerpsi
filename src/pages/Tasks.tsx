@@ -15,6 +15,7 @@ import { useProposalStore } from '@/stores/proposalStore'
 import { TaskProposalModal } from '@/components/tasks/TaskProposalModal'
 import { Send, Check, X as XIcon, Clock, CircleCheck, CircleX } from 'lucide-react'
 import { getLocalTodayStr } from '@/lib/dateUtils'
+import { buildTaskTree, type TaskTreeNode } from '@/lib/taskTree'
 
 const VIEW_OPTIONS: { id: ViewMode; icon: React.ElementType; label: string }[] = [
   { id: 'list', icon: List, label: 'Lista' },
@@ -93,6 +94,57 @@ function CompletionBar({ percentage }: { percentage: number }) {
   )
 }
 
+function TaskRow({ task }: { task: Task }) {
+  return (
+    <div onClick={() => useUIStore.getState().setTaskDetailId(task.id)}
+      className="glass-card flex cursor-pointer items-center gap-4 p-4 hover:translate-x-0.5 hover:shadow-md transition-all">
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          if (task.status === 'done') void useTaskStore.getState().updateTask(task.id, { status: 'todo', completed_at: null, completion_percentage: 0 })
+          else void useTaskStore.getState().completeTask(task.id)
+        }}
+        className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+          task.status === 'done' ? 'border-success bg-success/20 text-success' : 'border-text-muted hover:border-accent')}>
+        {task.status === 'done' && (
+          <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M2 6L5 9L10 3" />
+          </svg>
+        )}
+      </button>
+
+      <div className="flex-1 min-w-0">
+        <p className={cn('text-sm font-medium truncate', task.status === 'done' ? 'text-text-muted line-through' : 'text-text-primary')}>{task.title}</p>
+        {task.description && <p className="mt-0.5 text-xs text-text-muted truncate">{task.description}</p>}
+      </div>
+
+      <div className="flex items-center gap-2 shrink-0">
+        <CompletionBar percentage={task.completion_percentage ?? 0} />
+        {task.tags?.map((tag) => (
+          <span key={tag} className="rounded-full bg-accent/10 px-2 py-0.5 text-xs text-accent">{tag}</span>
+        ))}
+        <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', PRIORITY_CONFIG[task.priority].bg, PRIORITY_CONFIG[task.priority].color)}>
+          {PRIORITY_CONFIG[task.priority].label}
+        </span>
+        <span className={cn('text-xs', STATUS_CONFIG[task.status].color)}>{STATUS_CONFIG[task.status].label}</span>
+      </div>
+    </div>
+  )
+}
+
+function TaskTree({ node }: { node: TaskTreeNode }) {
+  return (
+    <div>
+      <TaskRow task={node.task} />
+      {node.children.length > 0 && (
+        <div className="ml-6 mt-2 space-y-2 border-l border-border-subtle pl-3">
+          {node.children.map((child) => <TaskTree key={child.task.id} node={child} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ListView({ tasks: filteredTasks }: { tasks: Task[] }) {
   if (filteredTasks.length === 0) {
     return (
@@ -106,37 +158,7 @@ function ListView({ tasks: filteredTasks }: { tasks: Task[] }) {
 
   return (
     <div className="space-y-2">
-      {filteredTasks.map((task) => (
-        <div key={task.id} onClick={() => useUIStore.getState().setTaskDetailId(task.id)}
-          className="glass-card flex cursor-pointer items-center gap-4 p-4 hover:translate-x-0.5 hover:shadow-md transition-all">
-          <button
-            onClick={(e) => { e.stopPropagation(); task.status === 'done' ? useTaskStore.getState().updateTask(task.id, { status: 'todo', completed_at: null, completion_percentage: 0 }) : useTaskStore.getState().completeTask(task.id) }}
-            className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
-              task.status === 'done' ? 'border-success bg-success/20 text-success' : 'border-text-muted hover:border-accent')}>
-            {task.status === 'done' && (
-              <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M2 6L5 9L10 3" />
-              </svg>
-            )}
-          </button>
-
-          <div className="flex-1 min-w-0">
-            <p className={cn('text-sm font-medium truncate', task.status === 'done' ? 'text-text-muted line-through' : 'text-text-primary')}>{task.title}</p>
-            {task.description && <p className="mt-0.5 text-xs text-text-muted truncate">{task.description}</p>}
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <CompletionBar percentage={task.completion_percentage ?? 0} />
-            {task.tags?.map((tag) => (
-              <span key={tag} className="rounded-full bg-accent/10 px-2 py-0.5 text-xs text-accent">{tag}</span>
-            ))}
-            <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', PRIORITY_CONFIG[task.priority].bg, PRIORITY_CONFIG[task.priority].color)}>
-              {PRIORITY_CONFIG[task.priority].label}
-            </span>
-            <span className={cn('text-xs', STATUS_CONFIG[task.status].color)}>{STATUS_CONFIG[task.status].label}</span>
-          </div>
-        </div>
-      ))}
+      {buildTaskTree(filteredTasks).map((node) => <TaskTree key={node.task.id} node={node} />)}
     </div>
   )
 }
