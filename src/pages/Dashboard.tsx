@@ -36,7 +36,7 @@ export default function Dashboard() {
 
   const todayStr = new Date().toISOString().split('T')[0]
 
-  const todayTasks = tasks.filter((t) => t.due_date?.startsWith(todayStr))
+  const todayTasks = tasks.filter((t) => t.due_date?.startsWith(todayStr) && t.status !== 'archived')
   const completedToday = tasks.filter((t) => t.completed_at?.startsWith(todayStr))
   const totalTasks = tasks.filter((t) => t.status !== 'archived').length
   const doneTasks = tasks.filter((t) => t.status === 'done').length

@@ -223,9 +223,7 @@ export const useTaskStore = create<TaskState>()(
 
       archiveCompletedTasks: async () => {
         const user = useAuthStore.getState().user
-        const completedTasks = get().tasks.filter((task) =>
-          task.status === 'done' && (!user || task.user_id === user.id)
-        )
+        const completedTasks = get().tasks.filter((task) => task.status === 'done')
         const previousTasks = get().tasks
         if (completedTasks.length === 0) return true
 
@@ -239,9 +237,47 @@ export const useTaskStore = create<TaskState>()(
         })
 
         if (!user) return true
-        const { data, error } = await supabase.from('tasks').update(updates).in('id', ids).select('id')
-        if (error || !data || data.length !== ids.length) {
-          set({ tasks: previousTasks, syncStatus: 'error', syncError: error?.message ?? 'Nem todas as tarefas foram confirmadas.' })
+
+        const ownedIds: string[] = []
+        const delegatedTasks: typeof completedTasks = []
+
+        completedTasks.forEach((task) => {
+          if (task.user_id === user.id || !task.user_id) {
+            ownedIds.push(task.id)
+          } else if (task.assignee_id === user.id) {
+            delegatedTasks.push(task)
+          } else {
+            ownedIds.push(task.id)
+          }
+        })
+
+        let hasError = false
+        let errorMessage = 'Nem todas as tarefas foram confirmadas.'
+
+        if (ownedIds.length > 0) {
+          const { data, error } = await supabase.from('tasks').update(updates).in('id', ownedIds).select('id')
+          if (error || !data || data.length !== ownedIds.length) {
+            hasError = true
+            if (error?.message) errorMessage = error.message
+          }
+        }
+
+        if (delegatedTasks.length > 0) {
+          const results = await Promise.all(
+            delegatedTasks.map((task) =>
+              supabase.rpc('update_delegated_task_progress', {
+                p_task_id: task.id,
+                p_status: 'archived',
+              })
+            )
+          )
+          if (results.some((r) => r.error || !r.data)) {
+            hasError = true
+          }
+        }
+
+        if (hasError) {
+          set({ tasks: previousTasks, syncStatus: 'error', syncError: errorMessage })
           useToastStore.getState().addToast('As tarefas n\u00e3o foram arquivadas na nuvem e a altera\u00e7\u00e3o foi desfeita.', 'error', 6000)
           return false
         }
