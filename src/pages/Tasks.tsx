@@ -115,7 +115,7 @@ function TaskRow({ task }: { task: Task }) {
 
       <div className="flex-1 min-w-0">
         <p className={cn('text-sm font-medium truncate', task.status === 'done' ? 'text-text-muted line-through' : 'text-text-primary')}>{task.title}</p>
-        {task.description && <p className="mt-0.5 text-xs text-text-muted truncate">{task.description}</p>}
+        {task.description && <p className="mt-0.5 text-xs text-text-muted line-clamp-2">{task.description}</p>}
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
