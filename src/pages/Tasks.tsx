@@ -184,6 +184,7 @@ export default function Tasks() {
   const [selectedTags, setSelectedTags] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('tasks-tag-filter') || '[]') } catch { return [] }
   })
+  const [isTagFilterOpen, setIsTagFilterOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState(() => localStorage.getItem('tasks-search') || '')
 
   // Persist filter state changes
@@ -445,32 +446,26 @@ export default function Tasks() {
               )}
             </div>
 
-            {/* Tag filter chips */}
+            {/* Tag filter */}
             {allAvailableTags.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="flex items-center gap-1 text-xs text-text-muted">
-                  <Tag className="h-3 w-3" />
-                </span>
-                {allAvailableTags.map((tag) => (
-                  <motion.button
-                    key={tag}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => toggleTag(tag)}
-                    className={cn(
-                      'flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-all',
-                      selectedTags.includes(tag)
-                        ? 'bg-accent/20 text-accent ring-1 ring-accent/40'
-                        : 'bg-surface-elevated/80 text-text-muted hover:text-text-secondary hover:bg-surface-hover border border-border-subtle/60',
-                    )}
-                  >
-                    <span className="opacity-60">#</span>{tag}
-                    {selectedTags.includes(tag) && <X className="h-2.5 w-2.5 ml-0.5" />}
-                  </motion.button>
-                ))}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsTagFilterOpen(true)}
+                  className={cn(
+                    'flex items-center gap-2 rounded-[var(--radius-sm)] border px-3 py-1.5 text-xs font-medium transition-colors',
+                    selectedTags.length > 0
+                      ? 'border-accent/40 bg-accent/10 text-accent'
+                      : 'border-border-subtle bg-surface-elevated/80 text-text-muted hover:bg-surface-hover hover:text-text-secondary',
+                  )}
+                >
+                  <Tag className="h-3.5 w-3.5" />
+                  Filtrar tags
+                  {selectedTags.length > 0 && <span className="rounded-full bg-accent/20 px-1.5 py-0.5 text-[10px]">{selectedTags.length}</span>}
+                </button>
                 {selectedTags.length > 0 && (
                   <button
                     onClick={() => setSelectedTags([])}
-                    className="text-xs text-text-muted hover:text-accent transition-colors ml-1"
+                    className="text-xs text-text-muted transition-colors hover:text-accent"
                   >
                     Limpar
                   </button>
@@ -487,6 +482,50 @@ export default function Tasks() {
         </motion.div>
       </AnimatePresence>
       <TaskProposalModal isOpen={isProposalModalOpen} onClose={() => setIsProposalModalOpen(false)} />
+      <AnimatePresence>
+        {isTagFilterOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => setIsTagFilterOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
+              className="w-full max-w-md rounded-[var(--radius-lg)] border border-border-subtle bg-surface p-5 shadow-xl"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="tag-filter-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h2 id="tag-filter-title" className="flex items-center gap-2 text-base font-semibold text-text-primary"><Tag className="h-4 w-4 text-accent" />Filtrar tags</h2>
+                <button onClick={() => setIsTagFilterOpen(false)} className="text-text-muted hover:text-text-primary" aria-label="Fechar filtro de tags"><X className="h-5 w-5" /></button>
+              </div>
+              <div className="flex max-h-80 flex-wrap content-start gap-2 overflow-y-auto pr-1">
+                {allAvailableTags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => toggleTag(tag)}
+                    className={cn(
+                      'flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
+                      selectedTags.includes(tag)
+                        ? 'border-accent/40 bg-accent/20 text-accent'
+                        : 'border-border-subtle bg-surface-elevated text-text-muted hover:bg-surface-hover hover:text-text-secondary',
+                    )}
+                  >
+                    <span className="opacity-60">#</span>{tag}
+                    {selectedTags.includes(tag) && <X className="ml-0.5 h-3 w-3" />}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-5 flex justify-end gap-3">
+                {selectedTags.length > 0 && <button onClick={() => setSelectedTags([])} className="text-sm text-text-muted hover:text-accent">Limpar</button>}
+                <button onClick={() => setIsTagFilterOpen(false)} className="rounded-[var(--radius-sm)] bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover">Concluir</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
