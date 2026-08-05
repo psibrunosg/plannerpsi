@@ -12,7 +12,6 @@ import {
   BookOpen,
   BarChart3,
   Network,
-  Users,
   Trophy
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -29,7 +28,6 @@ const NAV_ITEMS = [
   { path: '/focus', icon: Timer, label: 'Foco' },
   { path: '/planning', icon: CalendarDays, label: 'Planejamento' },
   { path: '/procedures', icon: ClipboardList, label: 'Procedimentos' },
-  { path: '/patients', icon: Users, label: 'Pacientes' },
   { path: '/leaderboard', icon: Trophy, label: 'Ranking (XP)' },
   { path: '/study', icon: BookOpen, label: 'Estudos' },
   { path: '/maps', icon: Network, label: 'Mapas' },
@@ -40,7 +38,7 @@ const NAV_ITEMS = [
 const NAV_MODULES: Record<string, AppModule> = {
   '/': 'personal', '/tasks': 'personal', '/focus': 'personal', '/maps': 'personal', '/settings': 'personal',
   '/planning': 'operation', '/procedures': 'operation', '/leaderboard': 'operation',
-  '/study': 'study', '/stats': 'study', '/patients': 'clinical',
+  '/study': 'study', '/stats': 'study',
 }
 
 export function Sidebar() {
