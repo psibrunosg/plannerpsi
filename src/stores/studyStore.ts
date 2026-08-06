@@ -3,7 +3,15 @@ import { persist } from 'zustand/middleware'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { fetchModules, fetchModuleTopics, COURSES } from '@/lib/drive'
-import type { DriveModule, LessonGroup } from '@/lib/drive'
+import type { DriveModule, DriveTopic, LessonGroup } from '@/lib/drive'
+
+function flattenModuleLessons(topics: DriveTopic[]): LessonGroup[] {
+  let lessons: LessonGroup[] = []
+  for (const topic of topics) {
+    lessons = lessons.concat(topic.lessons, flattenModuleLessons(topic.subtopics || []))
+  }
+  return lessons
+}
 
 interface StudyState {
   activeCourseId: string
@@ -82,44 +90,25 @@ export const useStudyStore = create<StudyState>()(
         if (modIndex === -1) return
         
         const mod = modules[modIndex]
-        
-        // Find current topic and lesson index
-        let currentTopicIndex = -1
-        let currentLessonIndex = -1
-        
-        for (let t = 0; t < mod.topics.length; t++) {
-          const lIdx = mod.topics[t].lessons.findIndex(l => l.baseName === activeLesson.baseName)
-          if (lIdx !== -1) {
-            currentTopicIndex = t
-            currentLessonIndex = lIdx
-            break
-          }
+        const lessons = flattenModuleLessons(mod.topics)
+        const idx = lessons.findIndex(l => l.baseName === activeLesson.baseName)
+
+        if (idx !== -1 && idx < lessons.length - 1) {
+          selectLesson(lessons[idx + 1])
+          return
         }
         
-        if (currentTopicIndex !== -1) {
-          const topic = mod.topics[currentTopicIndex]
-          if (currentLessonIndex < topic.lessons.length - 1) {
-            // Next lesson in same topic
-            selectLesson(topic.lessons[currentLessonIndex + 1])
-            return
-          } else if (currentTopicIndex < mod.topics.length - 1) {
-            // First lesson in next topic
-            const nextTopic = mod.topics[currentTopicIndex + 1]
-            if (nextTopic.lessons.length > 0) {
-              selectLesson(nextTopic.lessons[0])
-              return
-            }
-          }
-        }
-        
-        // If we get here, it's the last lesson in the module, so we try the next module
+        // If last lesson in module, try next module
         if (modIndex < modules.length - 1) {
           const nextMod = modules[modIndex + 1]
           await selectModule(nextMod.id)
           const updatedMods = get().modules
           const updatedNextMod = updatedMods.find(m => m.id === nextMod.id)
-          if (updatedNextMod && updatedNextMod.topics.length > 0 && updatedNextMod.topics[0].lessons.length > 0) {
-             selectLesson(updatedNextMod.topics[0].lessons[0])
+          if (updatedNextMod) {
+            const nextLessons = flattenModuleLessons(updatedNextMod.topics)
+            if (nextLessons.length > 0) {
+              selectLesson(nextLessons[0])
+            }
           }
         }
       },
@@ -132,45 +121,24 @@ export const useStudyStore = create<StudyState>()(
         if (modIndex === -1) return
 
         const mod = modules[modIndex]
+        const lessons = flattenModuleLessons(mod.topics)
+        const idx = lessons.findIndex(l => l.baseName === activeLesson.baseName)
 
-        let currentTopicIndex = -1
-        let currentLessonIndex = -1
-
-        for (let t = 0; t < mod.topics.length; t++) {
-          const lIdx = mod.topics[t].lessons.findIndex(l => l.baseName === activeLesson.baseName)
-          if (lIdx !== -1) {
-            currentTopicIndex = t
-            currentLessonIndex = lIdx
-            break
-          }
+        if (idx > 0) {
+          selectLesson(lessons[idx - 1])
+          return
         }
 
-        if (currentTopicIndex !== -1) {
-          const topic = mod.topics[currentTopicIndex]
-          if (currentLessonIndex > 0) {
-            // Previous lesson in same topic
-            selectLesson(topic.lessons[currentLessonIndex - 1])
-            return
-          } else if (currentTopicIndex > 0) {
-            // Last lesson of previous topic
-            const prevTopic = mod.topics[currentTopicIndex - 1]
-            if (prevTopic.lessons.length > 0) {
-              selectLesson(prevTopic.lessons[prevTopic.lessons.length - 1])
-              return
-            }
-          }
-        }
-
-        // If we get here, it's the first lesson in the module, so we try the previous module
+        // If first lesson in module, try previous module
         if (modIndex > 0) {
           const prevMod = modules[modIndex - 1]
           await selectModule(prevMod.id)
           const updatedMods = get().modules
           const updatedPrevMod = updatedMods.find(m => m.id === prevMod.id)
-          if (updatedPrevMod && updatedPrevMod.topics.length > 0) {
-            const lastTopic = updatedPrevMod.topics[updatedPrevMod.topics.length - 1]
-            if (lastTopic.lessons.length > 0) {
-              selectLesson(lastTopic.lessons[lastTopic.lessons.length - 1])
+          if (updatedPrevMod) {
+            const prevLessons = flattenModuleLessons(updatedPrevMod.topics)
+            if (prevLessons.length > 0) {
+              selectLesson(prevLessons[prevLessons.length - 1])
             }
           }
         }

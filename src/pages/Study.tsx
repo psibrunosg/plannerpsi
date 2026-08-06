@@ -23,7 +23,7 @@ export default function Study() {
     } else {
       setNoteContent('')
     }
-  }, [activeLesson?.baseName])
+  }, [activeLesson, getLessonNote])
 
   // Auto save notes with debounce (or on change since it's local)
   const handleNoteChange = (content: string) => {
