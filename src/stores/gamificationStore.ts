@@ -21,11 +21,7 @@ export const useGamificationStore = create<GamificationState>()(
 
       calculateLevel: (currentXP: number) => {
         // Fórmula simples: Nível = floor(sqrt(XP / 100)) + 1
-        // Lvl 1: 0 XP
-        // Lvl 2: 100 XP
-        // Lvl 3: 400 XP
-        // Lvl 4: 900 XP
-        return Math.floor(Math.sqrt(currentXP / 100)) + 1
+        return Math.floor(Math.sqrt(Math.max(0, currentXP || 0) / 100)) + 1
       },
 
       getXPForCurrentLevel: (level: number) => {
