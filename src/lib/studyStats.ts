@@ -1,8 +1,13 @@
 import type { FocusSession } from '@/types'
 import type { DriveModule, DriveTopic } from '@/lib/drive'
 
-function toDateKey(iso: string): string {
-  return iso.split('T')[0]
+function toDateKey(dateInput: string | Date): string {
+  const d = typeof dateInput === 'string' ? new Date(dateInput) : dateInput
+  if (isNaN(d.getTime())) return typeof dateInput === 'string' ? dateInput.split('T')[0] : ''
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 export function computeStudyStreak(sessions: { started_at: string }[]): number {
@@ -10,10 +15,10 @@ export function computeStudyStreak(sessions: { started_at: string }[]): number {
   let streak = 0
   const cursor = new Date()
   // Allow streak to still count if today has no session yet, as long as yesterday does
-  if (!activeDays.has(cursor.toISOString().split('T')[0])) {
+  if (!activeDays.has(toDateKey(cursor))) {
     cursor.setDate(cursor.getDate() - 1)
   }
-  while (activeDays.has(cursor.toISOString().split('T')[0])) {
+  while (activeDays.has(toDateKey(cursor))) {
     streak++
     cursor.setDate(cursor.getDate() - 1)
   }
@@ -41,7 +46,7 @@ export function buildHeatmap(sessions: FocusSession[], weeks: number): HeatmapDa
   cursor.setDate(cursor.getDate() - (totalDays - 1))
 
   for (let i = 0; i < totalDays; i++) {
-    const key = cursor.toISOString().split('T')[0]
+    const key = toDateKey(cursor)
     days.push({ date: key, minutes: minutesByDay.get(key) ?? 0, weekday: cursor.getDay() })
     cursor.setDate(cursor.getDate() + 1)
   }

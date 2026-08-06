@@ -56,7 +56,10 @@ export default function Stats() {
     for (let i = 6; i >= 0; i--) {
       const date = subDays(new Date(), i)
       const dateStr = format(date, 'yyyy-MM-dd')
-      const daySessions = sessions.filter(s => s.started_at.startsWith(dateStr))
+      const daySessions = sessions.filter(s => {
+        const d = new Date(s.started_at)
+        return !isNaN(d.getTime()) && format(d, 'yyyy-MM-dd') === dateStr
+      })
       const minutes = daySessions.reduce((acc, s) => acc + (s.duration_minutes || 0), 0)
       data.push({
         name: format(date, 'EEEEEE', { locale: ptBR }),
@@ -72,10 +75,12 @@ export default function Stats() {
     const todo = tasks.filter(t => t.status === 'todo').length
     const inProgress = tasks.filter(t => t.status === 'in_progress').length
     const done = tasks.filter(t => t.status === 'done').length
+    const archived = tasks.filter(t => t.status === 'archived').length
     return [
       { name: 'A Fazer', value: todo, color: '#94a3b8' },
       { name: 'Em Progresso', value: inProgress, color: '#F4A261' },
       { name: 'Concluídas', value: done, color: '#A4C3B2' },
+      { name: 'Arquivadas', value: archived, color: '#818cf8' },
     ].filter(d => d.value > 0)
   }, [tasks])
 
@@ -86,7 +91,8 @@ export default function Stats() {
   // XP Progress
   const currentLevelXP = getXPForCurrentLevel(level)
   const nextLevelXP = getXPForNextLevel(level)
-  const xpProgress = Math.max(0, Math.min(100, ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100))
+  const xpDiff = nextLevelXP - currentLevelXP
+  const xpProgress = xpDiff > 0 ? Math.max(0, Math.min(100, ((xp - currentLevelXP) / xpDiff) * 100)) : 100
 
   return (
     <motion.div variants={pageTransition} initial="hidden" animate="visible" exit="exit">
