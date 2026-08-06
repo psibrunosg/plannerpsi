@@ -70,7 +70,8 @@ export const useProcedureStore = create<ProcedureState>()(
         }))
         const user = useAuthStore.getState().user
         if (user) {
-          const { error } = await supabase.from('procedures').update({ ...updates, updated_at }).eq('id', id)
+          const { steps, ...cleanUpdates } = updates as any
+          const { error } = await supabase.from('procedures').update({ ...cleanUpdates, updated_at }).eq('id', id)
           if (error) console.error('Error updating procedure:', error)
         }
       },
@@ -113,18 +114,27 @@ export const useProcedureStore = create<ProcedureState>()(
       },
 
       deleteStep: async (procedureId, stepId) => {
+        let updatedSteps: ProcedureStep[] = []
         set((s) => ({
-          procedures: s.procedures.map((p) => p.id === procedureId ? {
-            ...p,
-            steps: p.steps.filter((st) => st.id !== stepId).map((st, i) => ({ ...st, order: i })),
-            updated_at: new Date().toISOString(),
-          } : p),
+          procedures: s.procedures.map((p) => {
+            if (p.id === procedureId) {
+              updatedSteps = p.steps.filter((st) => st.id !== stepId).map((st, i) => ({ ...st, order: i }))
+              return { ...p, steps: updatedSteps, updated_at: new Date().toISOString() }
+            }
+            return p
+          }),
         }))
         const user = useAuthStore.getState().user
         if (user) {
           const { error } = await supabase.from('procedure_steps').delete().eq('id', stepId)
           if (error) console.error('Error deleting step:', error)
-          // Ideally should also reorder on DB but local state handles it nicely for now
+          if (updatedSteps.length > 0) {
+            await Promise.all(
+              updatedSteps.map((step) =>
+                supabase.from('procedure_steps').update({ order: step.order }).eq('id', step.id)
+              )
+            )
+          }
         }
       },
 
@@ -134,10 +144,12 @@ export const useProcedureStore = create<ProcedureState>()(
         }))
         const user = useAuthStore.getState().user
         if (user) {
-          // Update orders and descriptions in DB
-          for (const step of steps) {
-            await supabase.from('procedure_steps').update({ order: step.order, description: step.description }).eq('id', step.id)
-          }
+          // Update orders and descriptions in DB concurrently
+          await Promise.all(
+            steps.map((step) =>
+              supabase.from('procedure_steps').update({ order: step.order, description: step.description }).eq('id', step.id)
+            )
+          )
         }
       },
     }),

@@ -12,6 +12,7 @@ import { ProcedureBoard } from '@/components/procedures/ProcedureBoard'
 import { ProcedureFlow } from '@/components/procedures/ProcedureFlow'
 import { parseStepDesc } from '@/lib/procedureParser'
 import { useScrollLock } from '@/lib/useScrollLock'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import type { Procedure } from '@/types'
 
 function ProcedureForm({ onClose }: { onClose: () => void }) {
@@ -93,6 +94,7 @@ function BoardCard({ procedure, onClick }: { procedure: Procedure; onClick: () =
   const addTask = useTaskStore((s) => s.addTask)
   const addToast = useToastStore((s) => s.addToast)
   const user = useAuthStore((s) => s.user)
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false)
 
   const handleInstantiate = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -180,7 +182,7 @@ function BoardCard({ procedure, onClick }: { procedure: Procedure; onClick: () =
               <ListPlus className="h-4 w-4" />
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); deleteProcedure(procedure.id); }}
+              onClick={(e) => { e.stopPropagation(); setShowConfirmDelete(true); }}
               className="rounded p-1.5 text-text-muted opacity-0 hover:bg-danger/10 hover:text-danger group-hover:opacity-100 transition-all"
             >
               <Trash2 className="h-4 w-4" />
@@ -191,6 +193,16 @@ function BoardCard({ procedure, onClick }: { procedure: Procedure; onClick: () =
         <h3 className="mb-1 font-semibold text-text-primary line-clamp-1">{procedure.name}</h3>
         <p className="text-xs text-text-muted">{procedure.steps.length} tarefa{procedure.steps.length !== 1 ? 's' : ''}</p>
       </div>
+
+      <ConfirmModal
+        isOpen={showConfirmDelete}
+        title="Excluir Plano de Procedimento"
+        description={`Deseja realmente excluir o plano "${procedure.name}" e todos os seus passos? Esta ação não pode ser desfeita.`}
+        confirmText="Excluir Plano"
+        variant="danger"
+        onConfirm={() => deleteProcedure(procedure.id)}
+        onClose={() => setShowConfirmDelete(false)}
+      />
     </motion.div>
   )
 }
